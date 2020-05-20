@@ -1,1 +1,19 @@
 // app global css in Stylus form
+
+// Link styles
+a
+  transition color 0.2s
+  color black
+
+  &:hover
+    color $blue-8
+
+  .body--dark &
+    color white
+
+    &:hover
+      color $blue-8
+
+// Make dark theme switch smooth
+*
+  transition background-color,color 0.6s ease

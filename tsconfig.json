@@ -1,7 +1,9 @@
 {
   "extends": "@quasar/app/tsconfig-preset",
+  "exclude": ["src/statics"],
   "compilerOptions": {
-    "baseUrl": ".",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "strictNullChecks": true,
+    "baseUrl": "."
   }
 }
