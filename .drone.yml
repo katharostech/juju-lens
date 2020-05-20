@@ -1,0 +1,20 @@
+---
+kind: pipeline
+name: build-and-release
+
+steps:
+  # Build the site
+  - name: build
+    image: node:10-alpine
+    commands:
+      - yarn install --frozen-lockfile
+      - npx quasar build
+  # Release to GitHub pages
+  - name: publish
+    image: plugins/gh-pages
+    settings:
+      username:
+        from_secret: github_username
+      password:
+        from_secret: github_password
+      pages_directory: dist/spa
