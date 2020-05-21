@@ -1,12 +1,18 @@
 <template>
-  <q-btn round dense color="secondary" :icon="btnIcon" @click="updateDarkMode">
+  <q-btn
+    v-ripple
+    round
+    dense
+    color="secondary"
+    :icon="btnIcon"
+    @click="updateDarkMode"
+  >
     <q-tooltip>{{ btnTooltip }}</q-tooltip>
   </q-btn>
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator';
-import { Todo, Meta } from './models';
+import { Vue, Component } from 'vue-property-decorator';
 
 @Component
 export default class DarkModeToggle extends Vue {
