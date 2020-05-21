@@ -2,7 +2,7 @@ import { route } from 'quasar/wrappers';
 import VueRouter from 'vue-router';
 import { StoreInterface } from '../store';
 import routes from './routes';
-import { Cookies } from 'quasar';
+import { LocalStorage } from 'quasar';
 
 /*
  * If not building with SSR mode, you can
@@ -27,14 +27,18 @@ export default route<StoreInterface>(function({ Vue }) {
     const seenJujuGui = 'seen-juju-lens-before';
 
     // If this is the first time the user has visited the site
-    if (!Cookies.get(seenJujuGui) && to.name != 'welcome') {
+    if (!LocalStorage.getItem(seenJujuGui) && to.name != 'welcome') {
       // Go to the welcome page
-      next({ name: 'welcome' });
+      next({ name: 'welcome', query: { welcomePageTo: to.fullPath, ...to.query } });
 
-      // Set the cookie indicating that they have been here before
-      Cookies.set(seenJujuGui, 'true');
-      
-    // If the user has been here before
+      try {
+        // Set the cookie indicating that they have been here before
+        LocalStorage.set(seenJujuGui, 'true');
+      } catch (e) {
+        console.error(e);
+      }
+
+      // If the user has been here before
     } else {
       // Send them along
       next();

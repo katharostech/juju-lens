@@ -21,14 +21,16 @@
         results will be persisted inside of your browser window.
       </p>
       <div class="flex justify-center">
-        <q-btn color="primary" label="Get Started" :to="{ name: 'home' }" />
+        <q-btn color="primary" label="Get Started" :to="getStartedLink" />
       </div>
     </q-card>
   </q-page>
 </template>
 
-<script>
-import DarkModeToggle from 'components/DarkModeToggle';
+<script lang="ts">
+import DarkModeToggle from 'components/DarkModeToggle.vue';
+import { Location } from 'vue-router';
+
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
@@ -36,5 +38,20 @@ import { Component, Vue } from 'vue-property-decorator';
     DarkModeToggle
   }
 })
-export default class Welcome extends Vue {}
+export default class Welcome extends Vue {
+  get getStartedLink(): Location {
+    const query = this.$route.query;
+    const routeTo = query.welcomePageTo;
+
+    if (typeof routeTo == 'string') {
+      (query.welcomePageTo as unknown) = undefined;
+      return {
+        path: routeTo,
+        query
+      };
+    } else {
+      return { name: 'home' };
+    }
+  }
+}
 </script>

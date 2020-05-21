@@ -16,15 +16,24 @@ import { Vue, Component } from 'vue-property-decorator';
 
 @Component
 export default class DarkModeToggle extends Vue {
+  setDarkMode(mode: boolean | 'auto'): void {
+    this.$q.dark.set(mode);
+    try {
+      this.$q.localStorage.set('darkMode', mode);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   updateDarkMode(): void {
     const mode = this.$q.dark.mode;
 
     if (mode === 'auto') {
-      this.$q.dark.set(true);
+      this.setDarkMode(true);
     } else if (mode === false) {
-      this.$q.dark.set('auto');
+      this.setDarkMode('auto');
     } else {
-      this.$q.dark.set(false);
+      this.setDarkMode(false);
     }
   }
 

@@ -52,7 +52,7 @@ module.exports = configure(function(ctx) {
       directives: [],
 
       // Quasar plugins
-      plugins: ['Cookies'],
+      plugins: ['LocalStorage'],
 
       config: {
         dark: 'auto'
