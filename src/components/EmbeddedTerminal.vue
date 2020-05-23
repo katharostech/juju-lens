@@ -20,19 +20,6 @@
 
       <q-space />
 
-      <!-- Split button -->
-      <q-btn v-ripple dense flat icon="fas fa-grip-lines-vertical">
-        <q-tooltip
-          transition-show="jump-up"
-          transition-hide="jump-down"
-          anchor="top middle"
-          self="bottom middle"
-          :delay="300"
-        >
-          Split
-        </q-tooltip>
-      </q-btn>
-
       <!-- Maximize button -->
       <q-btn
         v-ripple
@@ -95,7 +82,13 @@
 
     <!-- Terminal Body -->
     <div class="embedded-terminal--body fit q-pa-xs">
-      jujuuser@jujucontroller $
+      <q-input
+        v-model="termText"
+        square
+        autogrow
+        type="textarea"
+        style="width: 100% height: 100%;"
+      />
     </div>
   </div>
 </template>
@@ -115,6 +108,8 @@ export default class EmbeddedTerminal extends Vue {
   height = 200;
   readonly transitionDuration = 0.3;
   transitioning = false;
+
+  termText = 'jujuuser@jujucontroller $ ';
 
   get maxHeight(): number {
     return window.innerHeight - this.layout.header.offset;
@@ -168,4 +163,8 @@ export default class EmbeddedTerminal extends Vue {
 .embedded-terminal--body
   color white
   background-color black
+  font-family 'Courier New', Courier, monospace
+
+  textarea
+    padding 0 !important
 </style>
