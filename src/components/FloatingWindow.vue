@@ -246,7 +246,7 @@ export default class FloatingWindow extends Vue {
     } else {
       return (
         transitionStyle +
-        `left: ${this.left}px; top: ${this.top}px; right: ${this.right}px; bottom: ${this.bottom}px;`
+        `left: ${this.left}%; top: ${this.top}%; right: ${this.right}%; bottom: ${this.bottom}%;`
       );
     }
   }
@@ -261,7 +261,7 @@ export default class FloatingWindow extends Vue {
     );
   }
 
-  getParentSize(): [number, number] {
+  get parentSize(): [number, number] {
     return [
       width(this.$refs.parentSizeDetector as Element),
       height(this.$refs.parentSizeDetector as Element)
@@ -271,34 +271,38 @@ export default class FloatingWindow extends Vue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   moveWindow(event: any): void {
     if (!this.maximized) {
-      const left = this.left + event.delta.x;
-      const top = this.top + event.delta.y;
+      const left = this.left + (event.delta.x / this.parentSize[0]) * 100;
+      const top = this.top + (event.delta.y / this.parentSize[1]) * 100;
 
       if (left >= 0) {
         this.left = left;
-        this.right -= event.delta.x;
+        this.right -= (event.delta.x / this.parentSize[0]) * 100;
       }
 
       if (top >= 0) {
         this.top = top;
-        this.bottom -= event.delta.y;
+        this.bottom -= (event.delta.y / this.parentSize[1]) * 100;
       }
     }
   }
 
   setWindowTilePosition([x, y]: [number, number]): void {
     this.showPositionButtons = false;
-    const halfHeight = height(this.$refs.parentSizeDetector as Element) / 2;
-    const halfWidth = width(this.$refs.parentSizeDetector as Element) / 2;
+    this.transitioning = true;
+
+    // Unmaximize if necessary
+    if (this.maximized) {
+      this.$emit('restore');
+    }
 
     if (x == 0) {
       this.left = 0;
       this.right = 0;
     } else if (x == 1) {
-      this.left = halfWidth;
+      this.left = 50;
       this.right = 0;
     } else if (x == -1) {
-      this.right = halfWidth;
+      this.right = 50;
       this.left = 0;
     }
 
@@ -306,12 +310,17 @@ export default class FloatingWindow extends Vue {
       this.top = 0;
       this.bottom = 0;
     } else if (y == 1) {
-      this.top = halfHeight;
+      this.top = 50;
       this.bottom = 0;
     } else if (y == -1) {
-      this.top = halfHeight;
-      this.bottom = 0;
+      this.top = 0;
+      this.bottom = 50;
     }
+
+    setTimeout(
+      () => (this.transitioning = false),
+      this.transitionDuration * 1000
+    );
   }
 
   //
@@ -321,7 +330,7 @@ export default class FloatingWindow extends Vue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowTop(event: any): void {
     if (!this.maximized) {
-      const top = this.top + event.delta.y;
+      const top = this.top + (event.delta.y / this.parentSize[1]) * 100;
       this.top = top >= 0 ? top : 0;
     }
   }
@@ -329,21 +338,21 @@ export default class FloatingWindow extends Vue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowBottom(event: any): void {
     if (!this.maximized) {
-      this.bottom = this.bottom - event.delta.y;
+      this.bottom = this.bottom - (event.delta.y / this.parentSize[1]) * 100;
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowRight(event: any): void {
     if (!this.maximized) {
-      this.right = this.right - event.delta.x;
+      this.right = this.right - (event.delta.x / this.parentSize[0]) * 100;
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowLeft(event: any): void {
     if (!this.maximized) {
-      const left = this.left + event.delta.x;
+      const left = this.left + (event.delta.x / this.parentSize[0]) * 100;
       this.left = left >= 0 ? left : 0;
     }
   }
