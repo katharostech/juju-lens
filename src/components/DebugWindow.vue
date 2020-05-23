@@ -8,6 +8,7 @@
       v-on:restore="toggleDebugWindowMaximized"
       v-on:minimize="toggleDebugWindow"
       :showClose="false"
+      icon="fas fa-bug"
     >
       <p>Hello World</p></floating-window
     >

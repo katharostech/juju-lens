@@ -1,100 +1,216 @@
 <template>
-  <transition name="window-transition">
-    <div class="floating-window" :style="floatingWindowStyle" v-if="visible">
-      <q-card class="fit">
-        <q-bar v-touch-pan.mouse.prevent="moveWindow" class="cursor-pointer">
-          <div class="text-weight-bold ellipsis">{{ title }}</div>
-          <q-space />
-          <!-- TODO: Use material icons instead of fontawesome? -->
-          <!-- Minimize button -->
-          <q-btn
-            v-if="showMinimize"
-            v-ripple
-            dense
-            flat
-            icon="fas fa-window-minimize"
-            @click="$emit('minimize')"
-          />
-          <!-- Maximize button -->
-          <q-btn
-            v-if="!maximized && showMaximize"
-            v-ripple
-            dense
-            flat
-            icon="fas fa-window-maximize"
-            @click="$emit('maximize')"
-          />
-          <!-- Resore button -->
-          <q-btn
-            v-if="maximized && showMaximize"
-            v-ripple
-            dense
-            flat
-            icon="fas fa-window-restore"
-            @click="$emit('restore')"
-          />
-          <!-- Close button -->
-          <q-btn
-            v-if="showClose"
-            v-ripple
-            dense
-            flat
-            icon="fas fa-window-close"
-            @click="$emit('close')"
-          />
-        </q-bar>
-        <div>
-          <slot name="default" />
-        </div>
+  <div
+    ref="parentSizeDetector"
+    style="position: absolute; top: 0; bottom: 0; right: 0; left: 0;"
+  >
+    <transition name="window-transition">
+      <!-- Div set to the full size of it's parent, that way we can measure this div to measure
+    the parent's size. -->
+      <div class="floating-window" :style="floatingWindowStyle" v-if="visible">
+        <q-card class="fit">
+          <q-bar
+            v-touch-pan.mouse.prevent="moveWindow"
+            class="floating-window--bar cursor-pointer"
+          >
+            <q-icon v-if="icon" :name="icon" />
 
-        <!-- RESIZE HANDLES -->
+            <div class="text-weight-bold ellipsis">{{ title }}</div>
 
-        <!-- Resize Top side -->
-        <div
-          v-touch-pan.mouse.up.down.prevent="resizeWindowTop"
-          style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em;"
-        ></div>
-        <!-- Resize Bottom side -->
-        <div
-          v-touch-pan.mouse.up.down.prevent="resizeWindowBottom"
-          style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em;"
-        ></div>
-        <!-- Resize Right side -->
-        <div
-          v-touch-pan.mouse.left.right.prevent="resizeWindowRight"
-          style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em;"
-        ></div>
-        <!-- Resize Left side -->
-        <div
-          v-touch-pan.mouse.left.right.prevent="resizeWindowLeft"
-          style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em;"
-        ></div>
-        <!-- Resize Top Left -->
-        <div
-          v-touch-pan.mouse.prevent="resizeWindowTopLeft"
-          style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
-        ></div>
-        <!-- Resize Top Right -->
-        <div
-          v-touch-pan.mouse.prevent="resizeWindowTopRight"
-          style="position: absolute; top: 0; right: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
-        ></div>
-        <!-- Resize Bottom Left -->
-        <div
-          v-touch-pan.mouse.prevent="resizeWindowBottomLeft"
-          style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
-        ></div>
-        <!-- Resize Bottom Right -->
-        <div
-          v-touch-pan.mouse.prevent="resizeWindowBottomRight"
-          style="position: absolute; bottom: 0; right: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
-        ></div>
-      </q-card>
-    </div>
-  </transition>
+            <q-space />
+
+            <!-- TODO: Use material icons instead of fontawesome? -->
+
+            <div style="position: relative;">
+              <!-- Position button -->
+              <q-btn
+                v-if="showMinimize"
+                v-ripple
+                dense
+                flat
+                icon="pages"
+                @click="showPositionButtons = !showPositionButtons"
+              >
+                <q-tooltip
+                  transition-show="jump-up"
+                  transition-hide="jump-down"
+                  anchor="top middle"
+                  self="bottom middle"
+                  :delay="500"
+                >
+                  Position
+                </q-tooltip>
+              </q-btn>
+
+              <!-- Position select buttons -->
+              <transition
+                v-for="([x, y], i) in [
+                  [0, 1],
+                  [1, 1],
+                  [1, 0],
+                  [1, -1],
+                  [0, -1],
+                  [-1, -1],
+                  [-1, 0],
+                  [-1, 1]
+                ]"
+                :key="i"
+                name="pos-btn-trans"
+              >
+                <q-btn
+                  v-if="showPositionButtons"
+                  round
+                  dense
+                  color="secondary"
+                  :style="
+                    `position: absolute; left: ${3 * x}em; top: ${3 * y}em;`
+                  "
+                  class="position-button"
+                  @click="setWindowTilePosition([x, y])"
+                >
+                  <q-icon
+                    name="arrow_drop_down"
+                    :style="`transform: rotate(${-i * 45}deg)`"
+                  />
+                </q-btn>
+              </transition>
+            </div>
+
+            <!-- Minimize button -->
+            <q-btn
+              v-if="showMinimize"
+              v-ripple
+              dense
+              flat
+              icon="fas fa-window-minimize"
+              @click="$emit('minimize')"
+            >
+              <q-tooltip
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                anchor="top middle"
+                self="bottom middle"
+                :delay="500"
+              >
+                Minimize
+              </q-tooltip>
+            </q-btn>
+
+            <!-- Maximize button -->
+            <q-btn
+              v-if="!maximized && showMaximize"
+              v-ripple
+              dense
+              flat
+              icon="fas fa-window-maximize"
+              @click="$emit('maximize')"
+            >
+              <q-tooltip
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                anchor="top middle"
+                self="bottom middle"
+                :delay="500"
+              >
+                Maximize
+              </q-tooltip>
+            </q-btn>
+
+            <!-- Restore button -->
+            <q-btn
+              v-if="maximized && showMaximize"
+              v-ripple
+              dense
+              flat
+              icon="fas fa-window-restore"
+              @click="$emit('restore')"
+            >
+              <q-tooltip
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                anchor="top middle"
+                self="bottom middle"
+                :delay="500"
+              >
+                Restore
+              </q-tooltip>
+            </q-btn>
+
+            <!-- Close button -->
+            <q-btn
+              v-if="showClose"
+              v-ripple
+              dense
+              flat
+              icon="fas fa-window-close"
+              @click="$emit('close')"
+            >
+              <q-tooltip
+                transition-show="jump-up"
+                transition-hide="jump-down"
+                anchor="top middle"
+                self="bottom middle"
+                :delay="500"
+              >
+                Close
+              </q-tooltip>
+            </q-btn>
+          </q-bar>
+          <div>
+            <slot name="default" />
+          </div>
+
+          <!-- RESIZE HANDLES -->
+
+          <!-- Resize Top side -->
+          <div
+            v-touch-pan.mouse.up.down.prevent="resizeWindowTop"
+            style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em;"
+          ></div>
+          <!-- Resize Bottom side -->
+          <div
+            v-touch-pan.mouse.up.down.prevent="resizeWindowBottom"
+            style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em;"
+          ></div>
+          <!-- Resize Right side -->
+          <div
+            v-touch-pan.mouse.left.right.prevent="resizeWindowRight"
+            style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em;"
+          ></div>
+          <!-- Resize Left side -->
+          <div
+            v-touch-pan.mouse.left.right.prevent="resizeWindowLeft"
+            style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em;"
+          ></div>
+          <!-- Resize Top Left -->
+          <div
+            v-touch-pan.mouse.prevent="resizeWindowTopLeft"
+            style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
+          ></div>
+          <!-- Resize Top Right -->
+          <div
+            v-touch-pan.mouse.prevent="resizeWindowTopRight"
+            style="position: absolute; top: 0; right: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
+          ></div>
+          <!-- Resize Bottom Left -->
+          <div
+            v-touch-pan.mouse.prevent="resizeWindowBottomLeft"
+            style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
+          ></div>
+          <!-- Resize Bottom Right -->
+          <div
+            v-touch-pan.mouse.prevent="resizeWindowBottomRight"
+            style="position: absolute; bottom: 0; right: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
+          ></div>
+        </q-card>
+      </div>
+    </transition>
+  </div>
 </template>
 
 <script lang="ts">
+import { dom } from 'quasar';
+const { height, width } = dom;
+
 import { Vue, Prop, Watch, Component } from 'vue-property-decorator';
 
 @Component
@@ -105,16 +221,19 @@ export default class FloatingWindow extends Vue {
   @Prop({ type: Boolean, default: true }) readonly showMinimize!: boolean;
   @Prop({ type: Boolean, default: true }) readonly showMaximize!: boolean;
   @Prop({ type: Boolean, default: true }) readonly showClose!: boolean;
+  @Prop(String) readonly icon!: string;
 
   readonly transitionDuration = 0.2;
   transitioning = false;
 
-  top = 50;
-  left = 50;
-  right = 50;
-  bottom = 50;
+  top = 25;
+  left = 25;
+  right = 25;
+  bottom = 25;
 
-  get floatingWindowStyle() {
+  showPositionButtons = false;
+
+  get floatingWindowStyle(): string {
     const transitionStyle = this.transitioning
       ? `transition: all ${this.transitionDuration}s;`
       : '';
@@ -142,8 +261,15 @@ export default class FloatingWindow extends Vue {
     );
   }
 
+  getParentSize(): [number, number] {
+    return [
+      width(this.$refs.parentSizeDetector as Element),
+      height(this.$refs.parentSizeDetector as Element)
+    ];
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  moveWindow(event: any) {
+  moveWindow(event: any): void {
     if (!this.maximized) {
       const left = this.left + event.delta.x;
       const top = this.top + event.delta.y;
@@ -160,12 +286,40 @@ export default class FloatingWindow extends Vue {
     }
   }
 
+  setWindowTilePosition([x, y]: [number, number]): void {
+    this.showPositionButtons = false;
+    const halfHeight = height(this.$refs.parentSizeDetector as Element) / 2;
+    const halfWidth = width(this.$refs.parentSizeDetector as Element) / 2;
+
+    if (x == 0) {
+      this.left = 0;
+      this.right = 0;
+    } else if (x == 1) {
+      this.left = halfWidth;
+      this.right = 0;
+    } else if (x == -1) {
+      this.right = halfWidth;
+      this.left = 0;
+    }
+
+    if (y == 0) {
+      this.top = 0;
+      this.bottom = 0;
+    } else if (y == 1) {
+      this.top = halfHeight;
+      this.bottom = 0;
+    } else if (y == -1) {
+      this.top = halfHeight;
+      this.bottom = 0;
+    }
+  }
+
   //
   // Resize handlers
   //
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowTop(event: any) {
+  resizeWindowTop(event: any): void {
     if (!this.maximized) {
       const top = this.top + event.delta.y;
       this.top = top >= 0 ? top : 0;
@@ -173,21 +327,21 @@ export default class FloatingWindow extends Vue {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowBottom(event: any) {
+  resizeWindowBottom(event: any): void {
     if (!this.maximized) {
       this.bottom = this.bottom - event.delta.y;
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowRight(event: any) {
+  resizeWindowRight(event: any): void {
     if (!this.maximized) {
       this.right = this.right - event.delta.x;
     }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowLeft(event: any) {
+  resizeWindowLeft(event: any): void {
     if (!this.maximized) {
       const left = this.left + event.delta.x;
       this.left = left >= 0 ? left : 0;
@@ -195,25 +349,25 @@ export default class FloatingWindow extends Vue {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowTopLeft(event: any) {
+  resizeWindowTopLeft(event: any): void {
     this.resizeWindowTop(event);
     this.resizeWindowLeft(event);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowTopRight(event: any) {
+  resizeWindowTopRight(event: any): void {
     this.resizeWindowRight(event);
     this.resizeWindowTop(event);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowBottomLeft(event: any) {
+  resizeWindowBottomLeft(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowLeft(event);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resizeWindowBottomRight(event: any) {
+  resizeWindowBottomRight(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowRight(event);
   }
@@ -225,6 +379,22 @@ export default class FloatingWindow extends Vue {
   position absolute
   min-width 10em
   min-height 10em
+
+.floating-window--bar
+  background-color $primary
+  color white
+
+.position-button
+  z-index 1000000
+
+// Position button transitions
+.pos-btn-trans-enter-active,
+.pos-btn-trans-leave-active
+  transition all 0.15s ease
+
+.pos-btn-trans-leave-to,
+.pos-btn-trans-enter
+  transform scale(0) !important
 
 // Window transition classes
 .window-transition-enter-active,

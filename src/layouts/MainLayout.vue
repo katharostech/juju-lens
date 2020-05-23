@@ -49,6 +49,7 @@
       show-if-above
       :breakpoint="599"
       :width="60"
+      content-class="taskbar"
     >
       <q-scroll-area class="fit">
         <q-list padding>
@@ -91,7 +92,12 @@
       </q-scroll-area>
     </q-drawer>
 
-    <q-drawer side="right" v-model="showMenuDrawer" :width="200">
+    <q-drawer
+      side="right"
+      v-model="showMenuDrawer"
+      :width="200"
+      content-class="menu-drawer"
+    >
       <q-scroll-area class="fit">
         <q-list padding class="menu-list">
           <q-item clickable v-ripple>
@@ -129,8 +135,8 @@
 
     <q-page-container>
       <q-page>
+        <debug-window />
         <div>
-          <debug-window />
           <transition
             name="router-slide-down"
             mode="out-in"
@@ -168,6 +174,10 @@ export default class MainLayout extends Vue {
 </script>
 
 <style lang="stylus">
+.body--light
+  .taskbar, .menu-drawer
+    background-color $grey-2
+
 // Router transition classes
 .q-layout.router-transitioning
   max-height 100vh
