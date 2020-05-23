@@ -158,7 +158,9 @@
               </q-tooltip>
             </q-btn>
           </q-bar>
-          <div>
+
+          <!-- Window Content -->
+          <div class="floating-window--content">
             <slot name="default" />
           </div>
 
@@ -226,7 +228,7 @@ export default class FloatingWindow extends Vue {
   @Prop({ type: Boolean, default: true }) readonly showClose!: boolean;
   @Prop(String) readonly icon!: string;
 
-  readonly transitionDuration = 0.2;
+  readonly transitionDuration = 0.3;
   transitioning = false;
 
   top = 15;
@@ -427,7 +429,12 @@ export default class FloatingWindow extends Vue {
 .floating-window
   position absolute
   min-width 10em
-  min-height 10em
+  min-height 3em
+
+  .floating-window--content
+    max-width 100%
+    max-height 100%
+    overflow scroll
 
 .floating-window--bar
   background-color $primary
@@ -453,7 +460,7 @@ export default class FloatingWindow extends Vue {
 .window-transition-leave-to,
 .window-transition-enter
   transform scale(0) !important
-  left -5% !important
+  left -10% !important
   right 100% !important
   top 40% !important
   bottom 40% !important

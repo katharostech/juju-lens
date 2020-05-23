@@ -41,6 +41,7 @@
       </q-toolbar>
     </q-header>
 
+    <!-- Taskbar -->
     <q-drawer
       v-model="showTaskbar"
       mini
@@ -48,47 +49,103 @@
       bordered
       show-if-above
       :breakpoint="599"
-      :width="40"
-      :mini-width="40"
+      :width="200"
       content-class="taskbar"
     >
-      <q-scroll-area class="fit">
-        <q-list padding>
-          <q-item clickable v-ripple style="height: 30px;">
-            <q-item-section avatar>
-              <q-icon name="inbox" size="1.2em" />
-            </q-item-section>
-          </q-item>
+      <div class="column fit">
+        <q-scroll-area
+          class="col"
+          :thumb-style="{
+            width: '3px'
+          }"
+        >
+          <q-list>
+            <q-item
+              v-for="(item, i) in [
+                {
+                  type: 'term',
+                  unitName: 'my-app/1'
+                },
+                {
+                  type: 'log',
+                  unitName: 'my-app/2'
+                },
+                {
+                  type: 'log',
+                  unitName: 'my-db/1'
+                },
+                {
+                  type: 'log',
+                  unitName: 'my-app/2'
+                },
+                {
+                  type: 'term',
+                  unitName: 'my-app/1'
+                },
+                {
+                  type: 'log',
+                  unitName: 'my-db/1'
+                }
+              ]"
+              :key="i"
+              clickable
+              v-ripple
+            >
+              <q-menu context-menu content-style="z-index: 10000">
+                <q-list dense>
+                  <q-item clickable v-close-popup>
+                    <q-item-section side>
+                      <q-icon name="fas fa-window-close" />
+                    </q-item-section>
+                    <q-item-section>Close</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                transition-show="jump-right"
+                transition-hide="jump-left"
+                content-class="q-mini-drawer-hide"
+                :delay="340"
+              >
+                {{ item.unitName }}
+              </q-tooltip>
+              <q-item-section avatar>
+                <q-icon
+                  :name="
+                    item.type == 'log' ? 'fas fa-file-alt' : 'fas fa-terminal'
+                  "
+                />
+              </q-item-section>
+              <q-item-section avatar>
+                {{ item.unitName }}
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-scroll-area>
 
-          <q-item clickable v-ripple style="height: 30px;">
-            <q-item-section avatar>
-              <q-icon name="star" size="1.2em" />
-            </q-item-section>
-          </q-item>
+        <q-separator style="height: 1px" />
 
-          <q-item clickable v-ripple style="height: 30px;">
-            <q-item-section avatar>
-              <q-icon name="send" size="1.2em" />
-            </q-item-section>
-          </q-item>
-
-          <q-separator />
-
-          <q-item clickable v-ripple style="height: 30px;">
-            <q-item-section avatar>
-              <q-icon name="drafts" size="1.2em" />
-            </q-item-section>
-          </q-item>
-
-          <q-space vertical />
-
+        <q-list>
           <q-item
             clickable
             v-ripple
             @click="() => $store.commit('floatingWindows/toggleDebugWindow')"
           >
-            <q-item-section avatar style="height: 30px;">
-              <q-icon name="fas fa-bug" size="1.2em" />
+            <q-tooltip
+              anchor="center right"
+              self="center left"
+              transition-show="jump-right"
+              transition-hide="jump-left"
+            >
+              Debug Window
+            </q-tooltip>
+            <q-item-section avatar>
+              <q-icon name="fas fa-bug" />
+            </q-item-section>
+            <q-item-section>
+              Debug Window
             </q-item-section>
           </q-item>
 
@@ -101,14 +158,26 @@
                 : (terminalHeight = 300)
             "
           >
-            <q-item-section avatar style="height: 30px;">
-              <q-icon name="fas fa-terminal" size="1.2em" />
+            <q-tooltip
+              anchor="center right"
+              self="center left"
+              transition-show="jump-right"
+              transition-hide="jump-left"
+            >
+              Juju Terminal
+            </q-tooltip>
+            <q-item-section avatar>
+              <q-icon name="fas fa-terminal" />
+            </q-item-section>
+            <q-item-section>
+              Juju Terminal
             </q-item-section>
           </q-item>
         </q-list>
-      </q-scroll-area>
+      </div>
     </q-drawer>
 
+    <!-- Menu Drawer -->
     <q-drawer
       side="right"
       v-model="showMenuDrawer"
@@ -239,6 +308,7 @@ export default class MainLayout extends Vue {
 .body--light
   .taskbar, .menu-drawer
     background-color $grey-2
+    color $dark
 
 // Router transition classes
 .q-layout.router-transitioning
