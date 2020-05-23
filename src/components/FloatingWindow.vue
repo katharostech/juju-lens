@@ -305,26 +305,10 @@ export default class FloatingWindow extends Vue {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   moveWindow(event: any): void {
     if (!this.maximized) {
-      const left = this.left + (event.delta.x / this.parentSize[0]) * 100;
-      const top = this.top + (event.delta.y / this.parentSize[1]) * 100;
-
-      if (left >= 0) {
-        this.left = left;
-        this.right -= (event.delta.x / this.parentSize[0]) * 100;
-      }
-
-      if (left > 98) {
-        this.left = 98;
-      }
-
-      if (top > 98) {
-        this.top = 98;
-      }
-
-      if (top >= 0) {
-        this.top = top;
-        this.bottom -= (event.delta.y / this.parentSize[1]) * 100;
-      }
+      this.left += (event.delta.x / this.parentSize[0]) * 100;
+      this.top += (event.delta.y / this.parentSize[1]) * 100;
+      this.right -= (event.delta.x / this.parentSize[0]) * 100;
+      this.bottom -= (event.delta.y / this.parentSize[1]) * 100;
     }
   }
 
