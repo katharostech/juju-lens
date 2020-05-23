@@ -434,7 +434,7 @@ export default class FloatingWindow extends Vue {
   .floating-window--content
     max-width 100%
     max-height 100%
-    overflow scroll
+    overflow auto
 
 .floating-window--bar
   background-color $primary

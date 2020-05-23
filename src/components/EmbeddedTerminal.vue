@@ -1,5 +1,11 @@
 <template>
-  <div class="embedded-terminal" :style="{ height: `${height}px` }">
+  <div
+    class="embedded-terminal"
+    :style="{
+      height: `${visible ? (maximized ? maxHeight : height) : 0}px`,
+      transition: transitioning ? `all ${transitionDuration}s ease` : ''
+    }"
+  >
     <!-- Top Resize Handle -->
     <div
       v-touch-pan.mouse.up.down.prevent="resizeTop"
@@ -14,6 +20,7 @@
 
       <q-space />
 
+      <!-- Split button -->
       <q-btn v-ripple dense flat icon="fas fa-grip-lines-vertical">
         <q-tooltip
           transition-show="jump-up"
@@ -26,10 +33,12 @@
         </q-tooltip>
       </q-btn>
 
+      <!-- Maximize button -->
       <q-btn
         v-ripple
         dense
         flat
+        v-if="!maximized"
         icon="fas fa-expand"
         @click="$emit('maximize')"
       >
@@ -44,12 +53,33 @@
         </q-tooltip>
       </q-btn>
 
+      <!-- Maximize button -->
+      <q-btn
+        v-ripple
+        dense
+        flat
+        v-if="maximized"
+        icon="fas fa-window-restore"
+        @click="$emit('restore')"
+      >
+        <q-tooltip
+          transition-show="jump-up"
+          transition-hide="jump-down"
+          anchor="top middle"
+          self="bottom middle"
+          :delay="300"
+        >
+          Maximize
+        </q-tooltip>
+      </q-btn>
+
+      <!-- Minimize button -->
       <q-btn
         v-ripple
         dense
         flat
         icon="fas fa-window-minimize"
-        @click="$emit('setHeight', 0)"
+        @click="$emit('minimize')"
       >
         <q-tooltip
           transition-show="jump-up"
@@ -64,27 +94,72 @@
     </q-bar>
 
     <!-- Terminal Body -->
-    <div class="embedded-terminal--body fit">
-      Hello world
+    <div class="embedded-terminal--body fit q-pa-xs">
+      jujuuser@jujucontroller $
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Vue, Component, Model } from 'vue-property-decorator';
+import { Vue, Component, Prop, Watch, Inject } from 'vue-property-decorator';
 
 @Component
 export default class EmbeddedTerminal extends Vue {
-  @Model('setHeight', { type: Number, default: 100 }) readonly height!: number;
+  @Prop(Boolean) readonly visible!: boolean;
+  @Prop(Boolean) readonly maximized!: boolean;
+
+  // Grab the layout info for the layout that we are in
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  @Inject('layout') readonly layout!: any;
+
+  height = 200;
+  readonly transitionDuration = 0.3;
+  transitioning = false;
+
+  get maxHeight(): number {
+    return window.innerHeight - this.layout.header.offset;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeTop(event: any): void {
-    const height = this.height - event.delta.y;
-    if (height < 30) {
-      this.$emit('setHeight', 0);
-    } else {
-      this.$emit('setHeight', height);
+    // Restore window if it was maximized
+    if (this.maximized) {
+      this.$emit('restore');
+      this.height = this.maxHeight;
     }
+
+    const height = this.height - event.delta.y;
+    // Collapse completely if only the top bar is showing anyway
+    if (height < 30) {
+      this.height = 0;
+      this.$emit('minimize');
+    } else {
+      this.height = height;
+    }
+  }
+
+  // Make sure we don't surpass our bounds
+  @Watch('height')
+  onHeightChange(): void {
+    if (this.height > this.maxHeight) {
+      this.height = this.maxHeight;
+    }
+  }
+
+  @Watch('visible')
+  @Watch('maximized')
+  onVisibleChange() {
+    this.transitioning = true;
+
+    // If the height is very low, make sure it is at least 200
+    if (this.height < 50) {
+      this.height = 200;
+    }
+
+    setTimeout(
+      () => (this.transitioning = false),
+      this.transitionDuration * 1000
+    );
   }
 }
 </script>

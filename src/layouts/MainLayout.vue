@@ -140,15 +140,7 @@
             </q-item-section>
           </q-item>
 
-          <q-item
-            clickable
-            v-ripple
-            @click="
-              terminalHeight > 25
-                ? (terminalHeight = 0)
-                : (terminalHeight = 300)
-            "
-          >
+          <q-item clickable v-ripple @click="showTerminal = !showTerminal">
             <q-item-section avatar>
               <q-icon name="fas fa-terminal" />
             </q-item-section>
@@ -225,13 +217,11 @@
 
     <q-footer>
       <embedded-terminal
-        v-model="terminalHeight"
-        @maximize="maximizeTerminal"
-        :class="
-          terminalTransitioning
-            ? `transition: all ${terminalTransitionDuration}s`
-            : ''
-        "
+        :visible="showTerminal"
+        :maximized="terminalMaximized"
+        @minimize="showTerminal = false"
+        @maximize="terminalMaximized = true"
+        @restore="terminalMaximized = false"
       />
     </q-footer>
   </q-layout>
@@ -243,10 +233,7 @@ import FloatingWindow from 'components/FloatingWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
-import { dom } from 'quasar';
-const { height } = dom;
-
-import { Component, Vue, Watch } from 'vue-property-decorator';
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
   components: {
@@ -262,33 +249,29 @@ export default class MainLayout extends Vue {
   showMenuDrawer = false;
   routerTransitionInProgress = false;
 
-  terminalHeight = 0;
-  readonly terminalTransitionDuration = 0.3;
-  terminalTransitioning = false;
+  showTerminal = false;
+  terminalMaximized = false;
 
-  get availableTermHeight(): number {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return window.innerHeight - height((this.$refs.headerToolbar as any).$el);
-  }
+  //// This was supposed to delay the expanding of the taksbar, but I'm not sure I like it so
+  //// commenting it out for now.
+  // // Handle showing the taskbar after a delay of mouse hover time
+  // // This NodeJS.Timeout doesn't necessarily make sense I don't thinkg, but it made TypeScript
+  // // happy.
+  // showTaskbarTimeout: null | NodeJS.Timeout = null;
 
-  @Watch('terminalHeight')
-  onTerminalHeightChange(termHeight: number) {
-    // Make sure the terminal doesn't grow past the available height
-    const availHeight = this.availableTermHeight;
-    if (termHeight > availHeight) {
-      this.terminalHeight = availHeight;
-    }
-  }
+  // onTaskbarMouseOver(): void {
+  //   this.showTaskbarTimeout = setTimeout(() => (this.taskbarMini = false), 500);
+  // }
+  // onTaskbarMouseOut(): void {
+  //   if (this.taskbarMini == false) {
+  //     this.taskbarMini = true;
+  //   }
 
-  maximizeTerminal(): void {
-    this.terminalTransitioning = true;
-    this.terminalHeight = this.availableTermHeight;
-    // Keep this timeout time in sync with the CSS `.terminal-transitioning` class
-    setTimeout(
-      () => (this.terminalTransitioning = false),
-      this.terminalTransitionDuration * 1000
-    );
-  }
+  //   if (this.showTaskbarTimeout) {
+  //     clearTimeout(this.showTaskbarTimeout);
+  //     this.showTaskbarTimeout = null;
+  //   }
+  // }
 }
 </script>
 
