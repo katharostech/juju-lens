@@ -235,6 +235,7 @@ export default class FloatingWindow extends Vue {
   bottom = 15;
 
   showPositionButtons = false;
+  positionButtonGlobalClickListener: null | EventListenerOrEventListenerObject = null;
 
   get floatingWindowStyle(): string {
     const transitionStyle = this.transitioning
@@ -262,6 +263,36 @@ export default class FloatingWindow extends Vue {
       () => (this.transitioning = false),
       this.transitionDuration * 1000
     );
+  }
+
+  // Watch for changes to the showPositionButtons and add a click handler to close the buttons when
+  // you click away from them.
+  @Watch('showPositionButtons')
+  onShowPositionButtonChange(showPosBtns: boolean): void {
+    if (showPosBtns) {
+      this.positionButtonGlobalClickListener = this.globalClickListener.bind(
+        this
+      );
+
+      document.addEventListener(
+        'mousedown',
+        this.positionButtonGlobalClickListener
+      );
+    }
+  }
+  globalClickListener(): void {
+    this.showPositionButtons = false;
+
+    console.log('test');
+
+    if (this.positionButtonGlobalClickListener) {
+      document.removeEventListener(
+        'mousedown',
+        this.positionButtonGlobalClickListener
+      );
+
+      this.positionButtonGlobalClickListener = null;
+    }
   }
 
   get parentSize(): [number, number] {
@@ -292,8 +323,6 @@ export default class FloatingWindow extends Vue {
   setWindowTilePosition([x, y]: [number, number]): void {
     this.showPositionButtons = false;
     this.transitioning = true;
-
-    console.log(x, y);
 
     // Unmaximize if necessary
     if (this.maximized) {
