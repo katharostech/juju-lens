@@ -51,7 +51,8 @@
                   [0, -1],
                   [-1, -1],
                   [-1, 0],
-                  [-1, 1]
+                  [-1, 1],
+                  [0, 0]
                 ]"
                 :key="i"
                 name="pos-btn-trans"
@@ -68,9 +69,11 @@
                   @click="setWindowTilePosition([x, y])"
                 >
                   <q-icon
+                    v-if="!(x == 0 && y == 0)"
                     name="arrow_drop_down"
                     :style="`transform: rotate(${-i * 45}deg)`"
                   />
+                  <q-icon v-else name="pages" />
                 </q-btn>
               </transition>
             </div>
@@ -226,10 +229,10 @@ export default class FloatingWindow extends Vue {
   readonly transitionDuration = 0.2;
   transitioning = false;
 
-  top = 25;
-  left = 25;
-  right = 25;
-  bottom = 25;
+  top = 15;
+  left = 15;
+  right = 15;
+  bottom = 15;
 
   showPositionButtons = false;
 
@@ -290,9 +293,19 @@ export default class FloatingWindow extends Vue {
     this.showPositionButtons = false;
     this.transitioning = true;
 
+    console.log(x, y);
+
     // Unmaximize if necessary
     if (this.maximized) {
       this.$emit('restore');
+    }
+
+    if (x == 0 && y == 0) {
+      this.left = 15;
+      this.top = 15;
+      this.right = 15;
+      this.bottom = 15;
+      return;
     }
 
     if (x == 0) {
