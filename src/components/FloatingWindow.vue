@@ -1,11 +1,11 @@
 <template>
+  <!-- Div set to the full size of it's parent, that way we can measure this div to measure
+  the parent's size. -->
   <div
     ref="parentSizeDetector"
-    style="position: absolute; top: 0; bottom: 0; right: 0; left: 0;"
+    style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden;"
   >
     <transition name="window-transition">
-      <!-- Div set to the full size of it's parent, that way we can measure this div to measure
-    the parent's size. -->
       <div class="floating-window" :style="floatingWindowStyle" v-if="visible">
         <q-card class="fit">
           <q-bar
@@ -313,6 +313,14 @@ export default class FloatingWindow extends Vue {
         this.right -= (event.delta.x / this.parentSize[0]) * 100;
       }
 
+      if (left > 98) {
+        this.left = 98;
+      }
+
+      if (top > 98) {
+        this.top = 98;
+      }
+
       if (top >= 0) {
         this.top = top;
         this.bottom -= (event.delta.y / this.parentSize[1]) * 100;
@@ -435,6 +443,9 @@ export default class FloatingWindow extends Vue {
     max-width 100%
     max-height 100%
     overflow auto
+
+.body--light .floating-window .q-card
+  background-color $blue-grey-1
 
 .floating-window--bar
   background-color $primary
