@@ -27,7 +27,7 @@
                 v-ripple
                 dense
                 flat
-                icon="pages"
+                icon="fas fa-th"
                 @click="showPositionButtons = !showPositionButtons"
               >
                 <q-tooltip
@@ -104,7 +104,7 @@
               v-ripple
               dense
               flat
-              icon="fas fa-window-maximize"
+              icon="fas fa-expand"
               @click="$emit('maximize')"
             >
               <q-tooltip
@@ -282,8 +282,6 @@ export default class FloatingWindow extends Vue {
   }
   globalClickListener(): void {
     this.showPositionButtons = false;
-
-    console.log('test');
 
     if (this.positionButtonGlobalClickListener) {
       document.removeEventListener(

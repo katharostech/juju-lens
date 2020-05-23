@@ -4,7 +4,7 @@
     :class="{ 'router-transitioning': routerTransitionInProgress }"
   >
     <q-header elevated class="bg-primary text-white">
-      <q-toolbar>
+      <q-toolbar ref="headerToolbar">
         <q-btn
           v-ripple
           flat
@@ -48,44 +48,61 @@
       bordered
       show-if-above
       :breakpoint="599"
-      :width="60"
+      :width="40"
+      :mini-width="40"
       content-class="taskbar"
     >
       <q-scroll-area class="fit">
         <q-list padding>
-          <q-item clickable v-ripple>
+          <q-item clickable v-ripple style="height: 30px;">
             <q-item-section avatar>
-              <q-icon name="inbox" />
+              <q-icon name="inbox" size="1.2em" />
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple>
+          <q-item clickable v-ripple style="height: 30px;">
             <q-item-section avatar>
-              <q-icon name="star" />
+              <q-icon name="star" size="1.2em" />
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple>
+          <q-item clickable v-ripple style="height: 30px;">
             <q-item-section avatar>
-              <q-icon name="send" />
+              <q-icon name="send" size="1.2em" />
             </q-item-section>
           </q-item>
 
           <q-separator />
 
-          <q-item clickable v-ripple>
+          <q-item clickable v-ripple style="height: 30px;">
             <q-item-section avatar>
-              <q-icon name="drafts" />
+              <q-icon name="drafts" size="1.2em" />
             </q-item-section>
           </q-item>
+
+          <q-space vertical />
 
           <q-item
             clickable
             v-ripple
             @click="() => $store.commit('floatingWindows/toggleDebugWindow')"
           >
-            <q-item-section avatar>
-              <q-icon name="fas fa-bug" />
+            <q-item-section avatar style="height: 30px;">
+              <q-icon name="fas fa-bug" size="1.2em" />
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            @click="
+              terminalHeight > 25
+                ? (terminalHeight = 0)
+                : (terminalHeight = 300)
+            "
+          >
+            <q-item-section avatar style="height: 30px;">
+              <q-icon name="fas fa-terminal" size="1.2em" />
             </q-item-section>
           </q-item>
         </q-list>
@@ -148,21 +165,38 @@
         </div>
       </q-page>
     </q-page-container>
+
+    <q-footer>
+      <embedded-terminal
+        v-model="terminalHeight"
+        @maximize="maximizeTerminal"
+        :class="
+          terminalTransitioning
+            ? `transition: all ${terminalTransitionDuration}s`
+            : ''
+        "
+      />
+    </q-footer>
   </q-layout>
 </template>
 
 <script lang="ts">
 import DarkModeToggle from 'components/DarkModeToggle.vue';
 import FloatingWindow from 'components/FloatingWindow.vue';
+import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
-import { Component, Vue } from 'vue-property-decorator';
+import { dom } from 'quasar';
+const { height } = dom;
+
+import { Component, Vue, Watch } from 'vue-property-decorator';
 
 @Component({
   components: {
     DarkModeToggle,
     FloatingWindow,
-    DebugWindow
+    DebugWindow,
+    EmbeddedTerminal
   }
 })
 export default class MainLayout extends Vue {
@@ -170,6 +204,34 @@ export default class MainLayout extends Vue {
   taskbarMini = true;
   showMenuDrawer = false;
   routerTransitionInProgress = false;
+
+  terminalHeight = 0;
+  readonly terminalTransitionDuration = 0.3;
+  terminalTransitioning = false;
+
+  get availableTermHeight(): number {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return window.innerHeight - height((this.$refs.headerToolbar as any).$el);
+  }
+
+  @Watch('terminalHeight')
+  onTerminalHeightChange(termHeight: number) {
+    // Make sure the terminal doesn't grow past the available height
+    const availHeight = this.availableTermHeight;
+    if (termHeight > availHeight) {
+      this.terminalHeight = availHeight;
+    }
+  }
+
+  maximizeTerminal(): void {
+    this.terminalTransitioning = true;
+    this.terminalHeight = this.availableTermHeight;
+    // Keep this timeout time in sync with the CSS `.terminal-transitioning` class
+    setTimeout(
+      () => (this.terminalTransitioning = false),
+      this.terminalTransitionDuration * 1000
+    );
+  }
 }
 </script>
 
