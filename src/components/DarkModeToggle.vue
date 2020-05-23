@@ -7,7 +7,13 @@
     :icon="btnIcon"
     @click="updateDarkMode"
   >
-    <q-tooltip>{{ btnTooltip }}</q-tooltip>
+    <q-tooltip
+      anchor="center left"
+      self="center right"
+      transition-show="jump-left"
+      transition-hide="jump-right"
+      >{{ btnTooltip }}</q-tooltip
+    >
   </q-btn>
 </template>
 

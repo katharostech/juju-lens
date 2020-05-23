@@ -44,13 +44,15 @@
     <!-- Taskbar -->
     <q-drawer
       v-model="showTaskbar"
-      mini
+      :mini="taskbarMini"
       mini-to-overlay
       bordered
       show-if-above
       :breakpoint="599"
       :width="200"
       content-class="taskbar"
+      @mouseover="taskbarMini = false"
+      @mouseout="taskbarMini = true"
     >
       <div class="column fit">
         <q-scroll-area
@@ -76,7 +78,7 @@
                 },
                 {
                   type: 'log',
-                  unitName: 'my-app/2'
+                  unitName: 'my-longer-app-name-app/2'
                 },
                 {
                   type: 'term',
@@ -91,7 +93,14 @@
               clickable
               v-ripple
             >
-              <q-menu context-menu content-style="z-index: 10000">
+              <q-menu
+                context-menu
+                anchor="center right"
+                self="center left"
+                content-style="z-index: 10000"
+                transition-show="jump-right"
+                transition-hide="jump-left"
+              >
                 <q-list dense>
                   <q-item clickable v-close-popup>
                     <q-item-section side>
@@ -101,16 +110,6 @@
                   </q-item>
                 </q-list>
               </q-menu>
-              <q-tooltip
-                anchor="center right"
-                self="center left"
-                transition-show="jump-right"
-                transition-hide="jump-left"
-                content-class="q-mini-drawer-hide"
-                :delay="340"
-              >
-                {{ item.unitName }}
-              </q-tooltip>
               <q-item-section avatar>
                 <q-icon
                   :name="
@@ -118,7 +117,7 @@
                   "
                 />
               </q-item-section>
-              <q-item-section avatar>
+              <q-item-section avatar class="ellipsis">
                 {{ item.unitName }}
               </q-item-section>
             </q-item>
@@ -133,14 +132,6 @@
             v-ripple
             @click="() => $store.commit('floatingWindows/toggleDebugWindow')"
           >
-            <q-tooltip
-              anchor="center right"
-              self="center left"
-              transition-show="jump-right"
-              transition-hide="jump-left"
-            >
-              Debug Window
-            </q-tooltip>
             <q-item-section avatar>
               <q-icon name="fas fa-bug" />
             </q-item-section>
@@ -158,14 +149,6 @@
                 : (terminalHeight = 300)
             "
           >
-            <q-tooltip
-              anchor="center right"
-              self="center left"
-              transition-show="jump-right"
-              transition-hide="jump-left"
-            >
-              Juju Terminal
-            </q-tooltip>
             <q-item-section avatar>
               <q-icon name="fas fa-terminal" />
             </q-item-section>
@@ -186,6 +169,11 @@
     >
       <q-scroll-area class="fit">
         <q-list padding class="menu-list">
+          <q-item>
+            <q-item-section class="text-weight-bold">
+              Menu
+            </q-item-section>
+          </q-item>
           <q-item clickable v-ripple>
             <q-item-section avatar>
               <q-icon name="cloud" />
