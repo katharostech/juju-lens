@@ -1,8 +1,1 @@
-export interface Todo {
-  id: number;
-  content: string;
-}
-
-export interface Meta {
-  totalCount: number;
-}
+// This is a good spot for typescript interface definitions used by components
