@@ -1,8 +1,8 @@
 import { store } from 'quasar/wrappers';
 import Vuex from 'vuex';
 
-// import example from './module-example';
-// import { ExampleStateInterface } from './module-example/state';
+import floatingWindows from './floating-windows';
+import { WindowsStateInterface } from './floating-windows/state';
 
 /*
  * If not building with SSR mode, you can
@@ -11,17 +11,17 @@ import Vuex from 'vuex';
 
 export interface StoreInterface {
   // Define your own store structure, using submodules if needed
-  // example: ExampleStateInterface;
+  floatingWindows: WindowsStateInterface;
   // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-  example: unknown;
+  // example: unknown;
 }
 
-export default store(function ({ Vue }) {
+export default store(function({ Vue }) {
   Vue.use(Vuex);
 
   const Store = new Vuex.Store<StoreInterface>({
     modules: {
-      // example
+      floatingWindows
     },
 
     // enable strict mode (adds overhead!)
