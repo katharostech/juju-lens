@@ -161,10 +161,13 @@ export default class EmbeddedTerminal extends Vue {
 
 <style lang="stylus">
 .embedded-terminal--body
-  color white
   background-color black
   font-family 'Courier New', Courier, monospace
 
   textarea
+    color white
     padding 0 !important
+
+.body--light .embedded-terminal--body .q-field--standard .q-field__control::before
+  border-bottom-color $grey-4 !important
 </style>

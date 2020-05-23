@@ -278,8 +278,7 @@ export default class MainLayout extends Vue {
 <style lang="stylus">
 .body--light
   .taskbar, .menu-drawer
-    background-color $grey-2
-    color $dark
+    background-color $grey-4
 
 // Router transition classes
 .q-layout.router-transitioning
