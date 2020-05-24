@@ -8,7 +8,11 @@
     style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden; pointer-events: none;"
   >
     <transition name="window-transition">
-      <div class="floating-window" :style="floatingWindowStyle" v-if="visible">
+      <div
+        class="floating-window shadow-2"
+        :style="floatingWindowStyle"
+        v-if="visible"
+      >
         <q-card class="fit">
           <q-bar
             v-touch-pan.mouse.prevent="moveWindow"
