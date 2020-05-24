@@ -36,6 +36,7 @@ export interface Controller {
   name: string;
   cloud: string;
   region: string;
+  accessLevel: 'user' | 'admin';
 }
 
 export interface Cloud {
@@ -49,34 +50,9 @@ export interface JujuStateInterface {
 }
 
 const state: JujuStateInterface = {
-  controllers: [
-    {
-      name: 'my-controller',
-      cloud: 'aws',
-      region: 'us-west'
-    }
-  ],
-  clouds: {
-    aws: {
-      availableRegions: ['us-west', 'us-east', 'asia']
-    },
-    azure: {
-      availableRegions: ['centralus', 'centralasia']
-    }
-  },
-  cloudCredentials: [
-    {
-      name: 'my-aws-creds',
-      accessKey: 'no-so-secret-access-key',
-      secretKey: 'super-secret-secret-key'
-    },
-    {
-      name: 'my-azure-creds',
-      adAId: 'y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi',
-      sId: 'iBMlj6jrl93i27NBYrwNvJYXq2UbhQ+VW29TSfKD',
-      adAP: 'ECEfD+mNfq7YWRwTgfW5vwfxYRp+y7O9Yts5'
-    }
-  ]
+  controllers: [],
+  clouds: {},
+  cloudCredentials: []
 };
 
 export default state;

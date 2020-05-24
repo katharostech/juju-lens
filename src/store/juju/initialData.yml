@@ -1,0 +1,26 @@
+controllers:
+  - name: my-controller
+    cloud: aws
+    region: us-west
+    accessLevel: admin
+
+clouds:
+  aws:
+    availableRegions:
+      - us-west
+      - us-east
+      - asia
+  azure:
+    availableRegions:
+      - centralus
+      - centralasion
+
+cloudCredentials:
+  - name: 'my-aws-creds'
+    accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
+    secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
+
+  - name: my-azure-creds
+    adAId: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
+    sId: VW29TSfKD
+    adAP: mNfq7YWRwTgfW5vwfxYRp

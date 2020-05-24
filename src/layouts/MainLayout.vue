@@ -208,7 +208,6 @@
 
     <q-page-container>
       <q-page>
-        <debug-window />
         <div>
           <transition
             name="router-slide-down"
@@ -219,6 +218,7 @@
             <router-view />
           </transition>
         </div>
+        <debug-window />
       </q-page>
     </q-page-container>
 

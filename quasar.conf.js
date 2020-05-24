@@ -9,6 +9,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/camelcase */
 const { configure } = require('quasar/wrappers');
+const path = require('path');
 
 module.exports = configure(function(ctx) {
   return {
@@ -85,6 +86,9 @@ module.exports = configure(function(ctx) {
 
       // https://quasar.dev/quasar-cli/cli-documentation/handling-webpack
       extendWebpack(cfg) {
+        // Aliases
+        cfg.resolve.alias.store = path.resolve('src/store');
+
         // linting is slow in TS projects, we execute it only for production builds
         if (ctx.prod) {
           cfg.module.rules.push({
@@ -97,6 +101,12 @@ module.exports = configure(function(ctx) {
             }
           });
         }
+
+        // YAML Loader
+        cfg.module.rules.push({
+          test: /\.y(a)?ml$/,
+          use: path.resolve('loaders/yaml.js')
+        });
       }
     },
 
