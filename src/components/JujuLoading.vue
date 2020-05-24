@@ -1,6 +1,9 @@
 <template>
   <q-inner-loading :showing="showLoading">
-    <q-spinner-rings size="80%" color="primary" />
+    <q-spinner-rings
+      size="80%"
+      :color="$q.dark.isActive ? 'secondary' : 'primary'"
+    />
   </q-inner-loading>
 </template>
 
