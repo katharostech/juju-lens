@@ -1,5 +1,5 @@
 <template>
-  <div class="full-width full-height" style="transition: height 0.3s ease">
+  <div class="absolute fit">
     <div class="q-pa-md">
       <div class="row q-gutter-md">
         <q-card

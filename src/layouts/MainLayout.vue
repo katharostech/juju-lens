@@ -208,16 +208,14 @@
 
     <q-page-container>
       <q-page>
-        <div>
-          <transition
-            name="router-slide-down"
-            mode="out-in"
-            v-on:before-leave="routerTransitionInProgress = true"
-            v-on:after-enter="routerTransitionInProgress = false"
-          >
-            <router-view />
-          </transition>
-        </div>
+        <transition
+          name="router-slide-down"
+          mode="out-in"
+          v-on:before-leave="routerTransitionInProgress = true"
+          v-on:after-enter="routerTransitionInProgress = false"
+        >
+          <router-view />
+        </transition>
         <debug-window />
       </q-page>
     </q-page-container>
