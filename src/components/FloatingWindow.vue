@@ -5,7 +5,7 @@
   header when trying to click them while the window is touching the top of the page. -->
   <div
     ref="parentSizeDetector"
-    style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden; z-index: -1;"
+    style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden; pointer-events: none;"
   >
     <transition name="window-transition">
       <div class="floating-window" :style="floatingWindowStyle" v-if="visible">
@@ -424,6 +424,7 @@ export default class FloatingWindow extends Vue {
   position absolute
   min-width 10em
   min-height 3em
+  pointer-events auto
 
   .floating-window--content
     max-width 100%
