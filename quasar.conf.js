@@ -53,10 +53,13 @@ module.exports = configure(function(ctx) {
       directives: [],
 
       // Quasar plugins
-      plugins: ['LocalStorage'],
+      plugins: ['Dialog', 'LocalStorage', 'Notify'],
 
       config: {
-        dark: 'auto'
+        dark: 'auto',
+        notify: {
+          position: 'top-right'
+        }
       }
     },
 

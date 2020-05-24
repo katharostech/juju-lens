@@ -40,18 +40,19 @@ export interface Controller {
 }
 
 export interface Cloud {
+  name: string;
   availableRegions: string[];
 }
 
 export interface JujuStateInterface {
   controllers: Controller[];
-  clouds: { [key: string]: Cloud };
+  clouds: Cloud[];
   cloudCredentials: CloudCredential[];
 }
 
 const state: JujuStateInterface = {
   controllers: [],
-  clouds: {},
+  clouds: [],
   cloudCredentials: []
 };
 

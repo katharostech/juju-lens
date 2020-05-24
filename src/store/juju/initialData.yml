@@ -5,12 +5,12 @@ controllers:
     accessLevel: admin
 
 clouds:
-  aws:
+  - name: aws
     availableRegions:
       - us-west
       - us-east
       - asia
-  azure:
+  - name: azure
     availableRegions:
       - centralus
       - centralasion

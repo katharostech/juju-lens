@@ -8,9 +8,16 @@
 </template>
 
 <script lang="ts">
+import { QInnerLoading, QSpinnerRings } from 'quasar';
+
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator';
 
-@Component
+@Component({
+  components: {
+    QInnerLoading,
+    QSpinnerRings
+  }
+})
 export default class JujuLoading extends Vue {
   @Prop(Boolean) readonly loading!: boolean;
   @Prop({ type: Number, default: 300 }) readonly delay!: number;

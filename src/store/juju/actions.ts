@@ -6,12 +6,8 @@ import { mutationTypes } from './mutations';
 import d from './initialData.yml';
 const initialData = d as JujuStateInterface;
 
-export const actionTypes = {
-  loadControllers: 'loadControllers'
-};
-
 function randomDelay() {
-  const delays = [100, 200, 500, 1000, 1500, 2000];
+  const delays = [100, 500, 1000, 1500, 2000];
 
   return delays[Math.floor(Math.random() * delays.length)];
 }
@@ -22,6 +18,13 @@ function runWithRandomDelay<T>(f: () => T): Promise<T> {
   });
 }
 
+export const actionTypes = {
+  loadControllers: 'loadControllers',
+  addController: 'addController',
+  updateController: 'updateController',
+  deleteController: 'deleteController'
+};
+
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   /**
    * Load controller data
@@ -29,6 +32,15 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   [actionTypes.loadControllers](ctx) {
     return runWithRandomDelay(() => {
       ctx.commit(mutationTypes.setControllers, initialData.controllers);
+    });
+  },
+
+  /**
+   * Delete a controller
+   */
+  [actionTypes.deleteController](ctx, controllerName: string) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.deleteController, controllerName);
     });
   }
 };
