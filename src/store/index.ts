@@ -3,6 +3,8 @@ import Vuex from 'vuex';
 
 import floatingWindows from './floating-windows';
 import { WindowsStateInterface } from './floating-windows/state';
+import juju from './juju';
+import { JujuStateInterface } from './juju/state';
 
 /*
  * If not building with SSR mode, you can
@@ -12,6 +14,7 @@ import { WindowsStateInterface } from './floating-windows/state';
 export interface StoreInterface {
   // Define your own store structure, using submodules if needed
   floatingWindows: WindowsStateInterface;
+  juju: JujuStateInterface;
   // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
   // example: unknown;
 }
@@ -21,7 +24,8 @@ export default store(function({ Vue }) {
 
   const Store = new Vuex.Store<StoreInterface>({
     modules: {
-      floatingWindows
+      floatingWindows,
+      juju
     },
 
     // enable strict mode (adds overhead!)

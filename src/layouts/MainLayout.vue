@@ -23,9 +23,16 @@
           </q-toolbar-title>
         </router-link>
         <div class="gt-xs">
-          <q-btn v-ripple flat icon="cloud" label="Clouds" class="q-ma-xs" />
-          <q-btn v-ripple flat icon="share" label="Models" class="q-ma-xs" />
-          <q-btn v-ripple flat icon="person" label="Admin" class="q-ma-xs" />
+          <q-btn
+            v-for="(link, i) in mainLinks"
+            :key="i"
+            v-ripple
+            flat
+            :icon="link.icon"
+            :label="link.label"
+            :to="link.to"
+            class="q-ma-xs"
+          />
         </div>
         <q-space />
         <dark-mode-toggle />
@@ -48,7 +55,7 @@
       mini-to-overlay
       bordered
       show-if-above
-      :breakpoint="599"
+      :breakpoint="taskbarBreakpoint"
       :width="200"
       content-class="taskbar"
       @mouseover="taskbarMini = false"
@@ -64,7 +71,7 @@
           <q-list>
             <q-item
               v-for="(item, i) in [
-                {
+                /*{
                   type: 'term',
                   unitName: 'my-app/1'
                 },
@@ -87,7 +94,7 @@
                 {
                   type: 'log',
                   unitName: 'my-db/1'
-                }
+                }*/
               ]"
               :key="i"
               clickable
@@ -130,7 +137,12 @@
           <q-item
             clickable
             v-ripple
-            @click="() => $store.commit('floatingWindows/toggleDebugWindow')"
+            @click="
+              $store.commit('floatingWindows/toggleDebugWindow');
+              if (windowWidth() <= taskbarBreakpoint) {
+                showTaskbar = false;
+              }
+            "
           >
             <q-item-section avatar>
               <q-icon name="fas fa-bug" />
@@ -140,7 +152,16 @@
             </q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple @click="showTerminal = !showTerminal">
+          <q-item
+            clickable
+            v-ripple
+            @click="
+              showTerminal = !showTerminal;
+              if (windowWidth() <= taskbarBreakpoint) {
+                showTaskbar = false;
+              }
+            "
+          >
             <q-item-section avatar>
               <q-icon name="fas fa-terminal" />
             </q-item-section>
@@ -166,33 +187,19 @@
               Menu
             </q-item-section>
           </q-item>
-          <q-item clickable v-ripple>
+          <q-item
+            v-for="(link, i) in mainLinks"
+            :key="i"
+            clickable
+            v-ripple
+            :to="link.to"
+          >
             <q-item-section avatar>
-              <q-icon name="cloud" />
+              <q-icon :name="link.icon" />
             </q-item-section>
 
             <q-item-section>
-              Clouds
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple>
-            <q-item-section avatar>
-              <q-icon name="share" />
-            </q-item-section>
-
-            <q-item-section>
-              Models
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple>
-            <q-item-section avatar>
-              <q-icon name="person" />
-            </q-item-section>
-
-            <q-item-section>
-              Admin
+              {{ link.label }}
             </q-item-section>
           </q-item>
         </q-list>
@@ -244,6 +251,7 @@ import { Component, Vue } from 'vue-property-decorator';
   }
 })
 export default class MainLayout extends Vue {
+  readonly taskbarBreakpoint = 599;
   showTaskbar = false;
   taskbarMini = true;
   showMenuDrawer = false;
@@ -252,26 +260,27 @@ export default class MainLayout extends Vue {
   showTerminal = false;
   terminalMaximized = false;
 
-  //// This was supposed to delay the expanding of the taksbar, but I'm not sure I like it so
-  //// commenting it out for now.
-  // // Handle showing the taskbar after a delay of mouse hover time
-  // // This NodeJS.Timeout doesn't necessarily make sense I don't thinkg, but it made TypeScript
-  // // happy.
-  // showTaskbarTimeout: null | NodeJS.Timeout = null;
+  readonly mainLinks = [
+    {
+      label: 'Controllers',
+      icon: 'fas fa-th-list',
+      to: { name: 'controllers' }
+    },
+    {
+      label: 'Models',
+      icon: 'share',
+      to: { name: 'models' }
+    },
+    {
+      label: 'Admin',
+      icon: 'person',
+      to: { name: 'admin' }
+    }
+  ];
 
-  // onTaskbarMouseOver(): void {
-  //   this.showTaskbarTimeout = setTimeout(() => (this.taskbarMini = false), 500);
-  // }
-  // onTaskbarMouseOut(): void {
-  //   if (this.taskbarMini == false) {
-  //     this.taskbarMini = true;
-  //   }
-
-  //   if (this.showTaskbarTimeout) {
-  //     clearTimeout(this.showTaskbarTimeout);
-  //     this.showTaskbarTimeout = null;
-  //   }
-  // }
+  windowWidth(): number {
+    return window.innerWidth;
+  }
 }
 </script>
 
@@ -279,6 +288,14 @@ export default class MainLayout extends Vue {
 .body--light
   .taskbar, .menu-drawer
     background-color $grey-4
+
+.body--dark .q-item.q-router-link--active,
+.body--dark .q-item--active
+  color $secondary
+
+.body--light .q-item.q-router-link--active,
+.body--light .q-item--active
+  color darken($secondary, 25%)
 
 // Router transition classes
 .q-layout.router-transitioning
@@ -292,8 +309,8 @@ export default class MainLayout extends Vue {
   overflow hidden
 
 .router-slide-down-enter
-  transform TranslateY(-100%)
+  transform TranslateY(-100vh)
 
 .router-slide-down-leave-to
-  transform TranslateY(100%)
+  transform TranslateY(100vh)
 </style>

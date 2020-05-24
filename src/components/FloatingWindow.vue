@@ -1,6 +1,8 @@
 <template>
   <!-- Div set to the full size of it's parent, that way we can measure this div to measure
   the parent's size. -->
+  <!-- TODO: With overflow hidden, you can't see the position buttons stick out over the
+  header when trying to click them while the window is touching the top of the page. -->
   <div
     ref="parentSizeDetector"
     style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden;"

@@ -8,7 +8,22 @@ const routes: RouteConfig[] = [
       {
         path: '',
         name: 'home',
-        component: () => import('pages/Index.vue')
+        redirect: '/controllers'
+      },
+      {
+        path: '/controllers',
+        name: 'controllers',
+        component: () => import('pages/Controllers.vue')
+      },
+      {
+        path: '/models',
+        name: 'models',
+        component: () => import('pages/Models.vue')
+      },
+      {
+        path: '/admin',
+        name: 'admin',
+        component: () => import('pages/Admin.vue')
       },
       {
         path: '/welcome',
