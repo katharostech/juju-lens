@@ -4,6 +4,9 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "strictNullChecks": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "store*": ["src/store*"]
+    }
   }
 }

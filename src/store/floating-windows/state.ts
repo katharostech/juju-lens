@@ -1,8 +1,10 @@
 export interface WindowsStateInterface {
-  debugWindow: {
-    visible: boolean;
-    maximized: boolean;
-  };
+  debugWindow: DebugWindowState;
+}
+
+export interface DebugWindowState {
+  visible: boolean;
+  maximized: boolean;
 }
 
 const state: WindowsStateInterface = {

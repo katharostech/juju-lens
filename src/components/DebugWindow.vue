@@ -2,8 +2,8 @@
   <div>
     <floating-window
       title="Debug Window"
-      :visible="showDebugWindow"
-      :maximized="debugWindowMaximized"
+      :visible="debugWindow.visible"
+      :maximized="debugWindow.maximized"
       v-on:maximize="toggleDebugWindowMaximized"
       v-on:restore="toggleDebugWindowMaximized"
       v-on:minimize="toggleDebugWindow"
@@ -19,6 +19,8 @@
 import FloatingWindow from 'components/FloatingWindow.vue';
 
 import { Vue, Component } from 'vue-property-decorator';
+import { namespace } from 'vuex-class';
+const floatingWindows = namespace('floatingWindows');
 
 @Component({
   components: {
@@ -26,20 +28,8 @@ import { Vue, Component } from 'vue-property-decorator';
   }
 })
 export default class DebugWindow extends Vue {
-  get showDebugWindow(): boolean {
-    return this.$store.state.floatingWindows.debugWindow.visible;
-  }
-
-  get debugWindowMaximized(): boolean {
-    return this.$store.state.floatingWindows.debugWindow.maximized;
-  }
-
-  toggleDebugWindow(): void {
-    this.$store.commit('floatingWindows/toggleDebugWindow');
-  }
-
-  toggleDebugWindowMaximized(): void {
-    this.$store.commit('floatingWindows/toggleDebugWindowMaximized');
-  }
+  @floatingWindows.State debugWindow!: unknown;
+  @floatingWindows.Mutation toggleDebugWindow!: unknown;
+  @floatingWindows.Mutation toggleDebugWindowMaximized!: unknown;
 }
 </script>
