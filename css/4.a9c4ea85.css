@@ -1,0 +1,1 @@
+.tab-trans-enter-active,.tab-trans-leave-active{transition:all 0.4s ease;overflow:hidden}.tab-trans-enter{transform:TranslateY(-100vh)}.tab-trans-leave-to{transform:TranslateX(-100vw)}
