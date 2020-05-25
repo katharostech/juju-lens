@@ -3,6 +3,7 @@ controllers:
     cloud: aws
     region: us-west
     accessLevel: admin
+    cloudCredential: my-aws-creds
 
 clouds:
   - name: aws
@@ -16,7 +17,7 @@ clouds:
       - centralasion
 
 cloudCredentials:
-  - name: 'my-aws-creds'
+  - name: my-aws-creds
     accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
     secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
 

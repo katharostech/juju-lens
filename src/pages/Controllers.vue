@@ -1,74 +1,103 @@
 <template>
-  <div class="absolute fit">
-    <div class="q-pa-md">
-      <div class="row q-gutter-md">
-        <!-- Controllers Toolbar -->
-        <q-toolbar>
-          <q-toolbar-title>
-            Controllers
-          </q-toolbar-title>
-          <q-btn color="positive" icon="fas fa-plus" />
-        </q-toolbar>
+  <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
+  <div class="absolute fit flex items-stretch">
+    <div class="q-pa-md fit column">
+      <!-- Controllers Toolbar -->
+      <q-toolbar class="col-auto row">
+        <q-tabs inline-label v-model="tab" shrink class="q-pa-xs">
+          <q-tab label="Controllers" name="controllers" />
+          <q-tab label="Cloud Credentials" name="credentials" />
+        </q-tabs>
+        <q-space />
+        <q-btn color="positive" icon="fas fa-plus" />
+      </q-toolbar>
 
-        <!-- Controller Card -->
-        <q-card
-          v-for="controller in controllers"
-          :key="controller.name"
-          class="col col-sm-6 col-md-4"
+      <q-tab-panels
+        animated
+        v-model="tab"
+        style="flex: 1 1 0%; background-color: hsla(0, 0%, 0%, 0);"
+      >
+        <q-tab-panel
+          name="controllers"
+          transition-next="tab-trans"
+          transition-prev="tab-trans"
+          class="row items-start"
         >
-          <q-card-section>
-            <!-- Card Heading -->
-            <div class="row items-center">
-              <div class="col-grow" style="flex: 1 1 0%">
-                <div class="text-h6 ellipsis">
-                  {{ controller.name }}
+          <!-- Controller Card -->
+          <q-card
+            v-for="controller in controllers"
+            :key="controller.name"
+            class="col col-sm-6 col-md-4"
+          >
+            <q-card-section>
+              <!-- Card Heading -->
+              <div class="row items-center">
+                <div class="col-grow" style="flex: 1 1 0%">
+                  <!-- Controller name -->
+                  <div class="text-h6 ellipsis">
+                    {{ controller.name }}
+                  </div>
+                  <div class="text-subtitle2 row">
+                    <!-- Controller cloud -->
+                    <div class="q-mr-sm">
+                      <q-icon name="cloud" size="1em" class="q-ma-xs" />
+                      {{ controller.cloud }}
+                    </div>
+                    <!-- Controller credential -->
+                    <div class="q-mr-sm">
+                      <q-icon
+                        name="fas fa-address-card"
+                        size="1em"
+                        class="q-ma-xs"
+                      />
+                      {{ controller.cloudCredential }}
+                    </div>
+                  </div>
                 </div>
-                <div class="text-subtitle2">
-                  <q-icon name="cloud" class="on-left" size="1em" />{{
-                    controller.cloud
-                  }}
+                <div class="col-auto">
+                  <q-btn flat round icon="more_vert">
+                    <!-- Card action menu -->
+                    <q-menu
+                      anchor="center right"
+                      self="center left"
+                      :offset="[10, 0]"
+                      style="font-size: 1em"
+                    >
+                      <q-item
+                        clickable
+                        v-close-popup
+                        class="bg-primary text-white"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="edit" />
+                        </q-item-section>
+                        <q-item-section>Edit</q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-close-popup
+                        class="bg-negative text-white"
+                        @click="deleteController(controller.name)"
+                      >
+                        <q-item-section avatar>
+                          <q-icon name="delete" />
+                        </q-item-section>
+                        <q-item-section>Delete</q-item-section>
+                      </q-item>
+                    </q-menu>
+                  </q-btn>
                 </div>
               </div>
-              <div class="col-auto">
-                <q-btn flat round icon="more_vert">
-                  <!-- Card action menu -->
-                  <q-menu
-                    anchor="center right"
-                    self="center left"
-                    :offset="[10, 0]"
-                    style="font-size: 1em"
-                  >
-                    <q-item
-                      clickable
-                      v-close-popup
-                      class="bg-primary text-white"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="edit" />
-                      </q-item-section>
-                      <q-item-section>Edit</q-item-section>
-                    </q-item>
-                    <q-item
-                      clickable
-                      v-close-popup
-                      class="bg-negative text-white"
-                      @click="deleteController(controller.name)"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="delete" />
-                      </q-item-section>
-                      <q-item-section>Delete</q-item-section>
-                    </q-item>
-                  </q-menu>
-                </q-btn>
-              </div>
-            </div>
-          </q-card-section>
-          <q-separator />
-          <q-card-section> </q-card-section>
-          <juju-loading :loading="loadingControllers[controller.name]" />
-        </q-card>
-      </div>
+            </q-card-section>
+            <q-separator />
+            <q-card-section> </q-card-section>
+            <juju-loading :loading="loadingControllers[controller.name]" />
+          </q-card>
+        </q-tab-panel>
+        <q-tab-panel name="credentials">
+          Hello!
+        </q-tab-panel>
+      </q-tab-panels>
     </div>
 
     <juju-loading :loading="loading" />
@@ -100,6 +129,8 @@ export default class Controllers extends Vue {
   @juju.Action(actionTypes.deleteController) runDeleteController!: (
     name: string
   ) => Promise<undefined>;
+
+  tab = 'controllers';
 
   loading = false;
   // The list of controllers that are loading
@@ -145,3 +176,16 @@ export default class Controllers extends Vue {
   }
 }
 </script>
+
+<style lang="stylus">
+.tab-trans-enter-active,
+.tab-trans-leave-active
+  transition all .4s ease
+  overflow hidden
+
+.tab-trans-enter
+  transform TranslateY(-100vh)
+
+.tab-trans-leave-to
+  transform TranslateX(-100vw)
+</style>

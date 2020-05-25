@@ -35,6 +35,7 @@ export type CloudCredential =
 export interface Controller {
   name: string;
   cloud: string;
+  cloudCredential: string;
   region: string;
   accessLevel: 'user' | 'admin';
 }

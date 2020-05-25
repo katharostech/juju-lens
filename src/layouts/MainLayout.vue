@@ -49,7 +49,7 @@
           v-model="currentController"
           :options="controllerOptions"
           label="Controller"
-          class="on-left controller-select"
+          class="q-mx-sm controller-select"
           popup-content-class="controller-select-popup"
           style="width: 12em;"
         />
@@ -305,7 +305,7 @@ export default class MainLayout extends Vue {
   // The main menu links
   readonly mainLinks = [
     {
-      label: 'Controllers',
+      label: 'Controller',
       icon: 'fas fa-th-list',
       to: { name: 'controllers' }
     },
