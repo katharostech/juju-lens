@@ -93,6 +93,7 @@
                           clickable
                           v-close-popup
                           class="bg-primary text-white"
+                          @click="startEditController(controller)"
                         >
                           <q-item-section avatar>
                             <q-icon name="edit" />
@@ -270,9 +271,20 @@ export default class Controllers extends Vue {
 
   // Create a controller or a credential ( based on the current tab )
   startCreate(): void {
+    if (this.tab == 'controllers') {
+      this.$q.dialog({
+        component: ControllerEdit,
+        parent: this
+      });
+    }
+  }
+
+  // Show the dialog to edit a controller
+  startEditController(controller: Controller): void {
     this.$q.dialog({
       component: ControllerEdit,
-      parent: this
+      parent: this,
+      controller
     });
   }
 
@@ -352,9 +364,7 @@ export default class Controllers extends Vue {
 
   // Get the name of the controller's cloud
   controllersCloud(controller: Controller): string {
-    const filtered = this.clouds.filter(
-      x => x.id == controller.cloudId
-    );
+    const filtered = this.clouds.filter(x => x.id == controller.cloudId);
 
     return filtered[0] ? filtered[0].name : '';
   }

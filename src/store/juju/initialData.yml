@@ -1,29 +1,16 @@
 controllers:
   - name: prod-controller
     id: mN20lGzuMkVBi
-    cloud: aws
+    cloudId: BIfy0JfRercfFNiaLtmxtWaE
     region: us-west
     accessLevel: admin
     cloudCredentialId: X4DNgKiu4SJ
   - name: dev-controller
     id: APRmlF23dYHPPcCc
-    cloud: azure
+    cloudId: AdzUGKLWNOyfA48Ug
     region: us-west
     accessLevel: user
     cloudCredentialId: 85bCHNKPABAaPzQ
-
-clouds:
-  - name: aws
-    id: BIfy0JfRercfFNiaLtmxtWaE
-    availableRegions:
-      - us-west
-      - us-east
-      - asia
-  - name: azure
-    id: AdzUGKLWNOyfA48Ug
-    availableRegions:
-      - centralus
-      - centralasion
 
 cloudCredentials:
   - name: my-aws-creds
@@ -40,3 +27,16 @@ cloudCredentials:
       adAId: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
       sId: VW29TSfKD
       adAP: mNfq7YWRwTgfW5vwfxYRp
+
+clouds:
+  - name: aws
+    id: BIfy0JfRercfFNiaLtmxtWaE
+    availableRegions:
+      - us-west
+      - us-east
+      - asia
+  - name: azure
+    id: AdzUGKLWNOyfA48Ug
+    availableRegions:
+      - centralus
+      - centralasion

@@ -3,12 +3,18 @@
     <q-card class="q-dialog-plugin">
       <!-- Heading -->
       <q-card-section>
-        <div class="text-h5">
-          <span v-if="controller">Edit</span>
-          <span v-else>Create</span>
-          Controller
+        <div class="text-h5 q-mb-sm flex items-center">
+          <!-- Edit icon and text -->
+          <q-icon v-if="editing" name="edit" class="on-left" />
+          <span v-if="editing">Edit</span>
+
+          <!-- Create icon and text -->
+          <q-icon v-if="!editing" name="fas fa-plus" class="on-left" />
+          <span v-if="!editing">Create</span>
+
+          <span>&nbsp;Controller</span>
         </div>
-        <p>Deploy a new controller to a supported cloud.</p>
+        <p v-if="!editing">Deploy a new controller to a supported cloud.</p>
 
         <!-- Edit form-->
         <q-form class="q-gutter-md" @submit="onSubmit">
@@ -25,6 +31,7 @@
               option-label="name"
               :options="clouds"
               :color="inputColor"
+              :disable="editing"
               :rules="[val => !!val || 'Field is required']"
               class="col q-pr-xs"
             />
@@ -32,7 +39,7 @@
               label="Region"
               v-model="region"
               option-label="name"
-              :disabled="!cloud"
+              :disable="!cloud || editing"
               :options="cloud ? cloud.availableRegions : []"
               :color="inputColor"
               :rules="[val => !!val || 'Field is required']"
@@ -43,7 +50,7 @@
             label="Cloud Credential"
             v-model="cloudCredential"
             option-label="name"
-            :disabled="!cloud"
+            :disable="!cloud || editing"
             :options="
               cloud ? cloudCredentials.filter(x => x.cloudId == cloud.id) : []
             "
@@ -57,9 +64,15 @@
               color="positive"
               type="submit"
               :label="controller ? 'Update' : 'Create'"
+              :icon="editing ? 'check' : 'fas fa-plus'"
               :loading="loading"
             />
-            <q-btn color="primary" label="Cancel" @click="onCancelClick" />
+            <q-btn
+              color="primary"
+              icon="cancel"
+              label="Cancel"
+              @click="onCancelClick"
+            />
           </q-card-actions>
         </q-form>
       </q-card-section>
@@ -88,7 +101,7 @@ export default class ControllerEdit extends Vue {
   loading = false;
 
   // Vuex state
-  @juju.State clouds!: Controller[];
+  @juju.State clouds!: Cloud[];
   @juju.State cloudCredentials!: CloudCredential[];
 
   // Vuex mutation
@@ -100,8 +113,10 @@ export default class ControllerEdit extends Vue {
   @juju.Action(actionTypes.addController) addController!: (
     ctrlr: Controller
   ) => Promise<undefined>;
+  @juju.Action(actionTypes.updateController) updateController!: (
+    ctrlr: Controller
+  ) => Promise<undefined>;
 
-  // TODO: Cloud validator
   name: string | null = null;
   cloud: Cloud | null = null;
   region: string | null = null;
@@ -111,9 +126,9 @@ export default class ControllerEdit extends Vue {
     return this.$q.dark.isActive ? 'secondary' : 'primary';
   }
 
-  created() {
-    if (this.controller == null) {
-    }
+  // Get whether or not we are editing instead of creating
+  get editing(): boolean {
+    return this.controller != null;
   }
 
   // Skeleton example for Quasar Dialog plugin compatible dialog taken from
@@ -123,6 +138,15 @@ export default class ControllerEdit extends Vue {
   // following method is REQUIRED
   // (don't change its name --> "show")
   show() {
+    if (this.controller) {
+      this.name = this.controller.name;
+      this.cloud = this.clouds.filter(x => x.id == this.controller!.cloudId)[0];
+      this.region = this.controller.region;
+      this.cloudCredential = this.cloudCredentials.filter(
+        x => x.id == this.controller!.cloudCredentialId
+      )[0];
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.$refs.dialog as any).show();
   }
@@ -141,17 +165,17 @@ export default class ControllerEdit extends Vue {
   }
 
   onSubmit() {
-    const controller: Controller = {
-      name: this.name!,
-      id: uid(),
-      cloudId: this.cloud!.id,
-      accessLevel: 'admin',
-      region: this.region!,
-      cloudCredentialId: this.cloudCredential!.id
-    };
-
     // If we are not updating an existing controller
-    if (!this.controller) {
+    if (!this.editing) {
+      const controller: Controller = {
+        name: this.name!,
+        id: uid(),
+        cloudId: this.cloud!.id,
+        accessLevel: 'admin',
+        region: this.region!,
+        cloudCredentialId: this.cloudCredential!.id
+      };
+
       // Create the controller
       this.loading = true;
       this.addController(controller).then(() => {
@@ -167,6 +191,31 @@ export default class ControllerEdit extends Vue {
 
         // Switch to the new controller
         this.setCurrentController(controller);
+      });
+
+      // If we are editing an existing controller
+    } else {
+      const controller: Controller = {
+        name: this.name!,
+        id: this.controller!.id,
+        cloudId: this.cloud!.id,
+        accessLevel: this.controller!.accessLevel,
+        region: this.region!,
+        cloudCredentialId: this.cloudCredential!.id
+      };
+
+      // Update the controller
+      this.loading = true;
+      this.updateController(controller).then(() => {
+        // on OK, it is REQUIRED to
+        // emit "ok" event (with optional payload)
+        // before hiding the QDialog
+        this.$emit('ok', controller);
+
+        // then hiding dialog
+        this.hide();
+
+        this.loading = false;
       });
     }
   }
