@@ -48,6 +48,7 @@
           dark
           v-model="currentController"
           :options="controllerOptions"
+          option-label="name"
           label="Controller"
           class="q-mx-sm controller-select"
           popup-content-class="controller-select-popup"
@@ -270,20 +271,20 @@ export default class MainLayout extends Vue {
   // Current controller handling
   //
 
-  @juju.State('currentController') globalCurrentController!: string | null;
+  @juju.State('currentController') globalCurrentController!: Controller | null;
   @juju.State controllers!: Controller[];
   @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
-    name: string | null
+    name: Controller | null
   ) => Promise<undefined>;
 
-  get currentController(): string | null {
+  get currentController(): Controller | null {
     return this.globalCurrentController;
   }
-  set currentController(value: string | null) {
+  set currentController(value: Controller | null) {
     this.setCurrentController(value);
   }
-  get controllerOptions(): string[] {
-    return this.controllers.map(x => x.name);
+  get controllerOptions(): Controller[] {
+    return this.controllers;
   }
 
   //

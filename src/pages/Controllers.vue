@@ -1,7 +1,7 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
   <div class="controllers absolute fit flex items-stretch">
-    <div class="q-pa-sm fit column">
+    <div class="q-pa-xs fit column">
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row">
         <!-- Tabs -->
@@ -22,16 +22,18 @@
         <q-btn color="positive" icon="fas fa-plus" />
       </q-toolbar>
 
+      <!-- Tab panels -->
       <q-tab-panels
         animated
         v-model="tab"
         style="flex: 1 1 0%; background-color: hsla(0, 0%, 0%, 0);"
       >
+        <!-- Controllers panel -->
         <q-tab-panel
           name="controllers"
           transition-next="tab-trans"
           transition-prev="tab-trans"
-          class="row content-start items-start"
+          class="row content-start q-col-gutter-sm"
         >
           <!-- Mobile heading for tab panel -->
           <div
@@ -41,77 +43,90 @@
           </div>
 
           <!-- Controller Card -->
-          <q-card
+          <div
             v-for="controller in controllers"
             :key="controller.name"
             class="col-12 col-sm-6 col-md-4"
           >
-            <q-card-section>
-              <!-- Card Heading -->
-              <div class="row items-center">
-                <div class="col-grow" style="flex: 1 1 0%">
-                  <!-- Controller name -->
-                  <div class="text-h6 ellipsis">
-                    {{ controller.name }}
+            <q-card>
+              <q-card-section>
+                <!-- Card Heading -->
+                <div class="row items-center">
+                  <div class="col-grow" style="flex: 1 1 0%">
+                    <!-- Controller name -->
+                    <div class="text-h6 ellipsis">
+                      <q-icon name="fas fa-server" class="on-left" />
+                      {{ controller.name }}
+                    </div>
+                    <div class="text-subtitle2 row">
+                      <!-- Controller cloud -->
+                      <div class="q-mr-sm">
+                        <q-icon name="cloud" size="1em" class="q-ma-xs" />
+                        {{ controller.cloud }}
+                      </div>
+                      <!-- Controller credential -->
+                      <div class="q-mr-sm">
+                        <q-icon
+                          name="fas fa-address-card"
+                          size="1em"
+                          class="q-ma-xs"
+                        />
+                        {{ controller.cloudCredential }}
+                      </div>
+                      <!-- Controller access level -->
+                      <div class="q-mr-sm">
+                        <q-icon name="person" size="1em" class="q-ma-xs" />
+                        {{ controller.accessLevel }}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-subtitle2 row">
-                    <!-- Controller cloud -->
-                    <div class="q-mr-sm">
-                      <q-icon name="cloud" size="1em" class="q-ma-xs" />
-                      {{ controller.cloud }}
-                    </div>
-                    <!-- Controller credential -->
-                    <div class="q-mr-sm">
-                      <q-icon
-                        name="fas fa-address-card"
-                        size="1em"
-                        class="q-ma-xs"
-                      />
-                      {{ controller.cloudCredential }}
-                    </div>
+                  <div class="col-auto">
+                    <q-btn flat round icon="more_vert">
+                      <!-- Card action menu -->
+                      <q-menu
+                        anchor="center right"
+                        self="center left"
+                        :offset="[10, 0]"
+                        style="font-size: 1em"
+                      >
+                        <q-item
+                          clickable
+                          v-close-popup
+                          class="bg-primary text-white"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="edit" />
+                          </q-item-section>
+                          <q-item-section>Edit</q-item-section>
+                        </q-item>
+                        <q-item
+                          clickable
+                          v-close-popup
+                          class="bg-negative text-white"
+                          @click="deleteController(controller)"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="delete" />
+                          </q-item-section>
+                          <q-item-section>Delete</q-item-section>
+                        </q-item>
+                      </q-menu>
+                    </q-btn>
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-btn flat round icon="more_vert">
-                    <!-- Card action menu -->
-                    <q-menu
-                      anchor="center right"
-                      self="center left"
-                      :offset="[10, 0]"
-                      style="font-size: 1em"
-                    >
-                      <q-item
-                        clickable
-                        v-close-popup
-                        class="bg-primary text-white"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="edit" />
-                        </q-item-section>
-                        <q-item-section>Edit</q-item-section>
-                      </q-item>
-                      <q-item
-                        clickable
-                        v-close-popup
-                        class="bg-negative text-white"
-                        @click="deleteController(controller.name)"
-                      >
-                        <q-item-section avatar>
-                          <q-icon name="delete" />
-                        </q-item-section>
-                        <q-item-section>Delete</q-item-section>
-                      </q-item>
-                    </q-menu>
-                  </q-btn>
-                </div>
-              </div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section> </q-card-section>
-            <juju-loading :loading="loadingControllers[controller.name]" />
-          </q-card>
+              </q-card-section>
+              <q-separator />
+              <q-card-section> </q-card-section>
+              <juju-loading :loading="loadingControllers[controller.name]" />
+            </q-card>
+          </div>
         </q-tab-panel>
-        <q-tab-panel name="credentials">
+
+        <!-- Cloud credentials panel -->
+        <q-tab-panel
+          name="credentials"
+          class="row content-start q-col-gutter-sm"
+        >
           <!-- Mobile heading for tab panel -->
           <div
             class="text-h5 ctrl-cred-tabs-alt-heading col-12 q-mb-sm q-ml-xs"
@@ -119,7 +134,68 @@
             Cloud Credentials
           </div>
 
-          Hello!
+          <!-- Cloud Credential card -->
+          <div
+            class="col-12 col-sm-6 col-md-4"
+            v-for="credential in cloudCredentials"
+            :key="credential.name"
+          >
+            <q-card>
+              <q-card-section>
+                <!-- Card Heading -->
+                <div class="row items-center">
+                  <div class="col-grow" style="flex: 1 1 0%">
+                    <!-- Credential name -->
+                    <div class="text-h6 ellipsis">
+                      <q-icon name="fas fa-address-card" class="on-left" />
+                      {{ credential.name }}
+                    </div>
+                    <div class="text-subtitle2 row">
+                      <!-- Credential cloud -->
+                      <div class="q-mr-sm">
+                        <q-icon name="cloud" size="1em" class="q-ma-xs" />
+                        {{ credential.cloud }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <q-btn flat round icon="more_vert">
+                      <!-- Card action menu -->
+                      <q-menu
+                        anchor="center right"
+                        self="center left"
+                        :offset="[10, 0]"
+                        style="font-size: 1em"
+                      >
+                        <q-item
+                          clickable
+                          v-close-popup
+                          class="bg-primary text-white"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="edit" />
+                          </q-item-section>
+                          <q-item-section>Edit</q-item-section>
+                        </q-item>
+                        <q-item
+                          clickable
+                          v-close-popup
+                          class="bg-negative text-white"
+                          @click="deleteCredential(credential)"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="delete" />
+                          </q-item-section>
+                          <q-item-section>Delete</q-item-section>
+                        </q-item>
+                      </q-menu>
+                    </q-btn>
+                  </div>
+                </div>
+              </q-card-section>
+              <juju-loading :loading="loadingCredentials[credential.name]" />
+            </q-card>
+          </div>
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -135,7 +211,7 @@ import JujuLoading from 'components/JujuLoading.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 
-import { Controller } from 'store/juju/state';
+import { Controller, CloudCredential } from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
@@ -146,11 +222,22 @@ const juju = namespace('juju');
   }
 })
 export default class Controllers extends Vue {
+  // State
   @juju.State controllers!: Controller[];
+  @juju.State cloudCredentials!: Controller[];
+
+  // Load actions
   @juju.Action(actionTypes.loadControllers) loadControllers!: () => Promise<
     undefined
   >;
+  @juju.Action(actionTypes.loadCloudCredentials)
+  loadCloudCredentials!: () => Promise<undefined>;
+
+  // Delete actions
   @juju.Action(actionTypes.deleteController) runDeleteController!: (
+    name: string
+  ) => Promise<undefined>;
+  @juju.Action(actionTypes.deleteCloudCredential) runDeleteCredential!: (
     name: string
   ) => Promise<undefined>;
 
@@ -159,6 +246,7 @@ export default class Controllers extends Vue {
   loading = false;
   // The list of controllers that are loading
   loadingControllers: { [key: string]: boolean } = {};
+  loadingCredentials: { [key: string]: boolean } = {};
 
   created(): void {
     this.fetchData();
@@ -167,17 +255,19 @@ export default class Controllers extends Vue {
   fetchData(): void {
     this.loading = true;
 
-    this.loadControllers().then(() => {
-      this.loading = false;
-    });
+    Promise.all([this.loadControllers(), this.loadCloudCredentials()]).then(
+      () => {
+        this.loading = false;
+      }
+    );
   }
 
-  deleteController(name: string): void {
+  deleteController(controller: Controller): void {
     // Prompt for controller deletion
     this.$q
       .dialog({
         title: 'Are you sure?',
-        message: `Are you sure you want to delete controller ${name}?`,
+        message: `Are you sure you want to delete controller ${controller.name}?`,
         persistent: true,
         cancel: true,
         ok: {
@@ -186,12 +276,39 @@ export default class Controllers extends Vue {
         }
       })
       .onOk(() => {
-        this.$set(this.loadingControllers, name, true);
-        this.runDeleteController(name).then(() => {
-          this.$set(this.loadingControllers, name, false);
+        this.$set(this.loadingControllers, controller.name, true);
+        this.runDeleteController(controller.id).then(() => {
+          this.$set(this.loadingControllers, controller.name, false);
           this.$q.notify({
             type: 'positive',
-            message: `Seccessfully deleted controller: ${name}.`,
+            message: `Seccessfully deleted controller: ${controller.name}.`,
+            position: 'bottom-right',
+            timeout: 2000
+          });
+        });
+      });
+  }
+
+  deleteCredential(credential: CloudCredential): void {
+    // Prompt for credential deletion
+    this.$q
+      .dialog({
+        title: 'Are you sure?',
+        message: `Are you sure you want to delete credential ${credential.name}?`,
+        persistent: true,
+        cancel: true,
+        ok: {
+          label: 'delete',
+          color: 'negative'
+        }
+      })
+      .onOk(() => {
+        this.$set(this.loadingCredentials, credential.name, true);
+        this.runDeleteCredential(credential.id).then(() => {
+          this.$set(this.loadingCredentials, credential.name, false);
+          this.$q.notify({
+            type: 'positive',
+            message: `Seccessfully deleted credential: ${credential.name}.`,
             position: 'bottom-right',
             timeout: 2000
           });

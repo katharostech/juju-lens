@@ -1,6 +1,6 @@
 import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
-import { JujuStateInterface } from './state';
+import { JujuStateInterface, Controller, CloudCredential } from './state';
 import { mutationTypes } from './mutations';
 
 import d from './initialData.yml';
@@ -19,13 +19,23 @@ function runWithRandomDelay<T>(f: () => T): Promise<T> {
 }
 
 export const actionTypes = {
+  // Controllers
   loadControllers: 'loadControllers',
   addController: 'addController',
   updateController: 'updateController',
-  deleteController: 'deleteController'
+  deleteController: 'deleteController',
+  // Cloud credentials
+  loadCloudCredentials: 'loadCloudCredentials',
+  addCloudCredential: 'addCloudCredential',
+  updateCloudCredential: 'updateCloudCredential',
+  deleteCloudCredential: 'deleteCloudCredential'
 };
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
+  //
+  // Controllers
+  //
+
   /**
    * Load controller data
    */
@@ -36,11 +46,72 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   },
 
   /**
+   * Add a controller
+   */
+  [actionTypes.addController](ctx, controller: Controller) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.addController, controller);
+    });
+  },
+
+  /**
+   * update a controller
+   */
+  [actionTypes.updateController](ctx, controller: Controller) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.updateController, controller);
+    });
+  },
+
+  /**
    * Delete a controller
    */
   [actionTypes.deleteController](ctx, controllerName: string) {
     return runWithRandomDelay(() => {
       ctx.commit(mutationTypes.deleteController, controllerName);
+    });
+  },
+
+  //
+  // Cloud Credentials
+  //
+
+  /**
+   * Load cloudCredential data
+   */
+  [actionTypes.loadCloudCredentials](ctx) {
+    return runWithRandomDelay(() => {
+      ctx.commit(
+        mutationTypes.setCloudCredentials,
+        initialData.cloudCredentials
+      );
+    });
+  },
+
+  /**
+   * Add a cloudCredential
+   */
+  [actionTypes.addCloudCredential](ctx, cloudCredential: CloudCredential) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.addCloudCredential, cloudCredential);
+    });
+  },
+
+  /**
+   * update a cloudCredential
+   */
+  [actionTypes.updateCloudCredential](ctx, cloudCredential: CloudCredential) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.updateCloudCredential, cloudCredential);
+    });
+  },
+
+  /**
+   * Delete a cloudCredential
+   */
+  [actionTypes.deleteCloudCredential](ctx, cloudCredentialId: string) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.deleteCloudCredential, cloudCredentialId);
     });
   }
 };
