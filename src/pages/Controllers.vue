@@ -138,8 +138,7 @@ export default class Controllers extends Vue {
             type: 'positive',
             message: `Seccessfully deleted controller: ${name}.`,
             position: 'bottom-right',
-            timeout: 2000,
-            closeBtn: true
+            timeout: 2000
           });
         });
       });

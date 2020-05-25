@@ -7,6 +7,7 @@ import {
 } from './state';
 
 export const mutationTypes = {
+  setCurrentController: 'setCurrentController',
   setControllers: 'setControllers',
   addController: 'addController',
   updateController: 'updateController',
@@ -16,6 +17,11 @@ export const mutationTypes = {
 };
 
 const mutation: MutationTree<JujuStateInterface> = {
+  /** Set the current controller */
+  [mutationTypes.setCurrentController](state, controllerName: string | null) {
+    state.currentController = controllerName;
+  },
+
   /** Set controllers */
   [mutationTypes.setControllers](state, controllers: Controller[]) {
     state.controllers = controllers;
@@ -36,6 +42,9 @@ const mutation: MutationTree<JujuStateInterface> = {
   /** Delete controller */
   [mutationTypes.deleteController](state, controllerName: string) {
     state.controllers = state.controllers.filter(x => x.name != controllerName);
+    if (state.currentController == controllerName) {
+      state.currentController = null;
+    }
   },
 
   /** Set clouds */

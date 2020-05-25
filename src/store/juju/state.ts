@@ -45,12 +45,14 @@ export interface Cloud {
 }
 
 export interface JujuStateInterface {
+  currentController: string | null;
   controllers: Controller[];
   clouds: Cloud[];
   cloudCredentials: CloudCredential[];
 }
 
 const state: JujuStateInterface = {
+  currentController: null,
   controllers: [],
   clouds: [],
   cloudCredentials: []

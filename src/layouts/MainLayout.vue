@@ -1,10 +1,12 @@
 <template>
   <q-layout
     view="hHh lpr lFf"
+    class="main-layout"
     :class="{ 'router-transitioning': routerTransitionInProgress }"
   >
-    <q-header elevated class="bg-primary text-white">
-      <q-toolbar ref="headerToolbar">
+    <q-header elevated class="bg-primary text-white main-layout--header">
+      <q-toolbar>
+        <!-- Taskbar menu button -->
         <q-btn
           v-ripple
           flat
@@ -14,28 +16,46 @@
           class="xs on-left"
           @click="showTaskbar = !showTaskbar"
         />
-        <router-link class="wrapper-link on-left" :to="{ name: 'home' }">
-          <q-toolbar-title>
-            <q-avatar class="on-left">
-              <img src="~assets/logo.svg" />
-            </q-avatar>
-            Juju Lens
-          </q-toolbar-title>
+        <!-- Logo -->
+        <router-link class="wrapper-link" :to="{ name: 'home' }">
+          <q-avatar class="on-left">
+            <img src="~assets/logo.svg" />
+          </q-avatar>
         </router-link>
-        <div class="gt-xs">
-          <q-btn
+        <!-- Toolbar title -->
+        <q-toolbar-title :style="!showTitle ? 'padding: 0;' : ''">
+          <router-link class="wrapper-link" :to="{ name: 'home' }">
+            <span v-if="showTitle">Juju Lens</span>
+          </router-link>
+          <q-resize-observer
+            @resize="({ width }) => (showTitle = width > 86)"
+          />
+        </q-toolbar-title>
+        <!-- Toolbar tabs -->
+        <q-tabs inline-label shrink class="gt-xs">
+          <q-route-tab
             v-for="(link, i) in mainLinks"
             :key="i"
-            v-ripple
-            flat
             :icon="link.icon"
             :label="link.label"
             :to="link.to"
-            class="q-ma-xs"
+            style="font-size: 0.3em;"
           />
-        </div>
-        <q-space />
+        </q-tabs>
+        <!-- Controller select -->
+        <q-select
+          filled
+          dark
+          v-model="currentController"
+          :options="controllerOptions"
+          label="Controller"
+          class="on-left controller-select"
+          popup-content-class="controller-select-popup"
+          style="width: 12em;"
+        />
+        <!-- Dark mode button -->
         <dark-mode-toggle />
+        <!-- Mobile menu button -->
         <q-btn
           v-ripple
           flat
@@ -71,7 +91,7 @@
           <q-list>
             <q-item
               v-for="(item, i) in [
-                /*{
+                {
                   type: 'term',
                   unitName: 'my-app/1'
                 },
@@ -86,15 +106,7 @@
                 {
                   type: 'log',
                   unitName: 'my-longer-app-name-app/2'
-                },
-                {
-                  type: 'term',
-                  unitName: 'my-app/1'
-                },
-                {
-                  type: 'log',
-                  unitName: 'my-db/1'
-                }*/
+                }
               ]"
               :key="i"
               clickable
@@ -238,6 +250,11 @@ import FloatingWindow from 'components/FloatingWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
+import { namespace } from 'vuex-class';
+const juju = namespace('juju');
+import { mutationTypes } from 'store/juju/mutations';
+import { Controller } from 'store/juju/state';
+
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
@@ -249,15 +266,43 @@ import { Component, Vue } from 'vue-property-decorator';
   }
 })
 export default class MainLayout extends Vue {
+  //
+  // Current controller handling
+  //
+
+  @juju.State('currentController') globalCurrentController!: string | null;
+  @juju.State controllers!: Controller[];
+  @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
+    name: string | null
+  ) => Promise<undefined>;
+
+  get currentController(): string | null {
+    return this.globalCurrentController;
+  }
+  set currentController(value: string | null) {
+    this.setCurrentController(value);
+  }
+  get controllerOptions(): string[] {
+    return this.controllers.map(x => x.name);
+  }
+
+  //
+  // Misc. State
+  //
+
   readonly taskbarBreakpoint = 599;
   showTaskbar = false;
   taskbarMini = true;
+
   showMenuDrawer = false;
   routerTransitionInProgress = false;
 
   showTerminal = false;
   terminalMaximized = false;
 
+  showTitle = true;
+
+  // The main menu links
   readonly mainLinks = [
     {
       label: 'Controllers',
@@ -276,6 +321,7 @@ export default class MainLayout extends Vue {
     }
   ];
 
+  // Used to selectively hide the taskbar on taskbar button click
   windowWidth(): number {
     return window.innerWidth;
   }
@@ -295,6 +341,18 @@ export default class MainLayout extends Vue {
 .body--light .q-item--active
   color darken($secondary, 25%)
 
+.main-layout--header .q-tabs
+  margin-right 0.5em
+
+.controller-select .q-field__label
+  color hsla(0, 0%, 100%, 0.7)
+
+.body--light .controller-select-popup
+  .q-item
+    background-color white
+  :not(.q-item--active).q-item
+    color black
+
 // Router transition classes
 .q-layout.router-transitioning
   max-height 100vh
@@ -310,5 +368,5 @@ export default class MainLayout extends Vue {
   transform TranslateY(-100vh)
 
 .router-slide-down-leave-to
-  transform TranslateY(100vh)
+  transform TranslateX(-100vw)
 </style>
