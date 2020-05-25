@@ -18,7 +18,7 @@
         />
         <!-- Logo -->
         <router-link class="wrapper-link" :to="{ name: 'home' }">
-          <q-avatar class="on-left">
+          <q-avatar>
             <img src="~assets/logo.svg" />
           </q-avatar>
         </router-link>
@@ -343,6 +343,7 @@ export default class MainLayout extends Vue {
 
 .main-layout--header .q-tabs
   margin-right 0.5em
+  margin-left 0.5em
 
 .controller-select .q-field__label
   color hsla(0, 0%, 100%, 0.7)
