@@ -32,7 +32,7 @@
           />
         </q-toolbar-title>
         <!-- Toolbar tabs -->
-        <q-tabs inline-label shrink class="gt-xs">
+        <q-tabs inline-label shrink class="gt-mobile-menu">
           <q-route-tab
             v-for="(link, i) in mainLinks"
             :key="i"
@@ -62,7 +62,7 @@
           round
           dense
           icon="menu"
-          class="xs on-right"
+          class="lt-mobile-menu on-right"
           @click="showMenuDrawer = !showMenuDrawer"
         />
       </q-toolbar>
@@ -306,7 +306,7 @@ export default class MainLayout extends Vue {
   readonly mainLinks = [
     {
       label: 'Controller',
-      icon: 'fas fa-th-list',
+      icon: 'fas fa-server',
       to: { name: 'controllers' }
     },
     {
@@ -353,6 +353,15 @@ export default class MainLayout extends Vue {
     background-color white
   :not(.q-item--active).q-item
     color black
+
+// Breakpoint class for mobile menu items
+.main-layout
+  .lt-mobile-menu
+    @media(min-width: 675px)
+      display none
+  .gt-mobile-menu
+    @media(max-width: 675px)
+      display none
 
 // Router transition classes
 .q-layout.router-transitioning

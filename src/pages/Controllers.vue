@@ -1,12 +1,22 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
-  <div class="absolute fit flex items-stretch">
-    <div class="q-pa-md fit column">
+  <div class="controllers absolute fit flex items-stretch">
+    <div class="q-pa-sm fit column">
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row">
-        <q-tabs inline-label v-model="tab" shrink class="q-pa-xs">
-          <q-tab label="Controllers" name="controllers" />
-          <q-tab label="Cloud Credentials" name="credentials" />
+        <!-- Tabs -->
+        <q-tabs
+          inline-label
+          v-model="tab"
+          shrink
+          class="q-pa-xs ctrlr-cred-tabs"
+        >
+          <q-tab label="Controllers" icon="fas fa-server" name="controllers" />
+          <q-tab
+            label="Cloud Credentials"
+            icon="fas fa-address-card"
+            name="credentials"
+          />
         </q-tabs>
         <q-space />
         <q-btn color="positive" icon="fas fa-plus" />
@@ -21,13 +31,20 @@
           name="controllers"
           transition-next="tab-trans"
           transition-prev="tab-trans"
-          class="row items-start"
+          class="row content-start items-start"
         >
+          <!-- Mobile heading for tab panel -->
+          <div
+            class="text-h5 ctrl-cred-tabs-alt-heading col-12 q-mb-sm q-ml-xs"
+          >
+            Controllers
+          </div>
+
           <!-- Controller Card -->
           <q-card
             v-for="controller in controllers"
             :key="controller.name"
-            class="col col-sm-6 col-md-4"
+            class="col-12 col-sm-6 col-md-4"
           >
             <q-card-section>
               <!-- Card Heading -->
@@ -95,6 +112,13 @@
           </q-card>
         </q-tab-panel>
         <q-tab-panel name="credentials">
+          <!-- Mobile heading for tab panel -->
+          <div
+            class="text-h5 ctrl-cred-tabs-alt-heading col-12 q-mb-sm q-ml-xs"
+          >
+            Cloud Credentials
+          </div>
+
           Hello!
         </q-tab-panel>
       </q-tab-panels>
@@ -178,6 +202,24 @@ export default class Controllers extends Vue {
 </script>
 
 <style lang="stylus">
+.controllers
+  $ctrlr-cred-tabs-breakpoint=476px
+
+  // Small screen use only icons without labels
+  @media(max-width: $ctrlr-cred-tabs-breakpoint)
+    .ctrlr-cred-tabs
+      .q-tab__label
+        display none
+
+  // Large screen use only labels without tabs
+  @media(min-width: $ctrlr-cred-tabs-breakpoint)
+    .ctrlr-cred-tabs
+      .q-tab__icon
+        display none
+
+    .ctrl-cred-tabs-alt-heading
+      display: none
+
 .tab-trans-enter-active,
 .tab-trans-leave-active
   transition all .4s ease
