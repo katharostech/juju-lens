@@ -19,7 +19,7 @@
           />
         </q-tabs>
         <q-space />
-        <q-btn color="positive" icon="fas fa-plus" />
+        <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
       </q-toolbar>
 
       <!-- Tab panels -->
@@ -62,16 +62,16 @@
                       <!-- Controller cloud -->
                       <div class="q-mr-sm">
                         <q-icon name="cloud" size="1em" class="q-ma-xs" />
-                        {{ controller.cloud }}
+                        {{ controllersCloud(controller) }}
                       </div>
                       <!-- Controller credential -->
-                      <div class="q-mr-sm">
+                      <div v-if="cloudCredentials" class="q-mr-sm">
                         <q-icon
                           name="fas fa-address-card"
                           size="1em"
                           class="q-ma-xs"
                         />
-                        {{ controller.cloudCredential }}
+                        {{ controllersCredential(controller) }}
                       </div>
                       <!-- Controller access level -->
                       <div class="q-mr-sm">
@@ -117,7 +117,7 @@
               </q-card-section>
               <q-separator />
               <q-card-section> </q-card-section>
-              <juju-loading :loading="loadingControllers[controller.name]" />
+              <juju-loading :loading="loadingControllers[controller.id]" />
             </q-card>
           </div>
         </q-tab-panel>
@@ -154,7 +154,7 @@
                       <!-- Credential cloud -->
                       <div class="q-mr-sm">
                         <q-icon name="cloud" size="1em" class="q-ma-xs" />
-                        {{ credential.cloud }}
+                        {{ credentialsCloud(credential) }}
                       </div>
                     </div>
                   </div>
@@ -193,7 +193,7 @@
                   </div>
                 </div>
               </q-card-section>
-              <juju-loading :loading="loadingCredentials[credential.name]" />
+              <juju-loading :loading="loadingCredentials[credential.id]" />
             </q-card>
           </div>
         </q-tab-panel>
@@ -208,10 +208,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import JujuLoading from 'components/JujuLoading.vue';
+import ControllerEdit from 'components/dialogs/ControllerEdit.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 
-import { Controller, CloudCredential } from 'store/juju/state';
+import { Controller, CloudCredential, Cloud } from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
@@ -224,7 +225,8 @@ const juju = namespace('juju');
 export default class Controllers extends Vue {
   // State
   @juju.State controllers!: Controller[];
-  @juju.State cloudCredentials!: Controller[];
+  @juju.State cloudCredentials!: CloudCredential[];
+  @juju.State clouds!: Cloud[];
 
   // Load actions
   @juju.Action(actionTypes.loadControllers) loadControllers!: () => Promise<
@@ -232,6 +234,8 @@ export default class Controllers extends Vue {
   >;
   @juju.Action(actionTypes.loadCloudCredentials)
   loadCloudCredentials!: () => Promise<undefined>;
+  @juju.Action(actionTypes.loadCloudList)
+  loadCloudList!: () => Promise<undefined>;
 
   // Delete actions
   @juju.Action(actionTypes.deleteController) runDeleteController!: (
@@ -255,11 +259,21 @@ export default class Controllers extends Vue {
   fetchData(): void {
     this.loading = true;
 
-    Promise.all([this.loadControllers(), this.loadCloudCredentials()]).then(
-      () => {
-        this.loading = false;
-      }
-    );
+    Promise.all([
+      this.loadControllers(),
+      this.loadCloudCredentials(),
+      this.loadCloudList()
+    ]).then(() => {
+      this.loading = false;
+    });
+  }
+
+  // Create a controller or a credential ( based on the current tab )
+  startCreate(): void {
+    this.$q.dialog({
+      component: ControllerEdit,
+      parent: this
+    });
   }
 
   deleteController(controller: Controller): void {
@@ -276,9 +290,9 @@ export default class Controllers extends Vue {
         }
       })
       .onOk(() => {
-        this.$set(this.loadingControllers, controller.name, true);
+        this.$set(this.loadingControllers, controller.id, true);
         this.runDeleteController(controller.id).then(() => {
-          this.$set(this.loadingControllers, controller.name, false);
+          this.$set(this.loadingControllers, controller.id, false);
           this.$q.notify({
             type: 'positive',
             message: `Seccessfully deleted controller: ${controller.name}.`,
@@ -303,9 +317,9 @@ export default class Controllers extends Vue {
         }
       })
       .onOk(() => {
-        this.$set(this.loadingCredentials, credential.name, true);
+        this.$set(this.loadingCredentials, credential.id, true);
         this.runDeleteCredential(credential.id).then(() => {
-          this.$set(this.loadingCredentials, credential.name, false);
+          this.$set(this.loadingCredentials, credential.id, false);
           this.$q.notify({
             type: 'positive',
             message: `Seccessfully deleted credential: ${credential.name}.`,
@@ -314,6 +328,35 @@ export default class Controllers extends Vue {
           });
         });
       });
+  }
+
+  //
+  // Helpers
+  //
+
+  // Get the name of a credential's cloud
+  credentialsCloud(credential: CloudCredential): string {
+    const filtered = this.clouds.filter(x => x.id == credential.cloudId);
+
+    return filtered[0] ? filtered[0].name : '';
+  }
+
+  // Get the name of the controller's credential
+  controllersCredential(controller: Controller): string {
+    const filtered = this.cloudCredentials.filter(
+      x => x.id == controller.cloudCredentialId
+    );
+
+    return filtered[0] ? filtered[0].name : '';
+  }
+
+  // Get the name of the controller's cloud
+  controllersCloud(controller: Controller): string {
+    const filtered = this.clouds.filter(
+      x => x.id == controller.cloudId
+    );
+
+    return filtered[0] ? filtered[0].name : '';
   }
 }
 </script>

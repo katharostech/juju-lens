@@ -4,13 +4,13 @@ controllers:
     cloud: aws
     region: us-west
     accessLevel: admin
-    cloudCredential: my-aws-creds
+    cloudCredentialId: X4DNgKiu4SJ
   - name: dev-controller
     id: APRmlF23dYHPPcCc
     cloud: azure
     region: us-west
     accessLevel: user
-    cloudCredential: my-azure-creds
+    cloudCredentialId: 85bCHNKPABAaPzQ
 
 clouds:
   - name: aws
@@ -28,13 +28,15 @@ clouds:
 cloudCredentials:
   - name: my-aws-creds
     id: X4DNgKiu4SJ
-    cloud: aws
-    accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
-    secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
+    cloudId: BIfy0JfRercfFNiaLtmxtWaE
+    credentialData:
+      accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
+      secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
 
   - name: my-azure-creds
     id: 85bCHNKPABAaPzQ
-    cloud: azure
-    adAId: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
-    sId: VW29TSfKD
-    adAP: mNfq7YWRwTgfW5vwfxYRp
+    cloudId: AdzUGKLWNOyfA48Ug
+    credentialData:
+      adAId: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
+      sId: VW29TSfKD
+      adAP: mNfq7YWRwTgfW5vwfxYRp

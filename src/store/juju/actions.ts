@@ -28,7 +28,9 @@ export const actionTypes = {
   loadCloudCredentials: 'loadCloudCredentials',
   addCloudCredential: 'addCloudCredential',
   updateCloudCredential: 'updateCloudCredential',
-  deleteCloudCredential: 'deleteCloudCredential'
+  deleteCloudCredential: 'deleteCloudCredential',
+  // Clouds
+  loadCloudList: 'loadCloudList'
 };
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
@@ -112,6 +114,15 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   [actionTypes.deleteCloudCredential](ctx, cloudCredentialId: string) {
     return runWithRandomDelay(() => {
       ctx.commit(mutationTypes.deleteCloudCredential, cloudCredentialId);
+    });
+  },
+
+  /**
+   * Load cloud list
+   */
+  [actionTypes.loadCloudList](ctx) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.setClouds, initialData.clouds);
     });
   }
 };

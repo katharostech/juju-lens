@@ -1,11 +1,9 @@
 export interface AwsCloudCredential {
-  cloud: 'aws';
   accessKey: string;
   secretKey: string;
 }
 
 export interface AzureCloudCredential {
-  cloud: 'azure';
   adAId: string;
   sId: string;
   adAP: string;
@@ -23,7 +21,6 @@ export interface GcpOauth2CloudCred {
 }
 
 export interface GcpCloudCredential {
-  cloud: 'gcp';
   projectId: string;
   gcpCredKind: GcpJsonFileCloudCred | GcpOauth2CloudCred;
 }
@@ -31,7 +28,8 @@ export interface GcpCloudCredential {
 export interface CloudCredential {
   id: string;
   name: string;
-  credentialType:
+  cloudId: string;
+  credentialData:
     | AwsCloudCredential
     | AzureCloudCredential
     | GcpCloudCredential;
@@ -40,9 +38,9 @@ export interface CloudCredential {
 export interface Controller {
   id: string;
   name: string;
-  cloud: string;
-  cloudCredential: string;
+  cloudId: string;
   region: string;
+  cloudCredentialId: string;
   accessLevel: 'user' | 'admin';
 }
 
