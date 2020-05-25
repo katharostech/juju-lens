@@ -48,9 +48,9 @@ export default class DarkModeToggle extends Vue {
     if (mode === 'auto') {
       return 'brightness_4';
     } else if (mode === false) {
-      return 'brightness_5';
+      return 'fas fa-sun';
     } else {
-      return 'brightness_3';
+      return 'fas fa-moon';
     }
   }
 
