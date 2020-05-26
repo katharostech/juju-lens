@@ -238,6 +238,11 @@
           v-on:before-leave="routerTransitionInProgress = true"
           v-on:after-enter="routerTransitionInProgress = false"
         >
+        <!-- TODO: We need to figure out how to wrap child routes in a scroll
+        area or something so that they don't get taller than the screen and
+        mess up the fit of the floating windows over the content. For now each
+        child route has to manually make sure it fits the page and otherwise
+        has a scroll area or somethign to keep from overflowing the page size. -->
           <router-view />
         </transition>
         <debug-window />
