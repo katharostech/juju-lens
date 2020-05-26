@@ -25,7 +25,6 @@
 
 <script lang="ts">
 import DarkModeToggle from 'components/DarkModeToggle.vue';
-import { Location } from 'vue-router';
 
 import { Component, Vue } from 'vue-property-decorator';
 
