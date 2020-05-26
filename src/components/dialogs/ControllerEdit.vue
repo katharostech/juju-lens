@@ -158,7 +158,7 @@ export default class ControllerEdit extends Vue {
         component: CloudCredentialEdit,
         parent: this
       })
-      .onOk(credential => {
+      .onOk((credential: CloudCredential) => {
         this.cloudCredential = credential;
       });
   }
