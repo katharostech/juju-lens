@@ -1,11 +1,11 @@
 controllers:
-  - name: prod-controller
+  - name: AWS Prod Controller
     id: mN20lGzuMkVBi
     cloudId: BIfy0JfRercfFNiaLtmxtWaE
     region: us-west
     accessLevel: admin
     cloudCredentialId: X4DNgKiu4SJ
-  - name: dev-controller
+  - name: Azure Dev Controller
     id: APRmlF23dYHPPcCc
     cloudId: AdzUGKLWNOyfA48Ug
     region: us-west
@@ -13,14 +13,14 @@ controllers:
     cloudCredentialId: 85bCHNKPABAaPzQ
 
 cloudCredentials:
-  - name: my-aws-creds
+  - name: Main AWS Creds
     id: X4DNgKiu4SJ
     cloudId: BIfy0JfRercfFNiaLtmxtWaE
     credentialData:
       accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
       secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
 
-  - name: my-azure-creds
+  - name: My Azure Creds
     id: 85bCHNKPABAaPzQ
     cloudId: AdzUGKLWNOyfA48Ug
     credentialData:
