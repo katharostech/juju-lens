@@ -68,7 +68,7 @@
               color="positive"
               class="col-auto q-ma-sm"
               icon="fas fa-plus"
-              :disable="editing"
+              :disable="!cloud || editing"
               @click="startCreateCredential()"
             >
               <q-tooltip anchor="top middle" self="bottom middle"
