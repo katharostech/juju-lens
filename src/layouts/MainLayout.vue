@@ -157,6 +157,16 @@
             </q-item-section>
           </q-item>
 
+          <!-- My Account -->
+          <q-item clickable v-ripple :to="{ name: 'my-account' }">
+            <q-item-section avatar>
+              <q-icon name="person" />
+            </q-item-section>
+            <q-item-section>
+              My Account
+            </q-item-section>
+          </q-item>
+
           <!-- Debug window -->
           <q-item
             clickable
@@ -238,7 +248,7 @@
           v-on:before-leave="routerTransitionInProgress = true"
           v-on:after-enter="routerTransitionInProgress = false"
         >
-        <!-- TODO: We need to figure out how to wrap child routes in a scroll
+          <!-- TODO: We need to figure out how to wrap child routes in a scroll
         area or something so that they don't get taller than the screen and
         mess up the fit of the floating windows over the content. For now each
         child route has to manually make sure it fits the page and otherwise

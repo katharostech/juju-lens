@@ -44,16 +44,11 @@
 </template>
 
 <script lang="ts">
-import DarkModeToggle from 'components/DarkModeToggle.vue';
 import { Location } from 'vue-router';
 
 import { Component, Vue } from 'vue-property-decorator';
 
-@Component({
-  components: {
-    DarkModeToggle
-  }
-})
+@Component
 export default class Welcome extends Vue {
   get getStartedLink(): Location {
     const query = this.$route.query;

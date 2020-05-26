@@ -30,6 +30,11 @@ const routes: RouteConfig[] = [
         component: () => import('pages/Models.vue')
       },
       {
+        path: '/my-account',
+        name: 'my-account',
+        component: () => import('pages/Account.vue')
+      },
+      {
         path: '/admin',
         name: 'admin',
         component: () => import('pages/Admin.vue')
