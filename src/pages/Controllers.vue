@@ -48,78 +48,27 @@
             :key="controller.name"
             class="col-12 col-sm-6 col-md-4"
           >
-            <q-card>
-              <q-card-section>
-                <!-- Card Heading -->
-                <div class="row items-center">
-                  <div class="col-grow" style="flex: 1 1 0%">
-                    <!-- Controller name -->
-                    <div class="text-h6">
-                      <q-icon name="fas fa-server" class="on-left" />
-                      {{ controller.name }}
-                    </div>
-                    <div class="text-subtitle2 row">
-                      <!-- Controller cloud -->
-                      <div class="q-mr-sm">
-                        <q-icon name="cloud" size="1em" class="q-ma-xs" />
-                        {{ controllersCloud(controller) }}
-                      </div>
-                      <!-- Controller credential -->
-                      <div v-if="cloudCredentials" class="q-mr-sm">
-                        <q-icon
-                          name="fas fa-address-card"
-                          size="1em"
-                          class="q-ma-xs"
-                        />
-                        {{ controllersCredential(controller) }}
-                      </div>
-                      <!-- Controller access level -->
-                      <div class="q-mr-sm">
-                        <q-icon name="person" size="1em" class="q-ma-xs" />
-                        {{ controller.accessLevel }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-auto">
-                    <q-btn flat round icon="more_vert">
-                      <!-- Card action menu -->
-                      <q-menu
-                        anchor="center right"
-                        self="center left"
-                        :offset="[10, 0]"
-                        style="font-size: 1em"
-                      >
-                        <q-item
-                          clickable
-                          v-close-popup
-                          class="bg-primary text-white"
-                          @click="startEditController(controller)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon name="edit" />
-                          </q-item-section>
-                          <q-item-section>Edit</q-item-section>
-                        </q-item>
-                        <q-item
-                          clickable
-                          v-close-popup
-                          class="bg-negative text-white"
-                          @click="deleteController(controller)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon name="delete" />
-                          </q-item-section>
-                          <q-item-section>Delete</q-item-section>
-                        </q-item>
-                      </q-menu>
-                    </q-btn>
-                  </div>
-                </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-section> </q-card-section>
-              <juju-loading :loading="loadingControllers[controller.id]" />
-            </q-card>
+            <resource-card
+              :heading="controller.name"
+              headingIcon="fas fa-server"
+              :infoItems="[
+                {
+                  label: controllersCloud(controller),
+                  icon: 'cloud'
+                },
+                {
+                  label: controllersCredential(controller),
+                  icon: 'fas fa-address-card'
+                },
+                {
+                  label: controller.accessLevel,
+                  icon: 'person'
+                }
+              ]"
+              :loading="loadingControllers[controller.id]"
+              @delete="deleteController(controller)"
+              @edit="startEditController(controller)"
+            />
           </div>
         </q-tab-panel>
 
@@ -141,61 +90,19 @@
             v-for="credential in cloudCredentials"
             :key="credential.name"
           >
-            <q-card>
-              <q-card-section>
-                <!-- Card Heading -->
-                <div class="row items-center">
-                  <div class="col-grow" style="flex: 1 1 0%">
-                    <!-- Credential name -->
-                    <div class="text-h6 ellipsis">
-                      <q-icon name="fas fa-address-card" class="on-left" />
-                      {{ credential.name }}
-                    </div>
-                    <div class="text-subtitle2 row">
-                      <!-- Credential cloud -->
-                      <div class="q-mr-sm">
-                        <q-icon name="cloud" size="1em" class="q-ma-xs" />
-                        {{ credentialsCloud(credential) }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-auto">
-                    <q-btn flat round icon="more_vert">
-                      <!-- Card action menu -->
-                      <q-menu
-                        anchor="center right"
-                        self="center left"
-                        :offset="[10, 0]"
-                        style="font-size: 1em"
-                      >
-                        <q-item
-                          clickable
-                          v-close-popup
-                          class="bg-primary text-white"
-                        >
-                          <q-item-section avatar>
-                            <q-icon name="edit" />
-                          </q-item-section>
-                          <q-item-section>Edit</q-item-section>
-                        </q-item>
-                        <q-item
-                          clickable
-                          v-close-popup
-                          class="bg-negative text-white"
-                          @click="deleteCredential(credential)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon name="delete" />
-                          </q-item-section>
-                          <q-item-section>Delete</q-item-section>
-                        </q-item>
-                      </q-menu>
-                    </q-btn>
-                  </div>
-                </div>
-              </q-card-section>
-              <juju-loading :loading="loadingCredentials[credential.id]" />
-            </q-card>
+            <resource-card
+              :heading="credential.name"
+              headingIcon="fas fa-address-card"
+              :infoItems="[
+                {
+                  label: credentialsCloud(credential),
+                  icon: 'cloud'
+                }
+              ]"
+              :loading="loadingCredentials[credential.id]"
+              @delete="deleteCredential(credential)"
+              @edit="startEditCredential(credential)"
+            />
           </div>
         </q-tab-panel>
       </q-tab-panels>
@@ -208,8 +115,10 @@
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import ResourceCard from 'components/ResourceCard.vue';
 import JujuLoading from 'components/JujuLoading.vue';
 import ControllerEdit from 'components/dialogs/ControllerEdit.vue';
+import CloudCredentialEdit from 'components/dialogs/CloudCredentialEdit.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 
@@ -220,7 +129,8 @@ const juju = namespace('juju');
 
 @Component({
   components: {
-    JujuLoading
+    JujuLoading,
+    ResourceCard
   }
 })
 export default class Controllers extends Vue {
@@ -276,6 +186,11 @@ export default class Controllers extends Vue {
         component: ControllerEdit,
         parent: this
       });
+    } else if (this.tab == 'credentials') {
+      this.$q.dialog({
+        component: CloudCredentialEdit,
+        parent: this
+      });
     }
   }
 
@@ -285,6 +200,15 @@ export default class Controllers extends Vue {
       component: ControllerEdit,
       parent: this,
       controller
+    });
+  }
+
+  // Show the dialog to edit a credential
+  startEditCredential(credential: CloudCredential): void {
+    this.$q.dialog({
+      component: CloudCredentialEdit,
+      parent: this,
+      credential
     });
   }
 

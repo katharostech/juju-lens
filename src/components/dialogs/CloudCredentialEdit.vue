@@ -12,53 +12,42 @@
           <q-icon v-if="!editing" name="fas fa-plus" class="on-left" />
           <span v-if="!editing">Create</span>
 
-          <span>&nbsp;Controller</span>
+          <span>&nbsp;Cloud Credential</span>
         </div>
-        <p v-if="!editing">Deploy a new controller to a supported cloud.</p>
+        <p v-if="!editing">Add a new cloud credential.</p>
 
         <!-- Edit form-->
         <q-form class="q-gutter-md" @submit="onSubmit">
           <q-input
-            label="Controller name"
+            label="Credential name"
             v-model="name"
             :color="inputColor"
             :rules="[val => !!val || 'Field is required']"
+          />
+          <q-select
+            label="Cloud"
+            v-model="cloud"
+            option-label="name"
+            :options="clouds"
+            :color="inputColor"
+            :disable="editing"
+            :rules="[val => !!val || 'Field is required']"
             lazy-rules
           />
-          <div class="row">
-            <q-select
-              label="Cloud"
-              v-model="cloud"
-              option-label="name"
-              :options="clouds"
-              :color="inputColor"
-              :disable="editing"
-              :rules="[val => !!val || 'Field is required']"
-              class="col q-pr-xs"
-              lazy-rules
-            />
-            <q-select
-              label="Region"
-              v-model="region"
-              option-label="name"
-              :disable="!cloud || editing"
-              :options="cloud ? cloud.availableRegions : []"
-              :color="inputColor"
-              :rules="[val => !!val || 'Field is required']"
-              class="col"
-              lazy-rules
-            />
-          </div>
-          <q-select
-            label="Cloud Credential"
-            v-model="cloudCredential"
-            option-label="name"
-            :disable="!cloud || editing"
-            :options="
-              cloud ? cloudCredentials.filter(x => x.cloudId == cloud.id) : []
-            "
+          <q-input
+            ref="credentialData"
+            v-for="cred in cloud ? cloud.requiredCredentials : []"
+            :value="credentialData[cred.key] ? credentialData[cred.key] : ''"
+            :key="cred.key"
+            :label="cred.label"
             :color="inputColor"
-            :rules="[val => !!val || 'Field is required']"
+            :rules="[
+              val =>
+                !(credentialsRequired && !val) ? true : 'Field is required'
+            ]"
+            :type="cred.isPassword ? 'password' : 'text'"
+            :hint="cred.description"
+            @input="value => $set(credentialData, cred.key, value)"
             lazy-rules
           />
 
@@ -67,7 +56,7 @@
             <q-btn
               color="positive"
               type="submit"
-              :label="controller ? 'Update' : 'Create'"
+              :label="editing ? 'Update' : 'Create'"
               :icon="editing ? 'check' : 'fas fa-plus'"
               :loading="loading"
             />
@@ -86,21 +75,20 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Controller, CloudCredential, Cloud } from 'store/juju/state';
-import { mutationTypes } from 'store/juju/mutations';
+import { CloudCredential, Cloud } from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 
 import { uid } from 'quasar';
-import { Vue, Component, Prop } from 'vue-property-decorator';
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator';
 
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
 
 @Component
-export default class ControllerEdit extends Vue {
+export default class CloudCredentialEdit extends Vue {
   // The controller to edit. If null, we are creating a new controller
   @Prop({ type: Object, default: null })
-  readonly controller!: Controller | null;
+  readonly credential!: CloudCredential | null;
 
   loading = false;
 
@@ -108,23 +96,17 @@ export default class ControllerEdit extends Vue {
   @juju.State clouds!: Cloud[];
   @juju.State cloudCredentials!: CloudCredential[];
 
-  // Vuex mutation
-  @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
-    ctrlr: Controller
-  ) => void;
-
   // Vuex action
-  @juju.Action(actionTypes.addController) addController!: (
-    ctrlr: Controller
+  @juju.Action(actionTypes.addCloudCredential) addCloudCredential!: (
+    ctrlr: CloudCredential
   ) => Promise<undefined>;
-  @juju.Action(actionTypes.updateController) updateController!: (
-    ctrlr: Controller
+  @juju.Action(actionTypes.updateCloudCredential) updateCloudCredential!: (
+    ctrlr: CloudCredential
   ) => Promise<undefined>;
 
   name: string | null = null;
   cloud: Cloud | null = null;
-  region: string | null = null;
-  cloudCredential: CloudCredential | null = null;
+  credentialData: { [key: string]: string } = {};
 
   get inputColor(): string {
     return this.$q.dark.isActive ? 'secondary' : 'primary';
@@ -132,7 +114,24 @@ export default class ControllerEdit extends Vue {
 
   // Get whether or not we are editing instead of creating
   get editing(): boolean {
-    return this.controller != null;
+    return this.credential != null;
+  }
+
+  // Clear credentials when you switch the cloud
+  @Watch('cloud')
+  onCloudChange(): void {
+    this.credentialData = {};
+  }
+
+  // Helper to check whether or not the credentials are required
+  get credentialsRequired(): boolean {
+    // credentials are not required if we are editing and you have only changed the name
+    return !(
+      this.editing &&
+      Object.keys(this.credentialData).filter(
+        x => !(this.credentialData[x] in ['', null, undefined])
+      ).length == 0
+    );
   }
 
   // Skeleton example for Quasar Dialog plugin compatible dialog taken from
@@ -142,13 +141,9 @@ export default class ControllerEdit extends Vue {
   // following method is REQUIRED
   // (don't change its name --> "show")
   show() {
-    if (this.controller) {
-      this.name = this.controller.name;
-      this.cloud = this.clouds.filter(x => x.id == this.controller!.cloudId)[0];
-      this.region = this.controller.region;
-      this.cloudCredential = this.cloudCredentials.filter(
-        x => x.id == this.controller!.cloudCredentialId
-      )[0];
+    if (this.credential) {
+      this.name = this.credential.name;
+      this.cloud = this.clouds.filter(x => x.id == this.credential!.cloudId)[0];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,68 +164,59 @@ export default class ControllerEdit extends Vue {
   }
 
   onSubmit() {
-    // If we are not updating an existing controller
+    // If we are not updating an existing credential
     if (!this.editing) {
-      const controller: Controller = {
+      const credential: CloudCredential = {
         name: this.name!,
         id: uid(),
         cloudId: this.cloud!.id,
-        accessLevel: 'admin',
-        region: this.region!,
-        cloudCredentialId: this.cloudCredential!.id
+        credentialData: this.credentialData
       };
 
-      // Create the controller
+      // Create the cloud credential
       this.loading = true;
-      this.addController(controller).then(() => {
+      this.addCloudCredential(credential).then(() => {
         // on OK, it is REQUIRED to
         // emit "ok" event (with optional payload)
         // before hiding the QDialog
-        this.$emit('ok', controller);
-
+        this.$emit('ok', credential);
         // then hiding dialog
         this.hide();
-
         this.loading = false;
-
-        // Switch to the new controller
-        this.setCurrentController(controller);
 
         this.$q.notify({
           type: 'positive',
-          message: `Seccessfully created controller: ${controller.name}.`,
+          message: `Seccessfully created credential: ${credential.name}.`,
           position: 'bottom-right',
           timeout: 2000
         });
       });
 
-      // If we are editing an existing controller
+      // If we are editing an existing credentail
     } else {
-      const controller: Controller = {
+      const credential: CloudCredential = {
         name: this.name!,
-        id: this.controller!.id,
-        cloudId: this.cloud!.id,
-        accessLevel: this.controller!.accessLevel,
-        region: this.region!,
-        cloudCredentialId: this.cloudCredential!.id
+        id: this.credential!.id,
+        cloudId: this.credential!.cloudId,
+        credentialData: this.credentialsRequired
+          ? this.credentialData
+          : this.credential!.credentialData
       };
 
       // Update the controller
       this.loading = true;
-      this.updateController(controller).then(() => {
+      this.updateCloudCredential(credential).then(() => {
         // on OK, it is REQUIRED to
         // emit "ok" event (with optional payload)
         // before hiding the QDialog
-        this.$emit('ok', controller);
-
+        this.$emit('ok', credential);
         // then hiding dialog
         this.hide();
-
         this.loading = false;
 
         this.$q.notify({
           type: 'positive',
-          message: `Seccessfully created controller: ${controller.name}.`,
+          message: `Seccessfully updated credential: ${credential.name}.`,
           position: 'bottom-right',
           timeout: 2000
         });

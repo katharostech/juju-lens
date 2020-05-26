@@ -1,38 +1,8 @@
-export interface AwsCloudCredential {
-  accessKey: string;
-  secretKey: string;
-}
-
-export interface AzureCloudCredential {
-  adAId: string;
-  sId: string;
-  adAP: string;
-}
-
-export interface GcpJsonFileCloudCred {
-  data: string;
-}
-
-export interface GcpOauth2CloudCred {
-  clientId: string;
-  email: string;
-  privateKey: string;
-  projectId: string;
-}
-
-export interface GcpCloudCredential {
-  projectId: string;
-  gcpCredKind: GcpJsonFileCloudCred | GcpOauth2CloudCred;
-}
-
 export interface CloudCredential {
   id: string;
   name: string;
   cloudId: string;
-  credentialData:
-    | AwsCloudCredential
-    | AzureCloudCredential
-    | GcpCloudCredential;
+  credentialData: { [key: string]: string };
 }
 
 export interface Controller {
@@ -44,10 +14,18 @@ export interface Controller {
   accessLevel: 'user' | 'admin';
 }
 
+export interface CredentialDataDef {
+  key: string;
+  label?: string;
+  description?: string;
+  isPasword?: boolean;
+}
+
 export interface Cloud {
   id: string;
   name: string;
   availableRegions: string[];
+  requiredCredentials: CredentialDataDef[];
 }
 
 export interface JujuStateInterface {

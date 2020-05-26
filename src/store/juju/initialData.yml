@@ -29,14 +29,30 @@ cloudCredentials:
       adAP: mNfq7YWRwTgfW5vwfxYRp
 
 clouds:
-  - name: aws
+  - name: AWS
     id: BIfy0JfRercfFNiaLtmxtWaE
     availableRegions:
       - us-west
       - us-east
       - asia
-  - name: azure
+    requiredCredentials:
+      - key: accessKey
+        label: Access Key
+        description: AWS access key
+      - key: secretKey
+        label: Secret Key
+        description: AWS secret key
+        isPassword: true
+  - name: Azure
     id: AdzUGKLWNOyfA48Ug
     availableRegions:
       - centralus
       - centralasion
+    requiredCredentials:
+      - key: adAId
+        label: Azure Active Directory Application ID
+      - key: sId
+        label: Azure Subscription ID
+      - key: adAP
+        label: Azure Active Directory Application Password
+        isPassword: true

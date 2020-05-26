@@ -88,7 +88,7 @@ const mutation: MutationTree<JujuStateInterface> = {
     cloudCredential: CloudCredential
   ) {
     state.cloudCredentials = state.cloudCredentials.map(x =>
-      x.name == cloudCredential.name ? cloudCredential : x
+      x.id == cloudCredential.id ? cloudCredential : x
     );
   },
 
