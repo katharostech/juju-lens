@@ -52,7 +52,7 @@
           label="Controller"
           class="q-mx-sm controller-select"
           popup-content-class="controller-select-popup"
-          style="width: 12em;"
+          style="min-width: 12em;"
         />
         <!-- Dark mode button -->
         <dark-mode-toggle />
@@ -147,6 +147,17 @@
         <q-separator style="height: 1px" />
 
         <q-list>
+          <!-- Info Button -->
+          <q-item clickable v-ripple :to="{ name: 'welcome' }">
+            <q-item-section avatar>
+              <q-icon name="info" />
+            </q-item-section>
+            <q-item-section>
+              Welcome Page
+            </q-item-section>
+          </q-item>
+
+          <!-- Debug window -->
           <q-item
             clickable
             v-ripple

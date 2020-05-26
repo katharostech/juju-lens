@@ -4,24 +4,35 @@
       class="col q-mx-md q-mt-lg q-pa-lg shadow-10"
       style="max-width: 60em"
     >
-      <div class="text-center text-h3 q-mb-md">Juju GUI Prototype</div>
+      <div class="text-center text-h3 q-mb-md">Juju Lens GUI Prototype</div>
       <p class="q-ma-md text-body1">
-        This is a Juju GUI prototype developed by
-        <a href="https://katharostech.com">Katharos Technology</a>. All
-        interaction with the GUI is mocked without going to any real Juju
-        controller.
+        Welcome to Juju Lense, a GUI prototype developed by
+        <a href="https://katharostech.com">Katharos Technology</a>. This
+        prototype has been developed as a concept of what we think the Juju GUI
+        should be like. We are hoping that this can serve as a reference of what
+        works well and what does not as well a test-bed for experimentation and
+        feedback for the Juju GUI.
       </p>
       <p class="q-ma-md text-body1">
-        The purpose of this GUI prototype is to demonstrate our ideas for a Juju
-        GUI interface and provide a practical area in which we can experiment
-        with the Juju GUI user experience.
+        This GUI is not connected to any real Juju controllers or models. All
+        ineraction is mocked in the browser window without actually making any
+        real requests. Request delay times and unit status and logs have been
+        simulated to give a more real feel. Any changes you make will be
+        persisted in the browser window, but can be cleared with the clear
+        button below.
       </p>
       <p class="q-ma-md text-body1">
-        You are free to interact with anything in this GUI mock-up and the
-        results will be persisted inside of your browser window.
+        You can get back to this screen at any time by clicking the info icon in
+        the bottom left menu.
       </p>
-      <div class="flex justify-center">
+      <div class="flex justify-center q-gutter-md">
         <q-btn color="primary" label="Get Started" :to="getStartedLink" />
+        <q-btn
+          color="negative"
+          label="Clear Data"
+          icon="cancel"
+          @click="alert('TODO: Clear persited data')"
+        />
       </div>
     </q-card>
   </q-page>
