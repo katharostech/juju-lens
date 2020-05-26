@@ -2,10 +2,13 @@
   <q-scroll-area class="absolute fit" :thumb-style="{ width: '5px' }">
     <div class="row justify-center">
       <q-card
-        class="col q-mx-md q-my-lg q-pa-lg shadow-10"
+        class="column items-center col q-mx-md q-my-lg q-pa-lg shadow-10"
         style="max-width: 60em"
       >
         <div class="text-center text-h3 q-mb-md">Juju Lens GUI Prototype</div>
+        <a href="https://katharostech.com" class="logo-banner">
+          <q-img src="/statics/katharostech-banner.svg" />
+        </a>
         <p class="q-ma-md text-body1">
           Welcome to Juju Lense, a GUI prototype developed by
           <a href="https://katharostech.com">Katharos Technology</a>. This
@@ -72,3 +75,12 @@ export default class Welcome extends Vue {
   }
 }
 </script>
+
+<style lang="stylus" scoped>
+.logo-banner
+  display flex;
+  width 100%;
+
+  @media(min-width: 800px)
+    width 60%;
+</style>
