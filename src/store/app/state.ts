@@ -1,4 +1,4 @@
-export interface WindowsStateInterface {
+export interface AppStateInterface {
   debugWindow: DebugWindowState;
 }
 
@@ -7,7 +7,7 @@ export interface DebugWindowState {
   maximized: boolean;
 }
 
-const state: WindowsStateInterface = {
+const state: AppStateInterface = {
   debugWindow: {
     visible: false,
     maximized: false

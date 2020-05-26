@@ -162,7 +162,7 @@
             clickable
             v-ripple
             @click="
-              $store.commit('floatingWindows/toggleDebugWindow');
+              $store.commit('app/toggleDebugWindow');
               if (windowWidth() <= taskbarBreakpoint) {
                 showTaskbar = false;
               }

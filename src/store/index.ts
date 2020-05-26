@@ -1,9 +1,9 @@
 import { store } from 'quasar/wrappers';
 import Vuex from 'vuex';
 
-import floatingWindows from './floating-windows';
-import { WindowsStateInterface } from './floating-windows/state';
-import juju from './juju';
+import app from './app';
+import { AppStateInterface } from './app/state';
+import juju from './juju'
 import { JujuStateInterface } from './juju/state';
 
 /*
@@ -13,7 +13,7 @@ import { JujuStateInterface } from './juju/state';
 
 export interface StoreInterface {
   // Define your own store structure, using submodules if needed
-  floatingWindows: WindowsStateInterface;
+  app: AppStateInterface;
   juju: JujuStateInterface;
   // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
   // example: unknown;
@@ -24,7 +24,7 @@ export default store(function({ Vue }) {
 
   const Store = new Vuex.Store<StoreInterface>({
     modules: {
-      floatingWindows,
+      app,
       juju
     },
 

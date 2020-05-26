@@ -20,7 +20,7 @@ import FloatingWindow from 'components/FloatingWindow.vue';
 
 import { Vue, Component } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
-const floatingWindows = namespace('floatingWindows');
+const app = namespace('app');
 
 @Component({
   components: {
@@ -28,8 +28,8 @@ const floatingWindows = namespace('floatingWindows');
   }
 })
 export default class DebugWindow extends Vue {
-  @floatingWindows.State debugWindow!: unknown;
-  @floatingWindows.Mutation toggleDebugWindow!: unknown;
-  @floatingWindows.Mutation toggleDebugWindowMaximized!: unknown;
+  @app.State debugWindow!: unknown;
+  @app.Mutation toggleDebugWindow!: unknown;
+  @app.Mutation toggleDebugWindowMaximized!: unknown;
 }
 </script>
