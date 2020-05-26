@@ -12,8 +12,17 @@ const routes: RouteConfig[] = [
       },
       {
         path: '/controllers',
-        name: 'controllers',
-        component: () => import('pages/Controllers.vue')
+        component: () => import('pages/Controllers.vue'),
+        children: [
+          {
+            path: '',
+            name: 'controllers'
+          },
+          {
+            path: 'cloud-credentials',
+            name: 'cloud-credentials'
+          }
+        ]
       },
       {
         path: '/models',

@@ -7,15 +7,21 @@
         <!-- Tabs -->
         <q-tabs
           inline-label
-          v-model="tab"
+          :value="tab"
           shrink
           class="q-pa-xs ctrlr-cred-tabs"
         >
-          <q-tab label="Controllers" icon="fas fa-server" name="controllers" />
-          <q-tab
+          <q-route-tab
+            label="Controllers"
+            icon="fas fa-server"
+            name="controllers"
+            :to="{ name: 'controllers' }"
+          />
+          <q-route-tab
             label="Cloud Credentials"
             icon="fas fa-address-card"
             name="credentials"
+            :to="{ name: 'cloud-credentials' }"
           />
         </q-tabs>
         <q-space />
@@ -156,7 +162,13 @@ export default class Controllers extends Vue {
     name: string
   ) => Promise<undefined>;
 
-  tab = 'controllers';
+  get tab(): string {
+    if (this.$route.name == 'controllers') {
+      return 'controllers';
+    } else {
+      return 'credentials';
+    }
+  }
 
   loading = false;
   // The list of controllers that are loading
