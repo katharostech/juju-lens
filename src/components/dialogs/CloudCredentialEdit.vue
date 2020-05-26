@@ -34,6 +34,12 @@
             :rules="[val => !!val || 'Field is required']"
             lazy-rules
           />
+
+          <p v-if="editing" style="font-size: 0.8rem">
+            Leave credentials blank if you only want to change the name. In that
+            case the credentials will not be changed.
+          </p>
+
           <q-input
             ref="credentialData"
             v-for="cred in cloud ? cloud.requiredCredentials : []"
