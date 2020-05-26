@@ -52,7 +52,7 @@
           label="Controller"
           class="q-mx-sm controller-select"
           popup-content-class="controller-select-popup"
-          style="min-width: 12em;"
+          style="flex: 0.1 1 12em"
         />
         <!-- Dark mode button -->
         <dark-mode-toggle />

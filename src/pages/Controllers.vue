@@ -54,7 +54,7 @@
                 <div class="row items-center">
                   <div class="col-grow" style="flex: 1 1 0%">
                     <!-- Controller name -->
-                    <div class="text-h6 ellipsis">
+                    <div class="text-h6">
                       <q-icon name="fas fa-server" class="on-left" />
                       {{ controller.name }}
                     </div>
