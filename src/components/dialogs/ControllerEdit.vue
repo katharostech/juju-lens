@@ -156,7 +156,8 @@ export default class ControllerEdit extends Vue {
     this.$q
       .dialog({
         component: CloudCredentialEdit,
-        parent: this
+        parent: this,
+        forceCloud: this.cloud
       })
       .onOk((credential: CloudCredential) => {
         this.cloudCredential = credential;

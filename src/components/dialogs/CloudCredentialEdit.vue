@@ -30,7 +30,7 @@
             option-label="name"
             :options="clouds"
             :color="inputColor"
-            :disable="editing"
+            :disable="editing || !!forceCloud"
             :rules="[val => !!val || 'Field is required']"
             lazy-rules
           />
@@ -95,6 +95,8 @@ export default class CloudCredentialEdit extends Vue {
   // The controller to edit. If null, we are creating a new controller
   @Prop({ type: Object, default: null })
   readonly credential!: CloudCredential | null;
+  // Force specifying a certain cloud
+  @Prop({ type: Object, default: null }) readonly forceCloud!: Cloud | null;
 
   loading = false;
 
@@ -150,6 +152,10 @@ export default class CloudCredentialEdit extends Vue {
     if (this.credential) {
       this.name = this.credential.name;
       this.cloud = this.clouds.filter(x => x.id == this.credential!.cloudId)[0];
+    } else {
+      if (this.forceCloud) {
+        this.cloud = this.forceCloud;
+      }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
