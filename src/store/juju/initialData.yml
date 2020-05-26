@@ -56,3 +56,365 @@ clouds:
       - key: adAP
         label: Azure Active Directory Application Password
         isPassword: true
+
+models:
+  - name: e-commerce-stack
+    id: 2900e66a-569b-4551-9e5a-6f8f459b694d
+
+  - name: backend-data-processing
+    id: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+
+applications:
+  # Model: e-commerce-stack
+  - name: attendize
+    id: f76da48d-3308-4339-a9a8-a875344acff6
+    modelId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    charmId: b770e9dd-06f6-4e14-8e83-681992f06a22
+
+  - name: attendize-db
+    id: 7235e47a-b2b9-4815-b913-746ffc86f0e6
+    modelId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    charmId: eb24fb67-19dd-464b-af6d-5366c5066edc
+
+  # Model: backend-data-processing
+  - name: ceph-filestore
+    id: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    charmId: 031dc458-168c-4ae9-99c6-2f9d9162f1e5
+
+  - name: hadoop-cluster
+    id: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    charmId: bdabebab-73b9-4934-b086-e1dd91523a0d
+
+  - name: es-for-big-data
+    id: b6b30cab-b10b-459e-890d-acae81e1b34d
+    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    charmId: a227b677-773c-425c-a6f5-83577de28742
+
+  - name: elastic-dashboard-proxy
+    id: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
+    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    charmId: 69a4744e-b60f-42fd-85e7-1dfaca6c831e
+
+relations:
+  # attendize <-> attendize-db
+  - - applicationId: f76da48d-3308-4339-a9a8-a875344acff6
+      endpointName: database
+    - applicationId: 7235e47a-b2b9-4815-b913-746ffc86f0e6
+      endpointName: database
+  # hadoop-cluster <-> ceph-filestore
+  - - applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+      endpointName: ceph-data-store
+    - applicationId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+      endpointName: ceph-filesystem
+  # hadoop-cluster <-> es-for-big-data
+  - - applicationId: b6b30cab-b10b-459e-890d-acae81e1b34d
+      endpointName: hadoop-data-source
+    - applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+      endpointName: hadoop-api
+  # elastic-dashboard-proxy <-> es-for-big-data
+  - - applicationId: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
+      endpointName: reverse-proxy
+    - applicationId: b6b30cab-b10b-459e-890d-acae81e1b34d
+      endpointName: elasticsearch-dashboard
+  # es-for-big-data <-> es-for-big-data ( peer )
+  - - applicationId: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
+      endpointName: elasticsearch-cluster
+    - applicationId: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
+      endpointName: elasticsearch-cluster
+
+units:
+  # attendize units
+  - id: eb7bddc9-9177-43b0-be07-3cdfc4b4d17d
+    index: 0
+    applicationId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    machineId: e81f4964-adfc-4c2e-bbc0-2a27192d2d01
+    exposedPorts: [80, 443]
+    status:
+      severity: active
+      message: Application running
+    agentStatus: idle
+  - id: cf61f077-a67e-44f3-9e4f-d5f253d81597
+    index: 1
+    applicationId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    machineId: 3e5aecfb-2a86-4625-91bf-e8cd69be8885
+    exposedPorts: [80, 443]
+    status:
+      severity: maintenance
+      message: Updating appliation
+    agentStatus: idle
+
+  # attendize-db units
+  - id: 8932c12c-89d4-413e-895e-db778527c0fc
+    index: 1
+    applicationId: 7235e47a-b2b9-4815-b913-746ffc86f0e6
+    machineId: e81f4964-adfc-4c2e-bbc0-2a27192d2d01
+    exposedPorts: []
+    status:
+      severity: active
+      message: Active master
+    agentStatus: idle
+  - id: 16e862b5-3d87-4020-a2a0-2cc1e329a69c
+    index: 2
+    applicationId: 7235e47a-b2b9-4815-b913-746ffc86f0e6
+    machineId: 3e5aecfb-2a86-4625-91bf-e8cd69be8885
+    exposedPorts: []
+    status:
+      severity: active
+      message: Active slave
+    agentStatus: idle
+  - id: 8cdb16b4-fce0-4243-96ff-caaeed2ad968
+    index: 4
+    applicationId: 7235e47a-b2b9-4815-b913-746ffc86f0e6
+    machineId: 95cffddf-8aa3-47d2-b325-2b2aa6572f5d
+    exposedPorts: []
+    status:
+      severity: active
+      message: Active slave
+    agentStatus: idle
+
+  # ceph-filestore units
+  - id: dc69d4ef-c010-40db-91b2-76fb6c24a855
+    index: 0
+    applicationId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    machineId: e6f293c4-3a88-420a-b65f-c7aecd99d251
+    exposedPorts: []
+    status:
+      severity: active
+    agentStatus: idle
+  - id: eee306f8-e316-4d6c-8587-6864c19fd081
+    index: 1
+    applicationId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    machineId: 177649cc-178c-4fd2-adaf-c1a99207b330
+    exposedPorts: []
+    status:
+      severity: unknown
+    agentStatus: idle
+  - id: ad944336-5f1b-44ba-883b-29ad2e3df165
+    index: 2
+    applicationId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    machineId: b26a62d6-7268-41bd-9c9b-9576ada3f2f5
+    exposedPorts: []
+    status:
+      severity: blocked
+      message: Server out of storage
+    agentStatus: idle
+
+  # hadoop-cluster units
+  - id: 922e19d7-dc8a-4b7f-bca8-22cbe4d94256
+    index: 3
+    applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+    machineId: e6f293c4-3a88-420a-b65f-c7aecd99d251
+    exposedPorts: []
+    status:
+      severity: waiting
+      message: Waiting for master
+    agentStatus: idle
+  - id: 4c8d8748-605b-4afb-85d2-f5eb5718ee7e
+    index: 4
+    applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+    machineId: 177649cc-178c-4fd2-adaf-c1a99207b330
+    exposedPorts: []
+    status:
+      severity: maintenance
+      message: Updating master
+    agentStatus: idle
+  - id: 95e8ff59-5338-46d3-8e18-2ab894e7b696
+    index: 6
+    applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+    machineId: b26a62d6-7268-41bd-9c9b-9576ada3f2f5
+    exposedPorts: []
+    status:
+      severity: active
+      message: Done updating
+    agentStatus: idle
+  - id: a54f54af-575f-4331-8eea-7778a2607bbc
+    index: 10
+    applicationId: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
+    machineId: dfe8f908-9e0b-481b-8736-de345934288d
+    exposedPorts: []
+    status:
+      severity: maintenance
+      message: Trying to become master
+    agentStatus: idle
+
+  # es-for-big-data units
+  - id: bd8670e2-f3c4-496e-8195-713977250c74
+    index: 0
+    applicationId: b6b30cab-b10b-459e-890d-acae81e1b34d
+    machineId: e6f293c4-3a88-420a-b65f-c7aecd99d251
+    exposedPorts: []
+    status:
+      severity: active
+      message: Cluster active
+    agentStatus: idle
+  - id: 0319f821-712f-4ddd-8af3-dedf27fb1ac1
+    index: 1
+    applicationId: b6b30cab-b10b-459e-890d-acae81e1b34d
+    machineId: 177649cc-178c-4fd2-adaf-c1a99207b330
+    exposedPorts: []
+    status:
+      severity: active
+      message: Cluster active
+    agentStatus: idle
+
+  # elastic-dashboard-proxy
+  - id: 3732d605-b8b3-4a37-a306-83a9f9acf7e6
+    index: 0
+    applicationId: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
+    machineId: b26a62d6-7268-41bd-9c9b-9576ada3f2f5
+    exposedPorts: []
+    status:
+      severity: active
+      message: Proxy online
+    agentStatus: idle
+
+# Macine list
+machines:
+  # e-commerce model
+  - id: e81f4964-adfc-4c2e-bbc0-2a27192d2d01
+    index: 0
+    modelId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    publicIp: 12.0.4.12
+    status: running
+    instanceId: juju-427011-0
+  - id: 3e5aecfb-2a86-4625-91bf-e8cd69be8885
+    index: 1
+    modelId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    publicIp: 12.0.4.13
+    status: running
+    instanceId: juju-427011-1
+  - id: 95cffddf-8aa3-47d2-b325-2b2aa6572f5d
+    index: 2
+    modelId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    publicIp: 12.0.4.14
+    status: running
+    instanceId: juju-427011-2
+
+  # backend-data-processing model
+  - id: e6f293c4-3a88-420a-b65f-c7aecd99d251
+    index: 0
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    publicIp: 12.0.4.15
+    status: running
+    instanceId: juju-110483-0
+  - id: 177649cc-178c-4fd2-adaf-c1a99207b330
+    index: 1
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    publicIp: 12.0.4.16
+    status: running
+    instanceId: juju-110483-1
+  - id: b26a62d6-7268-41bd-9c9b-9576ada3f2f5
+    index: 2
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    publicIp: 12.0.4.17
+    status: running
+    instanceId: juju-110483-2
+  - id: dfe8f908-9e0b-481b-8736-de345934288d
+    index: 3
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    publicIp: 12.0.4.18
+    status: running
+    instanceId: juju-110483-3
+
+# Charm list
+store:
+  # Ceph
+  - id: 031dc458-168c-4ae9-99c6-2f9d9162f1e5
+    name: Ceph
+    imageURL: /statics/charmIcons/ceph.svg
+    endpoints:
+      - name: ceph-filesystem
+        interface: cephfs
+        mode: provides
+
+  # Elasticsearch
+  - id: a227b677-773c-425c-a6f5-83577de28742
+    name: ElasticSearch
+    imageURL: /statics/charmIcons/elasticsearch.svg
+    endpoints:
+      - name: elasticsearch-dashbaord
+        interface: http
+        mode: provides
+      - name: hadoop-data-source
+        interface: hadoop
+        mode: requires
+      - name: spark-data-source
+        interface: spark
+        mode: requires
+      - name: cluster
+        interface: elasticsearch-cluster
+        mode: peer
+
+  # Hadoop
+  - id: bdabebab-73b9-4934-b086-e1dd91523a0d
+    name: Hadoop
+    imageURL: /statics/charmIcons/hadoop.svg
+    endpoints:
+      - name: hadoop-api
+        interface: hadoop
+        mode: provides
+      - name: ceph-data-store
+        interface: ceph
+        mode: requires
+
+  # Nginx
+  - id: 69a4744e-b60f-42fd-85e7-1dfaca6c831e
+    name: Nginx
+    imageURL: /statics/charmIcons/nginx.svg
+    endpoints:
+      - name: website
+        interface: http
+        mode: provides
+      - name: reverse-proxy
+        interface: http
+        mode: requires
+
+  # PostgreSQL
+  - id: eb24fb67-19dd-464b-af6d-5366c5066edc
+    name: PostgreSQL
+    imageURL: /statics/charmIcons/postgresql.svg
+    endpoints:
+      - name: admin-dashboard
+        interface: http
+        mode: provides
+      - name: database
+        interface: pgsql
+        mode: provides
+
+  # NextCloud
+  - id: b7f180a1-0619-4f44-821f-2adc3ad2c7ff
+    name: Nextcloud
+    imageURL: /statics/charmIcons/nextcloud.svg
+    endpoints:
+      - name: website
+        interface: http
+        mode: provides
+      - name: database
+        interface: pgsql
+        mode: requires
+
+  # Spark
+  - id: c1600d9e-7407-4ab6-a26e-6978a6201000
+    name: Spark
+    imageURL: /statics/charmIcons/nextcloud.svg
+    endpoints:
+      - name: website
+        interface: http
+        mode: provides
+      - name: database
+        interface: pgsql
+        mode: requires
+
+  # Attendize
+  - id: b770e9dd-06f6-4e14-8e83-681992f06a22
+    name: Attendize
+    imageURL: /statics/charmIcons/attendize.svg
+    endpoints:
+      - name: website
+        interface: http
+        mode: provides
+      - name: database
+        interface: pgsql
+        mode: requires

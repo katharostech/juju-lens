@@ -28,18 +28,85 @@ export interface Cloud {
   requiredCredentials: CredentialDataDef[];
 }
 
+export interface Model {
+  id: string;
+  name: string;
+}
+
+export interface Application {
+  id: string;
+  name: string;
+  modelId: string;
+  charmId: string;
+}
+
+export type Relation = [ApplicationEndpoint, ApplicationEndpoint];
+
+export interface ApplicationEndpoint {
+  applicationId: string;
+  endpointName: string;
+}
+
+export interface Unit {
+  id: string;
+  index: number;
+  applicationId: string;
+  machineId: string;
+  exposedPorts: number[];
+  status: UnitStatus;
+  agentStatus: 'active' | 'idle';
+}
+
+export interface UnitStatus {
+  severity: 'unknown' | 'maintenance' | 'blocked' | 'waiting' | 'active';
+  message?: string;
+}
+
+export interface Machine {
+  id: string;
+  index: number;
+  modelId: string;
+  publicIp: string;
+  status: 'waiting' | 'provisioning' | 'running' | 'offline';
+}
+
+export interface Charm {
+  id: string;
+  name: string;
+  imageURL: string;
+  endpoints: CharmEndpoint[];
+}
+
+export interface CharmEndpoint {
+  name: string;
+  interface: string;
+  mode: 'provides' | 'requires' | 'peer';
+}
+
 export interface JujuStateInterface {
   currentController: Controller | null;
   controllers: Controller[];
   clouds: Cloud[];
   cloudCredentials: CloudCredential[];
+  models: Model[];
+  applications: Application[];
+  relations: Relation[];
+  units: Unit[];
+  machines: Machine[];
+  store: Charm[];
 }
 
 const state: JujuStateInterface = {
   currentController: null,
   controllers: [],
   clouds: [],
-  cloudCredentials: []
+  cloudCredentials: [],
+  models: [],
+  applications: [],
+  relations: [],
+  units: [],
+  machines: [],
+  store: []
 };
 
 export default state;

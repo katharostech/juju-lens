@@ -26,8 +26,17 @@ const routes: RouteConfig[] = [
       },
       {
         path: '/models',
-        name: 'models',
-        component: () => import('pages/Models.vue')
+        component: () => import('pages/Models.vue'),
+        children: [
+          {
+            path: '',
+            name: 'models',
+          },
+          {
+            path: 'machines',
+            name: 'machines'
+          }
+        ]
       },
       {
         path: '/my-account',

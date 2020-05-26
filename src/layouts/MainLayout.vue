@@ -333,7 +333,7 @@ export default class MainLayout extends Vue {
   readonly mainLinks = [
     {
       label: 'Controllers',
-      icon: 'fas fa-server',
+      icon: 'fas fa-network-wired',
       to: { name: 'controllers' }
     },
     {
