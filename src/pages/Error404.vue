@@ -1,19 +1,14 @@
 <template>
   <div class="fixed-center text-center">
-    <p>
-      <img
-        src="~assets/sad.svg"
-        style="width:30vw;max-width:150px;"
-      >
-    </p>
+    <q-icon name="fas fa-ghost" size="10em" class="q-ma-xl" />
     <p class="text-faded">
-      Sorry, nothing here...<strong>(404)</strong>
+      Seems this page doesn't exist! <strong>(404)</strong>
     </p>
     <q-btn
       color="secondary"
       style="width:200px;"
       to="/"
-      label="Go back"
+      label="Get Back to Awesomeness"
     />
   </div>
 </template>
