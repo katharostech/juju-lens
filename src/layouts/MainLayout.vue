@@ -343,7 +343,7 @@ export default class MainLayout extends Vue {
 <style lang="stylus">
 .body--light
   .taskbar, .menu-drawer
-    background-color $grey-4
+    background-color $blue-grey-1
 
 .body--dark .q-item.q-router-link--active,
 .body--dark .q-item--active

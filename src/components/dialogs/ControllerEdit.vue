@@ -49,18 +49,33 @@
               lazy-rules
             />
           </div>
-          <q-select
-            label="Cloud Credential"
-            v-model="cloudCredential"
-            option-label="name"
-            :disable="!cloud || editing"
-            :options="
-              cloud ? cloudCredentials.filter(x => x.cloudId == cloud.id) : []
-            "
-            :color="inputColor"
-            :rules="[val => !!val || 'Field is required']"
-            lazy-rules
-          />
+          <div class="row items-center">
+            <q-select
+              label="Cloud Credential"
+              v-model="cloudCredential"
+              option-label="name"
+              :disable="!cloud || editing"
+              :options="
+                cloud ? cloudCredentials.filter(x => x.cloudId == cloud.id) : []
+              "
+              :color="inputColor"
+              :rules="[val => !!val || 'Field is required']"
+              lazy-rules
+              class="col-grow"
+            />
+            <q-btn
+              dense
+              color="positive"
+              class="col-auto q-ma-sm"
+              icon="fas fa-plus"
+              :disable="editing"
+              @click="startCreateCredential()"
+            >
+              <q-tooltip anchor="top middle" self="bottom middle"
+                >Add Credential</q-tooltip
+              >
+            </q-btn>
+          </div>
 
           <!-- buttons example -->
           <q-card-actions align="right">
@@ -86,6 +101,8 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import CloudCredentialEdit from 'components/dialogs/CloudCredentialEdit.vue';
+
 import { Controller, CloudCredential, Cloud } from 'store/juju/state';
 import { mutationTypes } from 'store/juju/mutations';
 import { actionTypes } from 'store/juju/actions';
@@ -133,6 +150,17 @@ export default class ControllerEdit extends Vue {
   // Get whether or not we are editing instead of creating
   get editing(): boolean {
     return this.controller != null;
+  }
+
+  startCreateCredential(): void {
+    this.$q
+      .dialog({
+        component: CloudCredentialEdit,
+        parent: this
+      })
+      .onOk(credential => {
+        this.cloudCredential = credential;
+      });
   }
 
   // Skeleton example for Quasar Dialog plugin compatible dialog taken from
