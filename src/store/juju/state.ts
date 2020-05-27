@@ -57,8 +57,18 @@ export interface Unit {
   agentStatus: 'active' | 'idle';
 }
 
+export enum UnitStatusSeverity {
+  active,
+  waiting,
+  maintenance,
+  unknown,
+  blocked
+}
+
+export type UnitStatusSeverityString = keyof typeof UnitStatusSeverity;
+
 export interface UnitStatus {
-  severity: 'unknown' | 'maintenance' | 'blocked' | 'waiting' | 'active';
+  severity: UnitStatusSeverityString;
   message?: string;
 }
 

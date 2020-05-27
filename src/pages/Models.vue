@@ -48,22 +48,31 @@
             v-for="model in models"
             :key="model.id"
           >
+            <!-- Model toolbar -->
             <q-toolbar
               v-ripple
               class="bg-primary text-white full-width"
               @click="$set(modelsExpanded, model.id, !modelsExpanded[model.id])"
             >
-              <q-avatar icon="share" />
-              <q-toolbar-title style="flex: 1 1 0%">{{
-                model.name
-              }}</q-toolbar-title>
+              <!-- Model Status -->
+              <q-icon
+                :name="model.statusIcon.icon"
+                :style="{
+                  color: model.statusIcon.color
+                }"
+                style="background-color: white; border-radius: 50%; padding-top: 1px;"
+                size="1.7em"
+              />
+              <q-toolbar-title style="flex: 1 1 0%">
+                {{ model.name }}
+              </q-toolbar-title>
               <div class="avatar-stack">
                 <q-avatar
-                  v-for="application in modelApplications(model)"
+                  v-for="application in model.applications"
                   :key="application.id"
                   size="2em"
                 >
-                  <q-img :src="applicationCharm(application).imageUrl" />
+                  <q-img :src="application.charm.imageUrl" />
                   <q-tooltip
                     anchor="top middle"
                     self="bottom middle"
@@ -77,7 +86,7 @@
                 round
                 dense
                 flat
-                icon="fas fa-arrow-down"
+                icon="arrow_downward"
                 style="transition: transform 0.2s;"
                 :style="{
                   transform: modelsExpanded[model.id]
@@ -97,13 +106,24 @@
               <div v-if="modelsExpanded[model.id]">
                 <q-list bordered>
                   <q-item
-                    v-for="application in modelApplications(model)"
+                    v-for="application in model.applications"
                     :key="application.id"
                     clickable
                     v-ripple
+                    :id="application.id"
                   >
+                    <q-item-section avatar style="width: 2em; padding: 0;">
+                      <q-icon
+                        :name="application.statusIcon.icon"
+                        :style="{
+                          color: application.statusIcon.color
+                        }"
+                        style="background-color: white; border-radius: 50%; padding-top: 1px;"
+                        size="1.7em"
+                      />
+                    </q-item-section>
                     <q-item-section avatar>
-                      <q-img :src="applicationCharm(application).imageUrl" />
+                      <q-img :src="application.charm.imageUrl" />
                     </q-item-section>
                     <q-item-section>
                       {{ application.name }}
@@ -171,11 +191,70 @@
 <script lang="ts">
 import JujuLoading from 'components/JujuLoading.vue';
 
-import { Model, Application, Charm } from 'store/juju/state';
+import {
+  Model,
+  Application,
+  Charm,
+  Unit,
+  UnitStatusSeverity,
+  UnitStatusSeverityString
+} from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
+
+interface FilledModel extends Model {
+  applications: FilledApplication[];
+  statusIcon: StatusIcon;
+}
+
+interface FilledApplication extends Application {
+  charm: Charm;
+  units: FilledUnit[];
+  statusIcon: StatusIcon;
+  // The "worst" status of its units
+  severity: UnitStatusSeverityString;
+}
+
+interface FilledUnit extends Unit {
+  statusIcon: StatusIcon;
+}
+
+// Green check
+const greenCheck: StatusIcon = {
+  icon: 'fas fa-check-circle',
+  color: 'var(--q-color-positive)'
+};
+// Yellow triangle
+const yellowTriangle: StatusIcon = {
+  icon: 'fas fa-exclamation-triangle',
+  color: 'var(--q-color-warning)'
+};
+// Red circle
+const redCircle: StatusIcon = {
+  icon: 'fas fa-exclamation-circle',
+  color: 'var(--q-color-negative)'
+};
+
+interface StatusIcon {
+  icon: string;
+  color: string;
+}
+
+// Get a status icon for the given unit status severity
+function unitStatusSeverityIcon(
+  severity: UnitStatusSeverityString
+): StatusIcon {
+  const sev = UnitStatusSeverity[severity];
+  if (sev == UnitStatusSeverity.blocked) {
+    return redCircle;
+  } else if (sev >= UnitStatusSeverity.maintenance) {
+    return yellowTriangle;
+  } else {
+    return greenCheck;
+  }
+}
 
 @Component({
   components: {
@@ -183,18 +262,62 @@ const juju = namespace('juju');
   }
 })
 export default class Index extends Vue {
-  @juju.State models!: Model[];
-  @juju.State store!: Charm[];
+  @juju.State('models') rawModels!: Model[];
+  @juju.State('store') charmStore!: Charm[];
   @juju.State applications!: Application[];
+  @juju.State units!: Unit[];
 
   @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
     undefined
   >;
 
-  //
-  // FIXME Tomorrow!!!!!!!!!
-  // Set up cached "filled in" way to get model data
-  //
+  // Get a model list with additional fiels that prevent having to lookup related components by
+  // id every time they must be accessed.
+  get models(): FilledModel[] {
+    const filledModels: FilledModel[] = [];
+
+    for (const model of this.rawModels) {
+      // Fill extra application information for the model
+      const filledApplications: FilledApplication[] = this.applications
+        .filter(app => app.modelId == model.id)
+        .map(app => {
+          // Fill extra unit information for the application
+          const filledUnits = this.units
+            .filter(unit => unit.applicationId == app.id)
+            .map(unit => {
+              return {
+                statusIcon: unitStatusSeverityIcon(unit.status.severity),
+                ...unit
+              };
+            });
+
+          // The severity for the app is the "worst" severity out of its units
+          const severity = filledUnits
+            .map(x => x.status.severity)
+            .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
+
+          return {
+            charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
+            units: filledUnits,
+            statusIcon: unitStatusSeverityIcon(severity),
+            severity,
+            ...app
+          };
+        });
+
+      filledModels.push({
+        applications: filledApplications,
+        statusIcon: unitStatusSeverityIcon(
+          filledApplications
+            .map(x => x.severity)
+            .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0]
+        ),
+        ...model
+      });
+    }
+
+    return filledModels;
+  }
 
   loading = false;
   tab = 'models';
@@ -212,16 +335,6 @@ export default class Index extends Vue {
     this.loadAllState().then(() => {
       this.loading = false;
     });
-  }
-
-  // Get the applications for a particular model
-  modelApplications(model: Model): Application[] {
-    return this.applications.filter(x => x.modelId == model.id);
-  }
-
-  // Get the charm for a given application
-  applicationCharm(app: Application): Charm {
-    return this.store.filter(x => x.id == app.charmId)[0];
   }
 }
 </script>

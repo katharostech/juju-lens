@@ -352,7 +352,7 @@ export default class MainLayout extends Vue {
     },
     {
       label: 'Controllers',
-      icon: 'fas fa-network-wired',
+      icon: 'network_check',
       to: { name: 'controllers' }
     },
     {
