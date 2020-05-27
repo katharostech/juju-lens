@@ -7,7 +7,7 @@
         <!-- Tabs -->
         <q-tabs
           inline-label
-          :value="tab"
+          v-model="tab"
           shrink
           class="model-machine-tabs q-pa-xs"
         >
@@ -122,6 +122,11 @@
               </div>
             </q-slide-transition>
           </div>
+        </q-tab-panel>
+
+        <!-- Machines View -->
+        <q-tab-panel name="machines" class="q-pa-sm">
+          Helo World!!!!
         </q-tab-panel>
       </q-tab-panels>
       <!-- TODO: Unit info Footer -->
