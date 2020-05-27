@@ -8,7 +8,7 @@ const routes: RouteConfig[] = [
       {
         path: '',
         name: 'home',
-        redirect: '/controllers'
+        redirect: '/models'
       },
       {
         path: '/controllers',
@@ -30,7 +30,7 @@ const routes: RouteConfig[] = [
         children: [
           {
             path: '',
-            name: 'models',
+            name: 'models'
           },
           {
             path: 'machines',

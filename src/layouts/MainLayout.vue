@@ -346,14 +346,14 @@ export default class MainLayout extends Vue {
   // The main menu links
   readonly mainLinks = [
     {
-      label: 'Controllers',
-      icon: 'fas fa-network-wired',
-      to: { name: 'controllers' }
-    },
-    {
       label: 'Models',
       icon: 'share',
       to: { name: 'models' }
+    },
+    {
+      label: 'Controllers',
+      icon: 'fas fa-network-wired',
+      to: { name: 'controllers' }
     },
     {
       label: 'Admin',
