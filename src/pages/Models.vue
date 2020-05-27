@@ -1,9 +1,9 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
   <div class="models absolute fit flex items-stretch">
-    <div class="q-pa-xs fit column">
+    <div class="fit column">
       <!-- Controllers Toolbar -->
-      <q-toolbar class="col-auto row q-mb-md">
+      <q-toolbar class="col-auto row q-mb-sm">
         <!-- Tabs -->
         <q-tabs
           inline-label
@@ -107,6 +107,15 @@
                     <q-item-section>
                       {{ application.name }}
                     </q-item-section>
+                    <q-item-section side>
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        icon="fas fa-ellipsis-v"
+                        @click.stop="() => undefined"
+                      />
+                    </q-item-section>
                   </q-item>
                 </q-list>
               </div>
@@ -114,6 +123,8 @@
           </div>
         </q-tab-panel>
       </q-tab-panels>
+      <!-- TODO: Unit info Footer -->
+      <!-- <div style="height: 10em;" class="bg-dark text-white"></div> -->
     </div>
 
     <juju-loading :loading="loading" />
