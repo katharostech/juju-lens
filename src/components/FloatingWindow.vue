@@ -200,7 +200,7 @@
           <!-- Resize Top Right -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowTopRight"
-            style="position: absolute; top: 0; right: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; top: 0; right: 0; cursor: ne-resize; width: 0.7em; height: 0.7em;"
           ></div>
           <!-- Resize Bottom Left -->
           <div
@@ -210,7 +210,7 @@
           <!-- Resize Bottom Right -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowBottomRight"
-            style="position: absolute; bottom: 0; right: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; bottom: 0; right: 0; cursor: se-resize; width: 0.7em; height: 0.7em;"
           ></div>
         </q-card>
       </div>
