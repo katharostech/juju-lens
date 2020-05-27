@@ -128,7 +128,7 @@ units:
   # attendize units
   - id: eb7bddc9-9177-43b0-be07-3cdfc4b4d17d
     index: 0
-    applicationId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    applicationId: f76da48d-3308-4339-a9a8-a875344acff6
     machineId: e81f4964-adfc-4c2e-bbc0-2a27192d2d01
     exposedPorts: [80, 443]
     status:
@@ -137,7 +137,7 @@ units:
     agentStatus: idle
   - id: cf61f077-a67e-44f3-9e4f-d5f253d81597
     index: 1
-    applicationId: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    applicationId: f76da48d-3308-4339-a9a8-a875344acff6
     machineId: 3e5aecfb-2a86-4625-91bf-e8cd69be8885
     exposedPorts: [80, 443]
     status:

@@ -55,7 +55,7 @@
           style="flex: 0.1 1 12em"
         />
         <!-- Alerts Button -->
-        <div style="position: relative;">
+        <div class="on-right" style="position: relative;">
           <q-btn
             flat
             dense

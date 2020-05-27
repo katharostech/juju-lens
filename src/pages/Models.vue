@@ -60,7 +60,6 @@
                 :style="{
                   color: model.statusIcon.color
                 }"
-                style="background-color: white; border-radius: 50%; padding-top: 1px;"
                 size="1.7em"
               />
               <q-toolbar-title style="flex: 1 1 0%">
@@ -104,29 +103,53 @@
             </q-toolbar>
             <q-slide-transition>
               <div v-if="modelsExpanded[model.id]">
-                <q-list bordered>
+                <!-- Application Row -->
+                <q-list bordered separator>
                   <q-item
                     v-for="application in model.applications"
                     :key="application.id"
                     clickable
                     v-ripple
                     :id="application.id"
+                    class="row"
                   >
-                    <q-item-section avatar style="width: 2em; padding: 0;">
+                    <!-- App Status -->
+                    <q-item-section avatar>
                       <q-icon
                         :name="application.statusIcon.icon"
                         :style="{
                           color: application.statusIcon.color
                         }"
-                        style="background-color: white; border-radius: 50%; padding-top: 1px;"
                         size="1.7em"
                       />
                     </q-item-section>
+
+                    <!-- App Logo -->
                     <q-item-section avatar>
                       <q-img :src="application.charm.imageUrl" />
                     </q-item-section>
+
                     <q-item-section>
-                      {{ application.name }}
+                      <!-- App Name -->
+                      <div>
+                        {{ application.name }}
+                      </div>
+                      <!-- Unit Preview -->
+                      <div class="row reverse">
+                        <div v-for="unit in application.units" :key="unit.id">
+                          <q-icon
+                            :name="unit.statusIcon.icon"
+                            :style="{
+                              color: unit.statusIcon.color
+                            }"
+                            size="1.em"
+                            class="q-ma-xs"
+                          />
+                          <q-tooltip anchor="top middle" self="bottom middle">
+                            {{ application.name }}/{{ unit.index }}
+                          </q-tooltip>
+                        </div>
+                      </div>
                     </q-item-section>
                     <q-item-section side>
                       <q-btn
@@ -149,8 +172,9 @@
           Helo World!!!!
         </q-tab-panel>
       </q-tab-panels>
+
       <!-- TODO: Unit info Footer -->
-      <div style="height: 10em;" class="bg-dark text-white">
+      <div style="height: 2em;" class="bg-dark text-white">
         <q-bar dense>
           <img
             src="/statics/charmIcons/spark.svg"
@@ -221,19 +245,34 @@ interface FilledUnit extends Unit {
   statusIcon: StatusIcon;
 }
 
-// Green check
-const greenCheck: StatusIcon = {
+// Green check circle
+const greenCheckCircle: StatusIcon = {
   icon: 'fas fa-check-circle',
   color: 'var(--q-color-positive)'
 };
-// Yellow triangle
-const yellowTriangle: StatusIcon = {
+// Yellow ! triangle
+const yellowExclamationTriangle: StatusIcon = {
   icon: 'fas fa-exclamation-triangle',
   color: 'var(--q-color-warning)'
 };
-// Red circle
-const redCircle: StatusIcon = {
+// Red ! circle
+const redExclamationCircle: StatusIcon = {
   icon: 'fas fa-exclamation-circle',
+  color: 'var(--q-color-negative)'
+};
+// Green plain circle
+const greenCircle: StatusIcon = {
+  icon: 'fas fa-circle',
+  color: 'var(--q-color-positive)'
+};
+// yellow plain circle
+const yellowCircle: StatusIcon = {
+  icon: 'fas fa-circle',
+  color: 'var(--q-color-warning)'
+};
+// Red plain circle
+const redCircle: StatusIcon = {
+  icon: 'fas fa-circle',
   color: 'var(--q-color-negative)'
 };
 
@@ -244,15 +283,16 @@ interface StatusIcon {
 
 // Get a status icon for the given unit status severity
 function unitStatusSeverityIcon(
-  severity: UnitStatusSeverityString
+  severity: UnitStatusSeverityString,
+  mini?: boolean
 ): StatusIcon {
   const sev = UnitStatusSeverity[severity];
   if (sev == UnitStatusSeverity.blocked) {
-    return redCircle;
+    return mini ? redCircle : redExclamationCircle;
   } else if (sev >= UnitStatusSeverity.maintenance) {
-    return yellowTriangle;
+    return mini ? yellowCircle : yellowExclamationTriangle;
   } else {
-    return greenCheck;
+    return mini ? greenCircle : greenCheckCircle;
   }
 }
 
@@ -286,7 +326,7 @@ export default class Index extends Vue {
             .filter(unit => unit.applicationId == app.id)
             .map(unit => {
               return {
-                statusIcon: unitStatusSeverityIcon(unit.status.severity),
+                statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
                 ...unit
               };
             });
