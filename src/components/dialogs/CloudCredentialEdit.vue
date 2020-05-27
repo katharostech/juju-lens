@@ -198,7 +198,7 @@ export default class CloudCredentialEdit extends Vue {
 
         this.$q.notify({
           type: 'positive',
-          message: `Seccessfully created credential: ${credential.name}.`,
+          message: `successfully created credential: ${credential.name}.`,
           position: 'bottom-right',
           timeout: 2000
         });
@@ -228,7 +228,7 @@ export default class CloudCredentialEdit extends Vue {
 
         this.$q.notify({
           type: 'positive',
-          message: `Seccessfully updated credential: ${credential.name}.`,
+          message: `successfully updated credential: ${credential.name}.`,
           position: 'bottom-right',
           timeout: 2000
         });

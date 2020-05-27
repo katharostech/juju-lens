@@ -241,7 +241,7 @@ export default class Controllers extends Vue {
           this.$set(this.loadingControllers, controller.id, false);
           this.$q.notify({
             type: 'positive',
-            message: `Seccessfully deleted controller: ${controller.name}.`,
+            message: `successfully deleted controller: ${controller.name}.`,
             position: 'bottom-right',
             timeout: 2000
           });
@@ -268,7 +268,7 @@ export default class Controllers extends Vue {
           this.$set(this.loadingCredentials, credential.id, false);
           this.$q.notify({
             type: 'positive',
-            message: `Seccessfully deleted credential: ${credential.name}.`,
+            message: `successfully deleted credential: ${credential.name}.`,
             position: 'bottom-right',
             timeout: 2000
           });

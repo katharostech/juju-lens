@@ -10,7 +10,7 @@
           <q-img src="/statics/katharostech-banner.svg" />
         </a>
         <p class="q-ma-md text-body1">
-          Welcome to Juju Lense, a GUI prototype developed by
+          Welcome to Juju Lens, a GUI prototype developed by
           <a href="https://katharostech.com">Katharos Technology</a>. This
           prototype has been developed as a concept of what we think the Juju
           GUI should be like. We are hoping that this can serve as a reference
@@ -20,8 +20,8 @@
         <p class="q-ma-md text-body1">
           This GUI is not connected to any real Juju controllers or models. All
           ineraction is mocked in the browser window without actually making any
-          real requests. Request delay times and unit status and logs have been
-          simulated to give a more real feel. Any changes you make will be
+          real requests. Request delay times and unit statuses and logs have
+          been simulated to give a more real feel. Any changes you make will be
           persisted in the browser window, but can be cleared with the clear
           button below.
         </p>

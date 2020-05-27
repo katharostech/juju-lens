@@ -61,6 +61,7 @@
                 <q-avatar
                   v-for="application in modelApplications(model)"
                   :key="application.id"
+                  size="2em"
                 >
                   <q-img :src="applicationCharm(application).imageUrl" />
                   <q-tooltip
@@ -88,7 +89,7 @@
                 round
                 dense
                 flat
-                icon="fas fa-ellipsis-v"
+                icon="more_vert"
                 @click.stop="() => undefined"
               />
             </q-toolbar>
@@ -112,7 +113,7 @@
                         round
                         dense
                         flat
-                        icon="fas fa-ellipsis-v"
+                        icon="more_vert"
                         @click.stop="() => undefined"
                       />
                     </q-item-section>
@@ -124,7 +125,38 @@
         </q-tab-panel>
       </q-tab-panels>
       <!-- TODO: Unit info Footer -->
-      <!-- <div style="height: 10em;" class="bg-dark text-white"></div> -->
+      <div style="height: 10em;" class="bg-dark text-white">
+        <q-bar dense>
+          <img
+            src="/statics/charmIcons/spark.svg"
+            style="height: 1em;"
+            :ratio="1"
+          />
+
+          <div class="text-weight-bold ellipsis">my-app</div>
+
+          <q-space />
+
+          <!-- Minimize button -->
+          <q-btn
+            v-ripple
+            dense
+            flat
+            icon="fas fa-window-minimize"
+            @click="$emit('minimize')"
+          >
+            <q-tooltip
+              transition-show="jump-up"
+              transition-hide="jump-down"
+              anchor="top middle"
+              self="bottom middle"
+              :delay="300"
+            >
+              Hide
+            </q-tooltip>
+          </q-btn>
+        </q-bar>
+      </div>
     </div>
 
     <juju-loading :loading="loading" />
@@ -161,6 +193,7 @@ export default class Index extends Vue {
 
   loading = false;
   tab = 'models';
+  activeApplication: Application | null = null;
 
   modelsExpanded: { [key: string]: boolean } = {};
 

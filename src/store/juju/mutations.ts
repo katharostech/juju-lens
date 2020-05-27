@@ -38,6 +38,7 @@ const mutation: MutationTree<JujuStateInterface> = {
   [mutationTypes.setAllState](state, newstate: PartialJujuState) {
     // Transfer any set keys from the new state to the current state
     for (const key of Object.keys(newstate)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (state as any)[key] = (newstate as any)[key];
     }
   },

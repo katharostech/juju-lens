@@ -1,5 +1,7 @@
 <template>
-  <q-btn
+  <!-- The old version was a button, but now we use a q-item. Leaving the button code
+       here just in case. -->
+  <!-- <q-btn
     v-ripple
     round
     dense
@@ -14,7 +16,15 @@
       transition-hide="jump-right"
       >{{ btnTooltip }}</q-tooltip
     >
-  </q-btn>
+  </q-btn> -->
+  <q-item clickable v-ripple @click="updateDarkMode">
+    <q-item-section avatar>
+      <q-icon :name="btnIcon" />
+    </q-item-section>
+    <q-item-section>
+      {{ btnLabel }}
+    </q-item-section>
+  </q-item>
 </template>
 
 <script lang="ts">
@@ -54,7 +64,7 @@ export default class DarkModeToggle extends Vue {
     }
   }
 
-  get btnTooltip(): string {
+  get btnLabel(): string {
     const mode = this.$q.dark.mode;
     if (mode === 'auto') {
       return 'Auto Dark Mode';

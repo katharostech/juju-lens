@@ -54,11 +54,20 @@
           popup-content-class="controller-select-popup"
           style="flex: 0.1 1 12em"
         />
-        <!-- Dark mode button -->
-        <dark-mode-toggle />
+        <!-- Alerts Button -->
+        <div style="position: relative;">
+          <q-btn
+            flat
+            dense
+            class="ringing-bell"
+            icon="fas fa-bell"
+            style="padding: 0.2rem"
+          />
+          <badge class="bg-warning text-black">2</badge>
+          <badge left class="bg-negative text-white">1</badge>
+        </div>
         <!-- Mobile menu button -->
         <q-btn
-          v-ripple
           flat
           round
           dense
@@ -141,6 +150,24 @@
                 {{ item.unitName }}
               </q-item-section>
             </q-item>
+            <!-- Debug window -->
+            <q-item
+              clickable
+              v-ripple
+              @click="
+                $store.commit('app/toggleDebugWindow');
+                if (windowWidth() <= taskbarBreakpoint) {
+                  showTaskbar = false;
+                }
+              "
+            >
+              <q-item-section avatar>
+                <q-icon name="fas fa-bug" />
+              </q-item-section>
+              <q-item-section>
+                Debug Window
+              </q-item-section>
+            </q-item>
           </q-list>
         </q-scroll-area>
 
@@ -157,6 +184,9 @@
             </q-item-section>
           </q-item>
 
+          <!-- Dark mode button -->
+          <dark-mode-toggle />
+
           <!-- My Account -->
           <q-item clickable v-ripple :to="{ name: 'my-account' }">
             <q-item-section avatar>
@@ -167,25 +197,7 @@
             </q-item-section>
           </q-item>
 
-          <!-- Debug window -->
-          <q-item
-            clickable
-            v-ripple
-            @click="
-              $store.commit('app/toggleDebugWindow');
-              if (windowWidth() <= taskbarBreakpoint) {
-                showTaskbar = false;
-              }
-            "
-          >
-            <q-item-section avatar>
-              <q-icon name="fas fa-bug" />
-            </q-item-section>
-            <q-item-section>
-              Debug Window
-            </q-item-section>
-          </q-item>
-
+          <!-- Termminal Window -->
           <q-item
             clickable
             v-ripple
@@ -273,6 +285,7 @@
 
 <script lang="ts">
 import DarkModeToggle from 'components/DarkModeToggle.vue';
+import Badge from 'components/Badge.vue';
 import FloatingWindow from 'components/FloatingWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
@@ -289,7 +302,8 @@ import { Component, Vue } from 'vue-property-decorator';
     DarkModeToggle,
     FloatingWindow,
     DebugWindow,
-    EmbeddedTerminal
+    EmbeddedTerminal,
+    Badge
   }
 })
 export default class MainLayout extends Vue {
@@ -381,6 +395,13 @@ export default class MainLayout extends Vue {
   :not(.q-item--active).q-item
     color black
 
+.ringing-bell
+  transform-origin 50% 7%
+  animation-name ring-bell
+  animation-duration 5s
+  animation-timing-function ease
+  animation-iteration-count infinite
+
 // Breakpoint class for mobile menu items
 .main-layout
   .lt-mobile-menu
@@ -406,4 +427,16 @@ export default class MainLayout extends Vue {
 
 .router-slide-down-leave-to
   transform TranslateX(-100vw)
+
+// Animation keyframes
+@keyframes ring-bell {
+  0%   {transform: none;}
+  5%  {transform: rotateZ(-20deg);}
+  10%  {transform: rotateZ(20deg);}
+  15%  {transform: rotateZ(-12deg);}
+  20% {transform: rotateZ(12deg);}
+  25% {transform: rotateZ(-5deg);}
+  30% {transform: none;}
+  100% {transform: none;}
+}
 </style>
