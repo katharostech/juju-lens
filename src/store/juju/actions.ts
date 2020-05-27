@@ -2,6 +2,7 @@ import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
 import { JujuStateInterface, Controller, CloudCredential } from './state';
 import { mutationTypes } from './mutations';
+import { LocalStorage } from 'quasar';
 
 import d from './initialData.yml';
 const initialData = d as JujuStateInterface;
@@ -21,29 +22,44 @@ function runWithRandomDelay<T>(f: () => T): Promise<T> {
 export const actionTypes = {
   // Global
   loadAllState: 'loadAllState',
+  persistState: 'persistState',
   // Controllers
-  loadControllers: 'loadControllers',
+  // loadControllers: 'loadControllers',
   addController: 'addController',
   updateController: 'updateController',
   deleteController: 'deleteController',
   // Cloud credentials
-  loadCloudCredentials: 'loadCloudCredentials',
+  // loadCloudCredentials: 'loadCloudCredentials',
   addCloudCredential: 'addCloudCredential',
   updateCloudCredential: 'updateCloudCredential',
-  deleteCloudCredential: 'deleteCloudCredential',
+  deleteCloudCredential: 'deleteCloudCredential'
   // Clouds
-  loadCloudList: 'loadCloudList'
+  // loadCloudList: 'loadCloudList'
 };
+
+const JUJU_STATE_NAME = 'jujuState';
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   //
   // Global
   //
 
+  // Load entire state from persted store
   [actionTypes.loadAllState](ctx) {
     return runWithRandomDelay(() => {
-      ctx.commit(mutationTypes.setAllState, initialData);
+      const localStore = LocalStorage.getItem(JUJU_STATE_NAME);
+
+      if (localStore) {
+        ctx.commit(mutationTypes.setAllState, localStore);
+      } else {
+        ctx.commit(mutationTypes.setAllState, initialData);
+      }
     });
+  },
+
+  // Persist whole state
+  [actionTypes.persistState](ctx) {
+    LocalStorage.set(JUJU_STATE_NAME, ctx.state);
   },
 
   //
@@ -53,18 +69,20 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   /**
    * Load controller data
    */
-  [actionTypes.loadControllers](ctx) {
-    return runWithRandomDelay(() => {
-      ctx.commit(mutationTypes.setControllers, initialData.controllers);
-    });
-  },
+  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
+  // [actionTypes.loadControllers](ctx) {
+  //   return runWithRandomDelay(() => {
+  //     ctx.commit(mutationTypes.setControllers, initialData.controllers);
+  //   });
+  // },
 
   /**
    * Add a controller
    */
   [actionTypes.addController](ctx, controller: Controller) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.addController, controller);
+      await ctx.dispatch(actionTypes.persistState);
     });
   },
 
@@ -72,8 +90,9 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    * update a controller
    */
   [actionTypes.updateController](ctx, controller: Controller) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.updateController, controller);
+      await ctx.dispatch(actionTypes.persistState);
     });
   },
 
@@ -81,8 +100,9 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    * Delete a controller
    */
   [actionTypes.deleteController](ctx, controllerName: string) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.deleteController, controllerName);
+      await ctx.dispatch(actionTypes.persistState);
     });
   },
 
@@ -93,21 +113,23 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   /**
    * Load cloudCredential data
    */
-  [actionTypes.loadCloudCredentials](ctx) {
-    return runWithRandomDelay(() => {
-      ctx.commit(
-        mutationTypes.setCloudCredentials,
-        initialData.cloudCredentials
-      );
-    });
-  },
+  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
+  // [actionTypes.loadCloudCredentials](ctx) {
+  //   return runWithRandomDelay(() => {
+  //     ctx.commit(
+  //       mutationTypes.setCloudCredentials,
+  //       initialData.cloudCredentials
+  //     );
+  //   });
+  // },
 
   /**
    * Add a cloudCredential
    */
   [actionTypes.addCloudCredential](ctx, cloudCredential: CloudCredential) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.addCloudCredential, cloudCredential);
+      await ctx.dispatch(actionTypes.persistState);
     });
   },
 
@@ -115,8 +137,9 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    * update a cloudCredential
    */
   [actionTypes.updateCloudCredential](ctx, cloudCredential: CloudCredential) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.updateCloudCredential, cloudCredential);
+      await ctx.dispatch(actionTypes.persistState);
     });
   },
 
@@ -124,19 +147,21 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    * Delete a cloudCredential
    */
   [actionTypes.deleteCloudCredential](ctx, cloudCredentialId: string) {
-    return runWithRandomDelay(() => {
+    return runWithRandomDelay(async () => {
       ctx.commit(mutationTypes.deleteCloudCredential, cloudCredentialId);
+      await ctx.dispatch(actionTypes.persistState);
     });
-  },
+  }
 
   /**
    * Load cloud list
    */
-  [actionTypes.loadCloudList](ctx) {
-    return runWithRandomDelay(() => {
-      ctx.commit(mutationTypes.setClouds, initialData.clouds);
-    });
-  }
+  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
+  // [actionTypes.loadCloudList](ctx) {
+  //   return runWithRandomDelay(() => {
+  //     ctx.commit(mutationTypes.setClouds, initialData.clouds);
+  //   });
+  // }
 };
 
 export default actions;

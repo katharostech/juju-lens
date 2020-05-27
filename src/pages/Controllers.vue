@@ -144,13 +144,9 @@ export default class Controllers extends Vue {
   @juju.State clouds!: Cloud[];
 
   // Load actions
-  @juju.Action(actionTypes.loadControllers) loadControllers!: () => Promise<
+  @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
     undefined
   >;
-  @juju.Action(actionTypes.loadCloudCredentials)
-  loadCloudCredentials!: () => Promise<undefined>;
-  @juju.Action(actionTypes.loadCloudList)
-  loadCloudList!: () => Promise<undefined>;
 
   // Delete actions
   @juju.Action(actionTypes.deleteController) runDeleteController!: (
@@ -180,11 +176,7 @@ export default class Controllers extends Vue {
   fetchData(): void {
     this.loading = true;
 
-    Promise.all([
-      this.loadControllers(),
-      this.loadCloudCredentials(),
-      this.loadCloudList()
-    ]).then(() => {
+    this.loadAllState().then(() => {
       this.loading = false;
     });
   }
