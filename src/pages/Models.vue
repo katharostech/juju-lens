@@ -32,6 +32,7 @@
       <q-tab-panels
         animated
         v-model="tab"
+        class="fit"
         style="flex: 1 1 0%; background-color: hsla(0, 0%, 0%, 0);"
       >
         <!-- Model list -->
@@ -42,22 +43,35 @@
           </div>
 
           <!-- Model -->
-          <div class="q-mb-md" v-for="model in models" :key="model.id">
+          <div
+            class="q-mb-md full-width"
+            v-for="model in models"
+            :key="model.id"
+          >
             <q-toolbar
               v-ripple
-              class="bg-primary text-white"
+              class="bg-primary text-white full-width"
               @click="$set(modelsExpanded, model.id, !modelsExpanded[model.id])"
             >
               <q-avatar icon="share" />
               <q-toolbar-title style="flex: 1 1 0%">{{
                 model.name
               }}</q-toolbar-title>
-              <q-avatar
-                v-for="application in modelApplications(model)"
-                :key="application.id"
-              >
-                <q-img :src="applicationCharm(application).imageUrl" />
-              </q-avatar>
+              <div class="avatar-stack">
+                <q-avatar
+                  v-for="application in modelApplications(model)"
+                  :key="application.id"
+                >
+                  <q-img :src="applicationCharm(application).imageUrl" />
+                  <q-tooltip
+                    anchor="top middle"
+                    self="bottom middle"
+                    content-style="font-size: 0.8em;"
+                  >
+                    {{ application.name }}
+                  </q-tooltip>
+                </q-avatar>
+              </div>
               <q-btn
                 round
                 dense
@@ -69,6 +83,13 @@
                     ? 'rotateZ(180deg)'
                     : 'none'
                 }"
+              />
+              <q-btn
+                round
+                dense
+                flat
+                icon="fas fa-ellipsis-v"
+                @click.stop="() => undefined"
               />
             </q-toolbar>
             <q-slide-transition>
@@ -122,6 +143,11 @@ export default class Index extends Vue {
     undefined
   >;
 
+  //
+  // FIXME Tomorrow!!!!!!!!!
+  // Set up cached "filled in" way to get model data
+  //
+
   loading = false;
   tab = 'models';
 
@@ -154,6 +180,17 @@ export default class Index extends Vue {
 <style lang="stylus">
 .models
   $model-machine-tabs-breakpoint=476px
+
+  .avatar-stack
+    .q-avatar
+      transition margin-left 0.2s
+
+    .q-avatar:not(:first-child)
+      margin-left -0.4em
+
+    &:hover
+      .q-avatar:not(:first-child)
+        margin-left inherit
 
   // Small screen use only icons without labels
   @media(max-width: $model-machine-tabs-breakpoint)
