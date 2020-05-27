@@ -84,17 +84,17 @@ applications:
 
   - name: hadoop-cluster
     id: bb4dae6d-b303-4856-b378-e0a8adaf8eaa
-    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
     charmId: bdabebab-73b9-4934-b086-e1dd91523a0d
 
   - name: es-for-big-data
     id: b6b30cab-b10b-459e-890d-acae81e1b34d
-    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
     charmId: a227b677-773c-425c-a6f5-83577de28742
 
   - name: elastic-dashboard-proxy
     id: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
-    modelId: 989d5634-710d-4fe1-880c-7e83ad3c83d4
+    modelId: ffa8b47a-1b94-4da7-9138-f89195e4f26f
     charmId: 69a4744e-b60f-42fd-85e7-1dfaca6c831e
 
 relations:
@@ -264,7 +264,7 @@ units:
     index: 0
     applicationId: 78f88c44-5bfb-4ff5-affd-f7bafb2a0ca5
     machineId: b26a62d6-7268-41bd-9c9b-9576ada3f2f5
-    exposedPorts: []
+    exposedPorts: [80, 443]
     status:
       severity: active
       message: Proxy online
@@ -323,7 +323,7 @@ store:
   # Ceph
   - id: 031dc458-168c-4ae9-99c6-2f9d9162f1e5
     name: Ceph
-    imageURL: /statics/charmIcons/ceph.svg
+    imageUrl: /statics/charmIcons/ceph.svg
     endpoints:
       - name: ceph-filesystem
         interface: cephfs
@@ -332,7 +332,7 @@ store:
   # Elasticsearch
   - id: a227b677-773c-425c-a6f5-83577de28742
     name: ElasticSearch
-    imageURL: /statics/charmIcons/elasticsearch.svg
+    imageUrl: /statics/charmIcons/elasticsearch.svg
     endpoints:
       - name: elasticsearch-dashbaord
         interface: http
@@ -350,7 +350,7 @@ store:
   # Hadoop
   - id: bdabebab-73b9-4934-b086-e1dd91523a0d
     name: Hadoop
-    imageURL: /statics/charmIcons/hadoop.svg
+    imageUrl: /statics/charmIcons/hadoop.svg
     endpoints:
       - name: hadoop-api
         interface: hadoop
@@ -362,7 +362,7 @@ store:
   # Nginx
   - id: 69a4744e-b60f-42fd-85e7-1dfaca6c831e
     name: Nginx
-    imageURL: /statics/charmIcons/nginx.svg
+    imageUrl: /statics/charmIcons/nginx.svg
     endpoints:
       - name: website
         interface: http
@@ -374,7 +374,7 @@ store:
   # PostgreSQL
   - id: eb24fb67-19dd-464b-af6d-5366c5066edc
     name: PostgreSQL
-    imageURL: /statics/charmIcons/postgresql.svg
+    imageUrl: /statics/charmIcons/postgresql.svg
     endpoints:
       - name: admin-dashboard
         interface: http
@@ -386,7 +386,7 @@ store:
   # NextCloud
   - id: b7f180a1-0619-4f44-821f-2adc3ad2c7ff
     name: Nextcloud
-    imageURL: /statics/charmIcons/nextcloud.svg
+    imageUrl: /statics/charmIcons/nextcloud.svg
     endpoints:
       - name: website
         interface: http
@@ -398,7 +398,7 @@ store:
   # Spark
   - id: c1600d9e-7407-4ab6-a26e-6978a6201000
     name: Spark
-    imageURL: /statics/charmIcons/nextcloud.svg
+    imageUrl: /statics/charmIcons/nextcloud.svg
     endpoints:
       - name: website
         interface: http
@@ -410,7 +410,7 @@ store:
   # Attendize
   - id: b770e9dd-06f6-4e14-8e83-681992f06a22
     name: Attendize
-    imageURL: /statics/charmIcons/attendize.svg
+    imageUrl: /statics/charmIcons/attendize.svg
     endpoints:
       - name: website
         interface: http

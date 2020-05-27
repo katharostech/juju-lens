@@ -37,8 +37,6 @@
         <!-- Controllers panel -->
         <q-tab-panel
           name="controllers"
-          transition-next="tab-trans"
-          transition-prev="tab-trans"
           class="row content-start q-col-gutter-sm"
         >
           <!-- Mobile heading for tab panel -->
@@ -319,21 +317,11 @@ export default class Controllers extends Vue {
 
   // Large screen use only labels without tabs
   @media(min-width: $ctrlr-cred-tabs-breakpoint)
-    .ctrlr-cred-tabs
-      .q-tab__icon
-        display none
+    // I think I changed my mind about hiding the icon on large screens
+    // .ctrlr-cred-tabs
+    //   .q-tab__icon
+    //     display none
 
     .ctrl-cred-tabs-alt-heading
       display: none
-
-.tab-trans-enter-active,
-.tab-trans-leave-active
-  transition all .4s ease
-  overflow hidden
-
-.tab-trans-enter
-  transform TranslateY(-100vh)
-
-.tab-trans-leave-to
-  transform TranslateX(-100vw)
 </style>

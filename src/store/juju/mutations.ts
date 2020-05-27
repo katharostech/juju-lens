@@ -1,12 +1,15 @@
 import { MutationTree } from 'vuex';
 import {
   JujuStateInterface,
+  PartialJujuState,
   Controller,
   CloudCredential,
   Cloud
 } from './state';
 
 export const mutationTypes = {
+  // Global ( maybe replace this later )
+  setAllState: 'setAllState',
   // Controller
   setCurrentController: 'setCurrentController',
   setControllers: 'setControllers',
@@ -23,6 +26,22 @@ export const mutationTypes = {
 };
 
 const mutation: MutationTree<JujuStateInterface> = {
+  //
+  // Global
+  //
+
+  /**
+   * Set the entire state, or any subset of correct. This may be kind of a stand
+   * in for doing this with more targeted mutations later. Put here to shortcut
+   * the effort required to implement to help release faster.
+   */
+  [mutationTypes.setAllState](state, newstate: PartialJujuState) {
+    // Transfer any set keys from the new state to the current state
+    for (const key of Object.keys(newstate)) {
+      (state as any)[key] = (newstate as any)[key];
+    }
+  },
+
   //
   // Controller
   //

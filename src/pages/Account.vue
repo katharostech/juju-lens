@@ -14,7 +14,7 @@
               <q-icon name="fas fa-exclamation-triangle" class="q-mt-sm" />
             </template>
             We haven't created a concept for this portion of the GUI yet, but we
-            would immagine this being the place to access and change your user
+            would imagine this being the place to access and change your user
             and account settings.
           </q-banner>
         </q-card-section>

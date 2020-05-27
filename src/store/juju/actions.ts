@@ -19,6 +19,8 @@ function runWithRandomDelay<T>(f: () => T): Promise<T> {
 }
 
 export const actionTypes = {
+  // Global
+  loadAllState: 'loadAllState',
   // Controllers
   loadControllers: 'loadControllers',
   addController: 'addController',
@@ -34,6 +36,16 @@ export const actionTypes = {
 };
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
+  //
+  // Global
+  //
+
+  [actionTypes.loadAllState](ctx) {
+    return runWithRandomDelay(() => {
+      ctx.commit(mutationTypes.setAllState, initialData);
+    });
+  },
+
   //
   // Controllers
   //

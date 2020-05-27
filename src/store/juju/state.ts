@@ -73,7 +73,7 @@ export interface Machine {
 export interface Charm {
   id: string;
   name: string;
-  imageURL: string;
+  imageUrl: string;
   endpoints: CharmEndpoint[];
 }
 
@@ -94,6 +94,22 @@ export interface JujuStateInterface {
   units: Unit[];
   machines: Machine[];
   store: Charm[];
+}
+
+/**
+ * Any subset of the keys in the Juju state
+ */
+export interface PartialJujuState {
+  currentConroller?: Controller | null;
+  controllers?: Controller[];
+  clouds?: Cloud[];
+  cloudCredentials?: CloudCredential[];
+  models?: Model[];
+  applications?: Application[];
+  relations?: Relation[];
+  units?: Unit[];
+  machines?: Machine[];
+  store?: Charm[];
 }
 
 const state: JujuStateInterface = {
