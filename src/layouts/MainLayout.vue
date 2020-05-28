@@ -102,10 +102,12 @@
               </q-list>
             </q-menu>
           </q-btn>
-          <badge left class="bg-negative text-white">{{
-            unitErrorCount
-          }}</badge>
-          <badge class="bg-warning text-black">{{ unitWarningCount }}</badge>
+          <badge v-if="unitErrorCount > 0" left class="bg-negative text-white">
+            {{ unitErrorCount }}
+          </badge>
+          <badge v-if="unitWarningCount > 0" class="bg-warning text-black">
+            {{ unitWarningCount }}
+          </badge>
         </div>
         <!-- Mobile menu button -->
         <q-btn
@@ -424,11 +426,13 @@ export default class MainLayout extends Vue {
     this.loadAllState();
   }
 
+  @juju.Getter controllerUnits!: Unit[];
+
   // Getter for the notifications list
   get unitNotifications(): UnitNotification[] {
     const alerts: UnitNotification[] = [];
 
-    for (const unit of this.units) {
+    for (const unit of this.controllerUnits) {
       const sev = UnitStatusSeverity[unit.status.severity];
       // If the unit does not have a clean status
       if (sev > UnitStatusSeverity.active) {

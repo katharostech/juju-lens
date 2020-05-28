@@ -306,7 +306,7 @@ const SORT_MODELS_LOCAL_STORAGE_KEY = 'sortModelsBy';
 })
 export default class Index extends Vue {
   @juju.State currentController!: Controller | 'All';
-  @juju.State('models') rawModels!: Model[];
+  @juju.Getter controllerModels!: Model[];
   @juju.State('store') charmStore!: Charm[];
   @juju.State applications!: Application[];
   @juju.State units!: Unit[];
@@ -345,11 +345,7 @@ export default class Index extends Vue {
   get models(): FilledModel[] {
     const filledModels: FilledModel[] = [];
 
-    for (const model of this.rawModels.filter(
-      model =>
-        this.currentController == 'All' ||
-        model.controllerId == this.currentController.id
-    )) {
+    for (const model of this.controllerModels) {
       // Fill extra application information for the model
       const filledApplications: FilledApplication[] = this.applications
         .filter(app => app.modelId == model.id)

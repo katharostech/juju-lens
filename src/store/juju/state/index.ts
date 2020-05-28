@@ -31,6 +31,7 @@ export interface Cloud {
 export interface Model {
   id: string;
   name: string;
+  controllerId: string;
 }
 
 export interface Application {

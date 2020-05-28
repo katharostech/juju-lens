@@ -1,27 +1,27 @@
 controllers:
   - name: AWS Prod Controller
-    id: mN20lGzuMkVBi
-    cloudId: BIfy0JfRercfFNiaLtmxtWaE
+    id: 6e09a928-dd7a-40d4-9f11-dc4a60d5e842
+    cloudId: fe010e15-bd70-4a8c-b3f4-fd6e64aa1645
     region: us-west
     accessLevel: admin
-    cloudCredentialId: X4DNgKiu4SJ
+    cloudCredentialId: 7ea02f34-075b-4650-ba51-f0fa0d6fb439
   - name: Azure Dev Controller
-    id: APRmlF23dYHPPcCc
+    id: 904c7cae-dd52-4c62-b658-9b7b11eb9a46
     cloudId: AdzUGKLWNOyfA48Ug
     region: us-west
     accessLevel: user
-    cloudCredentialId: 85bCHNKPABAaPzQ
+    cloudCredentialId: 0b9c8106-2e17-46fb-ad71-b6c059646a50
 
 cloudCredentials:
   - name: Main AWS Creds
-    id: X4DNgKiu4SJ
-    cloudId: BIfy0JfRercfFNiaLtmxtWaE
+    id: 7ea02f34-075b-4650-ba51-f0fa0d6fb439
+    cloudId: fe010e15-bd70-4a8c-b3f4-fd6e64aa1645
     credentialData:
       accessKey: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
       secretKey: iBMlj6jrl93i27NBYrwNvJYXq2UbhQ
 
   - name: My Azure Creds
-    id: 85bCHNKPABAaPzQ
+    id: 0b9c8106-2e17-46fb-ad71-b6c059646a50
     cloudId: AdzUGKLWNOyfA48Ug
     credentialData:
       adAId: y5dh1MGzHBv541YA8ONI3zGjTkLpnf46TCNbWDxi
@@ -30,7 +30,7 @@ cloudCredentials:
 
 clouds:
   - name: AWS
-    id: BIfy0JfRercfFNiaLtmxtWaE
+    id: fe010e15-bd70-4a8c-b3f4-fd6e64aa1645
     availableRegions:
       - us-west
       - us-east
@@ -60,9 +60,11 @@ clouds:
 models:
   - name: e-commerce
     id: 2900e66a-569b-4551-9e5a-6f8f459b694d
+    controllerId: 6e09a928-dd7a-40d4-9f11-dc4a60d5e842
 
   - name: machine-learning
     id: ffa8b47a-1b94-4da7-9138-f89195e4f26f
+    controllerId: 6e09a928-dd7a-40d4-9f11-dc4a60d5e842
 
 applications:
   # Model: e-commerce-stack
