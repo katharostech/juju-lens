@@ -29,7 +29,11 @@
       </q-toolbar>
 
       <!-- Content scroll area -->
-      <q-scroll-area class="col-grow" :thumb-style="{ width: '5px' }">
+      <q-scroll-area
+        ref="modelScrollArea"
+        class="col-grow"
+        :thumb-style="{ width: '5px' }"
+      >
         <div class="q-pa-sm">
           <!-- Mobile heading for tab panel -->
           <div class="text-h5 q-mb-md xs">
@@ -104,7 +108,11 @@
                   style="background-color: hsla(0, 0%, 0%, 0);"
                 >
                   <!-- Model list -->
-                  <q-tab-panel name="models" class="q-pa-none">
+                  <q-tab-panel
+                    :id="`model-${model.id}`"
+                    name="models"
+                    class="q-pa-none"
+                  >
                     <!-- Application Row -->
                     <q-list bordered separator>
                       <q-item
@@ -112,7 +120,7 @@
                         :key="application.id"
                         clickable
                         v-ripple
-                        :id="application.id"
+                        :id="`application-${application.id}`"
                         class="row"
                       >
                         <!-- App Status -->
@@ -184,7 +192,11 @@
       </q-scroll-area>
 
       <!-- TODO: Unit info Footer -->
-      <div style="height: 2em;" v-if="tab == 'models'" class="bg-dark text-white">
+      <div
+        style="height: 2em;"
+        v-if="tab == 'models'"
+        class="bg-dark text-white"
+      >
         <q-bar dense>
           <img
             src="/statics/charmIcons/spark.svg"
@@ -236,9 +248,13 @@ import {
 import { FilledApplication, FilledModel } from 'store/juju/state/utils';
 import { unitStatusSeverityIcon } from 'store/juju/state/utils';
 import { actionTypes } from 'store/juju/actions';
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Watch, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
+
+import { scroll, dom, QScrollArea } from 'quasar';
+const { offset } = dom;
+const { setScrollPosition } = scroll;
 
 @Component({
   components: {
@@ -255,6 +271,24 @@ export default class Index extends Vue {
   @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
     undefined
   >;
+
+  scrollToElement(el: HTMLElement) {
+    const scrollArea = this.$refs.modelScrollArea as QScrollArea;
+    const target = scrollArea.getScrollTarget();
+    const current = scrollArea.getScrollPosition();
+    const diff = offset(el).top;
+    const newScroll = current + diff - 122;
+    console.log(current, diff, newScroll);
+
+    const duration = 100;
+
+    setScrollPosition(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      target as any,
+      newScroll,
+      duration
+    );
+  }
 
   // Get a model list with additional fiels that prevent having to lookup related components by
   // id every time they must be accessed.
@@ -310,16 +344,56 @@ export default class Index extends Vue {
 
   modelsExpanded: { [key: string]: boolean } = {};
 
-  created(): void {
-    this.fetchData();
+  async created(): Promise<void> {
+    await this.fetchData();
+
+    // Scroll to the app for a unit specified by route if necessary
+    this.scrollToApp();
   }
 
-  fetchData(): void {
+  async fetchData(): Promise<void> {
     this.loading = true;
 
-    this.loadAllState().then(() => {
-      this.loading = false;
-    });
+    await this.loadAllState();
+    this.loading = false;
+  }
+
+  // Scroll to the unit specified by the route
+  @Watch('$route')
+  scrollToApp(): void {
+    const unitId: string | null = this.$route.query.unitId as string | null;
+    // Skip if unit is not specified
+    if (!unitId) {
+      return;
+    }
+
+    // Make sure the unit's model has been expanded
+    const unit = this.units.filter(unit => unit.id == unitId)[0];
+    const app = this.applications.filter(
+      app => app.id == unit.applicationId
+    )[0];
+    this.$set(this.modelsExpanded, app.modelId, true);
+
+    // Scroll to application after waiting for it's dom element to exist
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setTimeout(
+      function check(this: any) {
+        const el = document.getElementById(`application-${app.id}`);
+        if (el) {
+          this.scrollToElement(el);
+        } else {
+          setTimeout(check, 100);
+        }
+        // This 400 milisecond wait is here to wait for the expansion of the
+        // model animation if necessary.
+        // TODO: Make this smarter by tracking the animation status of the
+        // model expansion items and forgoeing the delay if it is allready
+        // expanded?
+      }.bind(this),
+      400
+    );
+
+    // TODO: Show the footer with the unit details in it
   }
 }
 </script>

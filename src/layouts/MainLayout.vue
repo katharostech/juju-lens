@@ -66,6 +66,8 @@
             <!-- Alerts Menu -->
             <q-menu>
               <q-list class="alert-menu">
+                <!-- TODO: Maybe just my machine, but the ripple effect is only visible when
+                clicking on a route you are already on. -->
                 <q-item
                   clickable
                   v-ripple
