@@ -345,7 +345,11 @@ export default class Index extends Vue {
   get models(): FilledModel[] {
     const filledModels: FilledModel[] = [];
 
-    for (const model of this.rawModels) {
+    for (const model of this.rawModels.filter(
+      model =>
+        this.currentController == 'All' ||
+        model.controllerId == this.currentController.id
+    )) {
       // Fill extra application information for the model
       const filledApplications: FilledApplication[] = this.applications
         .filter(app => app.modelId == model.id)
@@ -474,8 +478,8 @@ export default class Index extends Vue {
     @media(min-width: 376px)
       display none !important
 
-  .model-group-trans-move
-    transition: transform 0.5s;
+
+
 
   $model-machine-tabs-breakpoint=476px
 
@@ -495,4 +499,22 @@ export default class Index extends Vue {
     .model-machine-tabs
       .q-tab__label
         display none
+
+
+// Model list transition
+
+.model-group-trans-item
+  display inline-block;
+  margin-right 10px
+
+.model-group-enter-trans-active, .model-group-trans-leave-active
+  transition all 0.4s
+
+// TODO: Figure out why entering model lists do not animate
+.model-group-trans-enter, .model-group-trans-leave-to
+  opacity 0 !important
+  transform translateX(-100vw) !important
+
+.model-group-trans-move
+  transition: transform 0.5s;
 </style>
