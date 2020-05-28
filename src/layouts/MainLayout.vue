@@ -59,16 +59,51 @@
           <q-btn
             flat
             dense
-            :class="{ 'ringing-bell': !!unitNotifications.errors.length }"
+            :class="{ 'ringing-bell': !!unitErrorCount }"
             icon="fas fa-bell"
             style="padding: 0.2rem"
-          />
+          >
+            <!-- Alerts Menu -->
+            <q-menu>
+              <q-list class="alert-menu">
+                <q-item
+                  clickable
+                  v-ripple
+                  v-for="alert in unitNotifications"
+                  :key="alert.unit.id"
+                  :to="{ name: 'models', query: { unitId: alert.unit.id } }"
+                >
+                  <q-item-section>
+                    <q-item-label>
+                      <div class="row items-center">
+                        <div clas="col on-left">
+                          <span class="on-left">
+                            {{ alert.app.name }}/{{ alert.unit.index }}
+                          </span>
+                        </div>
+                        <div class="col row reverse">
+                          <q-badge
+                            class="col-auto"
+                            :class="{ 'text-black': !alert.isError }"
+                            :color="alert.isError ? 'negative' : 'warning'"
+                          >
+                            {{ alert.unit.status.severity }}
+                          </q-badge>
+                        </div>
+                      </div>
+                    </q-item-label>
+                    <q-item-label v-if="alert.unit.status.message" caption>
+                      {{ alert.unit.status.message }}
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
           <badge left class="bg-negative text-white">{{
-            unitNotifications.errors.length
+            unitErrorCount
           }}</badge>
-          <badge class="bg-warning text-black">{{
-            unitNotifications.warnings.length
-          }}</badge>
+          <badge class="bg-warning text-black">{{ unitWarningCount }}</badge>
         </div>
         <!-- Mobile menu button -->
         <q-btn
@@ -309,6 +344,7 @@ import { Component, Vue } from 'vue-property-decorator';
 interface UnitNotification {
   unit: Unit;
   app: Application;
+  isError: boolean;
 }
 
 @Component({
@@ -387,40 +423,39 @@ export default class MainLayout extends Vue {
   }
 
   // Getter for the notifications list
-  get unitNotifications(): {
-    errors: UnitNotification[];
-    warnings: UnitNotification[];
-  } {
-    const errors: UnitNotification[] = [];
-    const warnings: UnitNotification[] = [];
+  get unitNotifications(): UnitNotification[] {
+    const alerts: UnitNotification[] = [];
 
     for (const unit of this.units) {
+      const sev = UnitStatusSeverity[unit.status.severity];
       // If the unit does not have a clean status
-      if (
-        UnitStatusSeverity[unit.status.severity] > UnitStatusSeverity.active
-      ) {
+      if (sev > UnitStatusSeverity.active) {
         // Add a notification for it
         const app = this.applications.filter(
           app => app.id == unit.applicationId
         )[0];
 
-        if (
-          UnitStatusSeverity[unit.status.severity] == UnitStatusSeverity.blocked
-        ) {
-          errors.push({
-            app,
-            unit
-          });
-        } else {
-          warnings.push({
-            app,
-            unit
-          });
-        }
+        alerts.push({
+          app,
+          unit,
+          isError: sev >= UnitStatusSeverity.blocked
+        });
       }
     }
 
-    return { errors, warnings };
+    return alerts.sort(
+      (a, b) =>
+        UnitStatusSeverity[b.unit.status.severity] -
+        UnitStatusSeverity[a.unit.status.severity]
+    );
+  }
+
+  get unitErrorCount(): number {
+    return this.unitNotifications.filter(alert => alert.isError).length;
+  }
+
+  get unitWarningCount(): number {
+    return this.unitNotifications.filter(alert => !alert.isError).length;
   }
 
   // Used to selectively hide the taskbar on taskbar button click
@@ -446,6 +481,9 @@ export default class MainLayout extends Vue {
 .main-layout--header .q-tabs
   margin-right 0.5em
   margin-left 0.5em
+
+.alert-menu .q-item.q-router-link--active
+  color unset
 
 .controller-select .q-field__label
   color hsla(0, 0%, 100%, 0.7)
