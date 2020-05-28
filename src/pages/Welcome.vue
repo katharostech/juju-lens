@@ -30,7 +30,20 @@
           in the bottom left menu.
         </p>
         <div class="flex justify-center q-gutter-md">
-          <q-btn color="primary" label="Get Started" :to="getStartedLink" />
+          <q-btn
+            color="positive"
+            icon="fas fa-location-arrow"
+            label="Get Started!"
+            :to="getStartedLink"
+          />
+          <q-btn
+            type="a"
+            target="_blank"
+            href="https://github.com/katharostech/juju-lens"
+            color="primary"
+            icon="fab fa-github"
+            label="GitHub Repo"
+          />
           <q-btn
             color="negative"
             label="Clear Data"
