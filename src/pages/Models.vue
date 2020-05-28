@@ -67,157 +67,161 @@
           </div>
 
           <!-- Model -->
-          <div
-            class="q-mb-md full-width"
-            v-for="model in models"
-            :key="model.id"
-          >
-            <!-- Model toolbar -->
-            <q-toolbar
-              v-ripple
-              class="bg-primary text-white full-width"
-              @click="$set(modelsExpanded, model.id, !modelsExpanded[model.id])"
+          <transition-group name="model-group-trans" tag="div">
+            <div
+              class="q-mb-md full-width"
+              v-for="model in models"
+              :key="model.id"
             >
-              <!-- Model Status -->
-              <q-icon
-                :name="model.statusIcon.icon"
-                :style="{
-                  color: model.statusIcon.color
-                }"
-                size="1.7em"
-              />
-              <q-toolbar-title style="flex: 1 1 0%">
-                {{ model.name }}
-              </q-toolbar-title>
-              <div class="avatar-stack">
-                <q-avatar
-                  v-for="application in model.applications"
-                  :key="application.id"
-                  size="2em"
-                >
-                  <q-img :src="application.charm.imageUrl" />
-                  <q-tooltip
-                    anchor="top middle"
-                    self="bottom middle"
-                    content-style="font-size: 0.8em;"
+              <!-- Model toolbar -->
+              <q-toolbar
+                v-ripple
+                class="bg-primary text-white full-width"
+                @click="
+                  $set(modelsExpanded, model.id, !modelsExpanded[model.id])
+                "
+              >
+                <!-- Model Status -->
+                <q-icon
+                  :name="model.statusIcon.icon"
+                  :style="{
+                    color: model.statusIcon.color
+                  }"
+                  size="1.7em"
+                />
+                <q-toolbar-title style="flex: 1 1 0%">
+                  {{ model.name }}
+                </q-toolbar-title>
+                <div class="avatar-stack">
+                  <q-avatar
+                    v-for="application in model.applications"
+                    :key="application.id"
+                    size="2em"
                   >
-                    {{ application.name }}
-                  </q-tooltip>
-                </q-avatar>
-              </div>
-              <q-btn
-                round
-                dense
-                flat
-                icon="arrow_downward"
-                style="transition: transform 0.2s;"
-                :style="{
-                  transform: modelsExpanded[model.id]
-                    ? 'rotateZ(180deg)'
-                    : 'none'
-                }"
-              />
-              <q-btn
-                round
-                dense
-                flat
-                icon="more_vert"
-                @click.stop="() => undefined"
-              />
-            </q-toolbar>
-            <q-slide-transition>
-              <div v-if="modelsExpanded[model.id]">
-                <!-- Tab content -->
-                <q-tab-panels
-                  animated
-                  v-model="tab"
-                  style="background-color: hsla(0, 0%, 0%, 0);"
-                >
-                  <!-- Model list -->
-                  <q-tab-panel
-                    :id="`model-${model.id}`"
-                    name="models"
-                    class="q-pa-none"
+                    <q-img :src="application.charm.imageUrl" />
+                    <q-tooltip
+                      anchor="top middle"
+                      self="bottom middle"
+                      content-style="font-size: 0.8em;"
+                    >
+                      {{ application.name }}
+                    </q-tooltip>
+                  </q-avatar>
+                </div>
+                <q-btn
+                  round
+                  dense
+                  flat
+                  icon="arrow_downward"
+                  style="transition: transform 0.2s;"
+                  :style="{
+                    transform: modelsExpanded[model.id]
+                      ? 'rotateZ(180deg)'
+                      : 'none'
+                  }"
+                />
+                <q-btn
+                  round
+                  dense
+                  flat
+                  icon="more_vert"
+                  @click.stop="() => undefined"
+                />
+              </q-toolbar>
+              <q-slide-transition>
+                <div v-if="modelsExpanded[model.id]">
+                  <!-- Tab content -->
+                  <q-tab-panels
+                    animated
+                    v-model="tab"
+                    style="background-color: hsla(0, 0%, 0%, 0);"
                   >
-                    <!-- Application Row -->
-                    <q-list bordered separator>
-                      <q-item
-                        v-for="application in model.applications"
-                        :key="application.id"
-                        clickable
-                        v-ripple
-                        :id="`application-${application.id}`"
-                        class="row"
-                      >
-                        <!-- App Status -->
-                        <q-item-section avatar>
-                          <q-icon
-                            :name="application.statusIcon.icon"
-                            :style="{
-                              color: application.statusIcon.color
-                            }"
-                            size="1.7em"
-                          />
-                        </q-item-section>
+                    <!-- Model list -->
+                    <q-tab-panel
+                      :id="`model-${model.id}`"
+                      name="models"
+                      class="q-pa-none"
+                    >
+                      <!-- Application Row -->
+                      <q-list bordered separator>
+                        <q-item
+                          v-for="application in model.applications"
+                          :key="application.id"
+                          clickable
+                          v-ripple
+                          :id="`application-${application.id}`"
+                          class="row"
+                        >
+                          <!-- App Status -->
+                          <q-item-section avatar>
+                            <q-icon
+                              :name="application.statusIcon.icon"
+                              :style="{
+                                color: application.statusIcon.color
+                              }"
+                              size="1.7em"
+                            />
+                          </q-item-section>
 
-                        <!-- App Logo -->
-                        <q-item-section avatar>
-                          <q-img :src="application.charm.imageUrl" />
-                        </q-item-section>
+                          <!-- App Logo -->
+                          <q-item-section avatar>
+                            <q-img :src="application.charm.imageUrl" />
+                          </q-item-section>
 
-                        <q-item-section>
-                          <!-- App Name -->
-                          <div>
-                            {{ application.name }}
-                          </div>
-                          <!-- Unit Preview -->
-                          <div class="row reverse">
-                            <div
-                              v-for="unit in application.units"
-                              :key="unit.id"
-                            >
-                              <q-icon
-                                :name="unit.statusIcon.icon"
-                                :style="{
-                                  color: unit.statusIcon.color
-                                }"
-                                size="1.em"
-                                class="q-ma-xs"
-                              />
-                              <q-tooltip
-                                anchor="top middle"
-                                self="bottom middle"
-                                content-style="font-size: 0.8rem;"
-                              >
-                                {{
-                                  unit.status.message ||
-                                    `status: ${unit.status.severity}`
-                                }}
-                              </q-tooltip>
+                          <q-item-section>
+                            <!-- App Name -->
+                            <div>
+                              {{ application.name }}
                             </div>
-                          </div>
-                        </q-item-section>
-                        <q-item-section side>
-                          <q-btn
-                            round
-                            dense
-                            flat
-                            icon="more_vert"
-                            @click.stop="() => undefined"
-                          />
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-tab-panel>
+                            <!-- Unit Preview -->
+                            <div class="row reverse">
+                              <div
+                                v-for="unit in application.units"
+                                :key="unit.id"
+                              >
+                                <q-icon
+                                  :name="unit.statusIcon.icon"
+                                  :style="{
+                                    color: unit.statusIcon.color
+                                  }"
+                                  size="1.em"
+                                  class="q-ma-xs"
+                                />
+                                <q-tooltip
+                                  anchor="top middle"
+                                  self="bottom middle"
+                                  content-style="font-size: 0.8rem;"
+                                >
+                                  {{
+                                    unit.status.message ||
+                                      `status: ${unit.status.severity}`
+                                  }}
+                                </q-tooltip>
+                              </div>
+                            </div>
+                          </q-item-section>
+                          <q-item-section side>
+                            <q-btn
+                              round
+                              dense
+                              flat
+                              icon="more_vert"
+                              @click.stop="() => undefined"
+                            />
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-tab-panel>
 
-                  <!-- Machines List -->
-                  <q-tab-panel name="machines">
-                    <div class="text-h5">Machine List Comming Soon!</div>
-                  </q-tab-panel>
-                </q-tab-panels>
-              </div>
-            </q-slide-transition>
-          </div>
+                    <!-- Machines List -->
+                    <q-tab-panel name="machines">
+                      <div class="text-h5">Machine List Comming Soon!</div>
+                    </q-tab-panel>
+                  </q-tab-panels>
+                </div>
+              </q-slide-transition>
+            </div>
+          </transition-group>
         </div>
       </q-scroll-area>
 
@@ -371,7 +375,10 @@ export default class Index extends Vue {
 
     return filledModels.sort((a, b) => {
       if (this.sortModelsBy == 'Status') {
-        return (UnitStatusSeverity[b.statusSeverity] - UnitStatusSeverity[a.statusSeverity])
+        return (
+          UnitStatusSeverity[b.statusSeverity] -
+          UnitStatusSeverity[a.statusSeverity]
+        );
       } else {
         return a.name > b.name ? 1 : -1;
       }
@@ -447,6 +454,9 @@ export default class Index extends Vue {
   #sort-models-select-mobile
     @media(min-width: 376px)
       display none !important
+
+  .model-group-trans-move
+    transition: transform 0.5s;
 
   $model-machine-tabs-breakpoint=476px
 
