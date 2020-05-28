@@ -77,7 +77,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   /**
    * Set the current controller
    */
-  async [actionTypes.setCurrentController](ctx, controller: Controller | null) {
+  async [actionTypes.setCurrentController](ctx, controller: Controller | 'All') {
     ctx.commit(mutationTypes.setCurrentController, controller);
     await ctx.dispatch(actionTypes.persistState);
   },

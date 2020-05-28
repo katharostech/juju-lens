@@ -56,7 +56,7 @@ const mutation: MutationTree<JujuStateInterface> = {
   //
 
   /** Set the current controller */
-  [mutationTypes.setCurrentController](state, controller: Controller | null) {
+  [mutationTypes.setCurrentController](state, controller: Controller | 'All') {
     state.currentController = controller;
   },
 
@@ -78,7 +78,7 @@ const mutation: MutationTree<JujuStateInterface> = {
 
     // Update the current controller info
     if (
-      state.currentController &&
+      state.currentController != 'All' &&
       state.currentController.id == controller.id
     ) {
       state.currentController = controller;
@@ -88,8 +88,8 @@ const mutation: MutationTree<JujuStateInterface> = {
   /** Delete controller */
   [mutationTypes.deleteController](state, controllerId: string) {
     state.controllers = state.controllers.filter(x => x.id != controllerId);
-    if (state.currentController && state.currentController.id == controllerId) {
-      state.currentController = null;
+    if (state.currentController != 'All' && state.currentController.id == controllerId) {
+      state.currentController = 'All';
     }
   },
 

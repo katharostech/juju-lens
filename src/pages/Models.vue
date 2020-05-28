@@ -30,6 +30,7 @@
             v-model="sortModelsBy"
             label="Sort By"
             :options="sortModelsByOptions"
+            :color="$q.dark.isActive ? 'secondary' : 'primary'"
             filled
             class="on-left"
           />
@@ -60,6 +61,7 @@
                 v-model="sortModelsBy"
                 label="Sort By"
                 :options="sortModelsByOptions"
+                :color="$q.dark.isActive ? 'secondary' : 'primary'"
                 filled
                 class="on-left"
               />
@@ -90,7 +92,12 @@
                   size="1.7em"
                 />
                 <q-toolbar-title style="flex: 1 1 0%">
-                  {{ model.name }}
+                  <span>
+                    {{ model.name }}
+                    <q-tooltip anchor="top middle" self="bottom middle">
+                      {{ model.name }}
+                    </q-tooltip>
+                  </span>
                 </q-toolbar-title>
                 <div class="avatar-stack">
                   <q-avatar
@@ -298,7 +305,7 @@ const SORT_MODELS_LOCAL_STORAGE_KEY = 'sortModelsBy';
   }
 })
 export default class Index extends Vue {
-  @juju.State currentController!: Controller | null;
+  @juju.State currentController!: Controller | 'All';
   @juju.State('models') rawModels!: Model[];
   @juju.State('store') charmStore!: Charm[];
   @juju.State applications!: Application[];
@@ -322,7 +329,6 @@ export default class Index extends Vue {
     const current = scrollArea.getScrollPosition();
     const diff = offset(el).top;
     const newScroll = current + diff - 122;
-    console.log(current, diff, newScroll);
 
     const duration = 100;
 
@@ -404,7 +410,7 @@ export default class Index extends Vue {
     if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
       this.sortModelsBy = sortModelsBy;
     }
-    
+
     await this.fetchData();
 
     // Scroll to the app for a unit specified by route if necessary
@@ -444,13 +450,13 @@ export default class Index extends Vue {
         } else {
           setTimeout(check, 100);
         }
-        // This 400 milisecond wait is here to wait for the expansion of the
+        // This 200 milisecond wait is here to wait for the expansion of the
         // model animation if necessary.
         // TODO: Make this smarter by tracking the animation status of the
         // model expansion items and forgoeing the delay if it is allready
         // expanded?
       }.bind(this),
-      400
+      200
     );
 
     // TODO: Show the footer with the unit details in it

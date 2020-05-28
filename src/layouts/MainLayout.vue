@@ -363,20 +363,20 @@ export default class MainLayout extends Vue {
   // Current controller handling
   //
 
-  @juju.State('currentController') globalCurrentController!: Controller | null;
+  @juju.State('currentController') globalCurrentController!: Controller | 'All';
   @juju.State controllers!: Controller[];
   @juju.Action(actionTypes.setCurrentController) setCurrentController!: (
-    controller: Controller | null
+    controller: Controller | 'All'
   ) => Promise<undefined>;
 
-  get currentController(): Controller | null {
+  get currentController(): Controller | 'All' {
     return this.globalCurrentController;
   }
-  set currentController(value: Controller | null) {
+  set currentController(value: Controller | 'All') {
     this.setCurrentController(value);
   }
-  get controllerOptions(): Controller[] {
-    return this.controllers;
+  get controllerOptions(): (Controller | 'All')[] {
+    return ['All', ...this.controllers];
   }
 
   //
@@ -506,10 +506,10 @@ export default class MainLayout extends Vue {
 // Breakpoint class for mobile menu items
 .main-layout
   .lt-mobile-menu
-    @media(min-width: 675px)
+    @media(min-width: 699px)
       display none
   .gt-mobile-menu
-    @media(max-width: 675px)
+    @media(max-width: 699px)
       display none
 
 // Router transition classes

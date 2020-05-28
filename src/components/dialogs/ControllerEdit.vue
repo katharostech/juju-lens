@@ -124,6 +124,7 @@ export default class ControllerEdit extends Vue {
   // Vuex state
   @juju.State clouds!: Cloud[];
   @juju.State cloudCredentials!: CloudCredential[];
+  @juju.State currentController!: Controller | 'All';
 
   // Vuex mutation
   @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
@@ -222,8 +223,11 @@ export default class ControllerEdit extends Vue {
 
         this.loading = false;
 
-        // Switch to the new controller
-        this.setCurrentController(controller);
+        // Switch to the new controller if the current controller is not already
+        // 'All`.
+        if (this.currentController != 'All') {
+          this.setCurrentController(controller);
+        }
 
         this.$q.notify({
           type: 'positive',

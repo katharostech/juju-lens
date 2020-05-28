@@ -95,7 +95,7 @@ export interface CharmEndpoint {
 }
 
 export interface JujuStateInterface {
-  currentController: Controller | null;
+  currentController: Controller | 'All';
   controllers: Controller[];
   clouds: Cloud[];
   cloudCredentials: CloudCredential[];
@@ -111,7 +111,7 @@ export interface JujuStateInterface {
  * Any subset of the keys in the Juju state
  */
 export interface PartialJujuState {
-  currentConroller?: Controller | null;
+  currentConroller?: Controller | 'All';
   controllers?: Controller[];
   clouds?: Cloud[];
   cloudCredentials?: CloudCredential[];
@@ -124,7 +124,7 @@ export interface PartialJujuState {
 }
 
 const state: JujuStateInterface = {
-  currentController: null,
+  currentController: 'All',
   controllers: [],
   clouds: [],
   cloudCredentials: [],
