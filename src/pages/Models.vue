@@ -28,15 +28,9 @@
         <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
       </q-toolbar>
 
-      <!-- Tab content -->
-      <q-tab-panels
-        animated
-        v-model="tab"
-        class="fit"
-        style="flex: 1 1 0%; background-color: hsla(0, 0%, 0%, 0);"
-      >
-        <!-- Model list -->
-        <q-tab-panel name="models" class="q-pa-sm">
+      <!-- Content scroll area -->
+      <q-scroll-area class="col-grow" :thumb-style="{ width: '5px' }">
+        <div class="q-pa-sm">
           <!-- Mobile heading for tab panel -->
           <div class="text-h5 q-mb-md xs">
             Models
@@ -103,78 +97,94 @@
             </q-toolbar>
             <q-slide-transition>
               <div v-if="modelsExpanded[model.id]">
-                <!-- Application Row -->
-                <q-list bordered separator>
-                  <q-item
-                    v-for="application in model.applications"
-                    :key="application.id"
-                    clickable
-                    v-ripple
-                    :id="application.id"
-                    class="row"
-                  >
-                    <!-- App Status -->
-                    <q-item-section avatar>
-                      <q-icon
-                        :name="application.statusIcon.icon"
-                        :style="{
-                          color: application.statusIcon.color
-                        }"
-                        size="1.7em"
-                      />
-                    </q-item-section>
-
-                    <!-- App Logo -->
-                    <q-item-section avatar>
-                      <q-img :src="application.charm.imageUrl" />
-                    </q-item-section>
-
-                    <q-item-section>
-                      <!-- App Name -->
-                      <div>
-                        {{ application.name }}
-                      </div>
-                      <!-- Unit Preview -->
-                      <div class="row reverse">
-                        <div v-for="unit in application.units" :key="unit.id">
+                <!-- Tab content -->
+                <q-tab-panels
+                  animated
+                  v-model="tab"
+                  style="background-color: hsla(0, 0%, 0%, 0);"
+                >
+                  <!-- Model list -->
+                  <q-tab-panel name="models" class="q-pa-none">
+                    <!-- Application Row -->
+                    <q-list bordered separator>
+                      <q-item
+                        v-for="application in model.applications"
+                        :key="application.id"
+                        clickable
+                        v-ripple
+                        :id="application.id"
+                        class="row"
+                      >
+                        <!-- App Status -->
+                        <q-item-section avatar>
                           <q-icon
-                            :name="unit.statusIcon.icon"
+                            :name="application.statusIcon.icon"
                             :style="{
-                              color: unit.statusIcon.color
+                              color: application.statusIcon.color
                             }"
-                            size="1.em"
-                            class="q-ma-xs"
+                            size="1.7em"
                           />
-                          <q-tooltip anchor="top middle" self="bottom middle">
-                            {{ application.name }}/{{ unit.index }}
-                          </q-tooltip>
-                        </div>
-                      </div>
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        icon="more_vert"
-                        @click.stop="() => undefined"
-                      />
-                    </q-item-section>
-                  </q-item>
-                </q-list>
+                        </q-item-section>
+
+                        <!-- App Logo -->
+                        <q-item-section avatar>
+                          <q-img :src="application.charm.imageUrl" />
+                        </q-item-section>
+
+                        <q-item-section>
+                          <!-- App Name -->
+                          <div>
+                            {{ application.name }}
+                          </div>
+                          <!-- Unit Preview -->
+                          <div class="row reverse">
+                            <div
+                              v-for="unit in application.units"
+                              :key="unit.id"
+                            >
+                              <q-icon
+                                :name="unit.statusIcon.icon"
+                                :style="{
+                                  color: unit.statusIcon.color
+                                }"
+                                size="1.em"
+                                class="q-ma-xs"
+                              />
+                              <q-tooltip
+                                anchor="top middle"
+                                self="bottom middle"
+                              >
+                                {{ application.name }}/{{ unit.index }}
+                              </q-tooltip>
+                            </div>
+                          </div>
+                        </q-item-section>
+                        <q-item-section side>
+                          <q-btn
+                            round
+                            dense
+                            flat
+                            icon="more_vert"
+                            @click.stop="() => undefined"
+                          />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-tab-panel>
+
+                  <!-- Machines List -->
+                  <q-tab-panel name="machines">
+                    <div class="text-h5">Machine List Comming Soon!</div>
+                  </q-tab-panel>
+                </q-tab-panels>
               </div>
             </q-slide-transition>
           </div>
-        </q-tab-panel>
-
-        <!-- Machines View -->
-        <q-tab-panel name="machines" class="q-pa-sm">
-          Helo World!!!!
-        </q-tab-panel>
-      </q-tab-panels>
+        </div>
+      </q-scroll-area>
 
       <!-- TODO: Unit info Footer -->
-      <div style="height: 2em;" class="bg-dark text-white">
+      <div style="height: 2em;" v-if="tab == 'models'" class="bg-dark text-white">
         <q-bar dense>
           <img
             src="/statics/charmIcons/spark.svg"
@@ -220,6 +230,7 @@ import {
   Application,
   Charm,
   Unit,
+  Controller,
   UnitStatusSeverity
 } from 'store/juju/state';
 import { FilledApplication, FilledModel } from 'store/juju/state/utils';
@@ -235,6 +246,7 @@ const juju = namespace('juju');
   }
 })
 export default class Index extends Vue {
+  @juju.State currentController!: Controller | null;
   @juju.State('models') rawModels!: Model[];
   @juju.State('store') charmStore!: Charm[];
   @juju.State applications!: Application[];

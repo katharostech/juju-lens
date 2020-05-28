@@ -297,7 +297,6 @@ import DebugWindow from 'components/DebugWindow.vue';
 import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
-import { mutationTypes } from 'store/juju/mutations';
 import {
   Controller,
   Unit,
@@ -328,8 +327,8 @@ export default class MainLayout extends Vue {
 
   @juju.State('currentController') globalCurrentController!: Controller | null;
   @juju.State controllers!: Controller[];
-  @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
-    name: Controller | null
+  @juju.Action(actionTypes.setCurrentController) setCurrentController!: (
+    controller: Controller | null
   ) => Promise<undefined>;
 
   get currentController(): Controller | null {
