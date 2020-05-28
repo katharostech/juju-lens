@@ -58,10 +58,10 @@ clouds:
         isPassword: true
 
 models:
-  - name: a-commerce-stack
+  - name: e-commerce
     id: 2900e66a-569b-4551-9e5a-6f8f459b694d
 
-  - name: backend-data-processing
+  - name: machine-learning
     id: ffa8b47a-1b94-4da7-9138-f89195e4f26f
 
 applications:

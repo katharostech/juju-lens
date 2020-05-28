@@ -286,9 +286,11 @@ import { Component, Watch, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
 
-import { scroll, dom, QScrollArea } from 'quasar';
+import { scroll, dom, QScrollArea, LocalStorage } from 'quasar';
 const { offset } = dom;
 const { setScrollPosition } = scroll;
+
+const SORT_MODELS_LOCAL_STORAGE_KEY = 'sortModelsBy';
 
 @Component({
   components: {
@@ -308,6 +310,11 @@ export default class Index extends Vue {
 
   readonly sortModelsByOptions = ['Status', 'Name'];
   sortModelsBy: 'Status' | 'Name' = 'Status';
+
+  @Watch('sortModelsBy')
+  onSortModelsByChange(value: string): void {
+    LocalStorage.set(SORT_MODELS_LOCAL_STORAGE_KEY, value);
+  }
 
   scrollToElement(el: HTMLElement) {
     const scrollArea = this.$refs.modelScrollArea as QScrollArea;
@@ -392,6 +399,12 @@ export default class Index extends Vue {
   modelsExpanded: { [key: string]: boolean } = {};
 
   async created(): Promise<void> {
+    // Load the sort models preference
+    const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
+    if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
+      this.sortModelsBy = sortModelsBy;
+    }
+    
     await this.fetchData();
 
     // Scroll to the app for a unit specified by route if necessary
