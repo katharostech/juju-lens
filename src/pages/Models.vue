@@ -161,8 +161,11 @@
                               <q-tooltip
                                 anchor="top middle"
                                 self="bottom middle"
+                                content-style="font-size: 0.8rem;"
                               >
-                                {{ application.name }}/{{ unit.index }}
+                                {{
+                                  unit.status.message || `status: ${unit.status.severity}`
+                                }}
                               </q-tooltip>
                             </div>
                           </div>
@@ -375,8 +378,8 @@ export default class Index extends Vue {
     this.$set(this.modelsExpanded, app.modelId, true);
 
     // Scroll to application after waiting for it's dom element to exist
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setTimeout(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function check(this: any) {
         const el = document.getElementById(`application-${app.id}`);
         if (el) {
