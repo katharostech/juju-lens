@@ -17,6 +17,7 @@ import {
 export interface FilledModel extends Model {
   applications: FilledApplication[];
   statusIcon: StatusIcon;
+  statusSeverity: UnitStatusSeverityString;
 }
 
 export interface FilledApplication extends Application {
@@ -24,7 +25,7 @@ export interface FilledApplication extends Application {
   units: FilledUnit[];
   statusIcon: StatusIcon;
   // The "worst" status of its units
-  severity: UnitStatusSeverityString;
+  statusSeverity: UnitStatusSeverityString;
 }
 
 export interface FilledUnit extends Unit {

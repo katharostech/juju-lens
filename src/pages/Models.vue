@@ -25,6 +25,15 @@
           />
         </q-tabs>
         <q-space />
+        <div style="flex: 0.1 0.5 10em;" id="sort-models-select">
+          <q-select
+            v-model="sortModelsBy"
+            label="Sort By"
+            :options="sortModelsByOptions"
+            filled
+            class="on-left"
+          />
+        </div>
         <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
       </q-toolbar>
 
@@ -35,9 +44,26 @@
         :thumb-style="{ width: '5px' }"
       >
         <div class="q-pa-sm">
-          <!-- Mobile heading for tab panel -->
-          <div class="text-h5 q-mb-md xs">
-            Models
+          <div class="row">
+            <!-- Mobile heading for tab panel -->
+            <div class="col-grow text-h5 q-mb-md xs">
+              Models
+            </div>
+
+            <!-- Mobile sort selection -->
+            <div
+              style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
+              id="sort-models-select-mobile"
+            >
+              <q-select
+                dense
+                v-model="sortModelsBy"
+                label="Sort By"
+                :options="sortModelsByOptions"
+                filled
+                class="on-left"
+              />
+            </div>
           </div>
 
           <!-- Model -->
@@ -164,7 +190,8 @@
                                 content-style="font-size: 0.8rem;"
                               >
                                 {{
-                                  unit.status.message || `status: ${unit.status.severity}`
+                                  unit.status.message ||
+                                    `status: ${unit.status.severity}`
                                 }}
                               </q-tooltip>
                             </div>
@@ -275,6 +302,9 @@ export default class Index extends Vue {
     undefined
   >;
 
+  readonly sortModelsByOptions = ['Status', 'Name'];
+  sortModelsBy: 'Status' | 'Name' = 'Status';
+
   scrollToElement(el: HTMLElement) {
     const scrollArea = this.$refs.modelScrollArea as QScrollArea;
     const target = scrollArea.getScrollTarget();
@@ -314,31 +344,38 @@ export default class Index extends Vue {
             });
 
           // The severity for the app is the "worst" severity out of its units
-          const severity = filledUnits
+          const statusSeverity = filledUnits
             .map(x => x.status.severity)
             .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
 
           return {
             charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
             units: filledUnits,
-            statusIcon: unitStatusSeverityIcon(severity),
-            severity,
+            statusIcon: unitStatusSeverityIcon(statusSeverity),
+            statusSeverity,
             ...app
           };
         });
 
+      const statusSeverity = filledApplications
+        .map(x => x.statusSeverity)
+        .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
+
       filledModels.push({
         applications: filledApplications,
-        statusIcon: unitStatusSeverityIcon(
-          filledApplications
-            .map(x => x.severity)
-            .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0]
-        ),
+        statusIcon: unitStatusSeverityIcon(statusSeverity),
+        statusSeverity,
         ...model
       });
     }
 
-    return filledModels;
+    return filledModels.sort((a, b) => {
+      if (this.sortModelsBy == 'Status') {
+        return (UnitStatusSeverity[b.statusSeverity] - UnitStatusSeverity[a.statusSeverity])
+      } else {
+        return a.name > b.name ? 1 : -1;
+      }
+    });
   }
 
   loading = false;
@@ -403,6 +440,14 @@ export default class Index extends Vue {
 
 <style lang="stylus">
 .models
+  #sort-models-select
+    @media(max-width: 376px)
+      display none !important
+
+  #sort-models-select-mobile
+    @media(min-width: 376px)
+      display none !important
+
   $model-machine-tabs-breakpoint=476px
 
   .avatar-stack
