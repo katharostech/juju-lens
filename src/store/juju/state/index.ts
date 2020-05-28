@@ -62,7 +62,8 @@ export enum UnitStatusSeverity {
   waiting,
   maintenance,
   unknown,
-  blocked
+  blocked,
+  errored
 }
 
 export type UnitStatusSeverityString = keyof typeof UnitStatusSeverity;

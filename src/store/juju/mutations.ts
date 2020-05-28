@@ -7,9 +7,12 @@ import {
   Cloud
 } from './state';
 
+import defaultState from './state';
+
 export const mutationTypes = {
   // Global ( maybe replace this later )
   setAllState: 'setAllState',
+  clearAllState: 'clearAllState',
   // Controller
   setCurrentController: 'setCurrentController',
   setControllers: 'setControllers',
@@ -41,6 +44,11 @@ const mutation: MutationTree<JujuStateInterface> = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (state as any)[key] = (newstate as any)[key];
     }
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  [mutationTypes.clearAllState](state) {
+    state = defaultState;
   },
 
   //

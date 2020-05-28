@@ -59,12 +59,16 @@
           <q-btn
             flat
             dense
-            class="ringing-bell"
+            :class="{ 'ringing-bell': !!unitNotifications.errors.length }"
             icon="fas fa-bell"
             style="padding: 0.2rem"
           />
-          <badge class="bg-warning text-black">2</badge>
-          <badge left class="bg-negative text-white">1</badge>
+          <badge left class="bg-negative text-white">{{
+            unitNotifications.errors.length
+          }}</badge>
+          <badge class="bg-warning text-black">{{
+            unitNotifications.warnings.length
+          }}</badge>
         </div>
         <!-- Mobile menu button -->
         <q-btn
@@ -290,12 +294,23 @@ import FloatingWindow from 'components/FloatingWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
+import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
 import { mutationTypes } from 'store/juju/mutations';
-import { Controller } from 'store/juju/state';
+import {
+  Controller,
+  Unit,
+  Application,
+  UnitStatusSeverity
+} from 'store/juju/state';
 
 import { Component, Vue } from 'vue-property-decorator';
+
+interface UnitNotification {
+  unit: Unit;
+  app: Application;
+}
 
 @Component({
   components: {
@@ -331,6 +346,12 @@ export default class MainLayout extends Vue {
   // Misc. State
   //
 
+  @juju.State units!: Unit[];
+  @juju.State applications!: Application[];
+  @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
+    undefined
+  >;
+
   readonly taskbarBreakpoint = 599;
   showTaskbar = false;
   taskbarMini = true;
@@ -352,7 +373,7 @@ export default class MainLayout extends Vue {
     },
     {
       label: 'Controllers',
-      icon: 'network_check',
+      icon: 'gamepad',
       to: { name: 'controllers' }
     },
     {
@@ -361,6 +382,47 @@ export default class MainLayout extends Vue {
       to: { name: 'admin' }
     }
   ];
+
+  created(): void {
+    this.loadAllState();
+  }
+
+  // Getter for the notifications list
+  get unitNotifications(): {
+    errors: UnitNotification[];
+    warnings: UnitNotification[];
+  } {
+    const errors: UnitNotification[] = [];
+    const warnings: UnitNotification[] = [];
+
+    for (const unit of this.units) {
+      // If the unit does not have a clean status
+      if (
+        UnitStatusSeverity[unit.status.severity] > UnitStatusSeverity.active
+      ) {
+        // Add a notification for it
+        const app = this.applications.filter(
+          app => app.id == unit.applicationId
+        )[0];
+
+        if (
+          UnitStatusSeverity[unit.status.severity] == UnitStatusSeverity.blocked
+        ) {
+          errors.push({
+            app,
+            unit
+          });
+        } else {
+          warnings.push({
+            app,
+            unit
+          });
+        }
+      }
+    }
+
+    return { errors, warnings };
+  }
 
   // Used to selectively hide the taskbar on taskbar button click
   windowWidth(): number {

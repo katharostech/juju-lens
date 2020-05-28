@@ -126,13 +126,7 @@ import CloudCredentialEdit from 'components/dialogs/CloudCredentialEdit.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 
-import {
-  Controller,
-  CloudCredential,
-  Cloud,
-  UnitStatusSeverity,
-  UnitStatusSeverityString
-} from 'store/juju/state';
+import { Controller, CloudCredential, Cloud } from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');

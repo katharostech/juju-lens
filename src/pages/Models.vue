@@ -220,81 +220,14 @@ import {
   Application,
   Charm,
   Unit,
-  UnitStatusSeverity,
-  UnitStatusSeverityString
+  UnitStatusSeverity
 } from 'store/juju/state';
+import { FilledApplication, FilledModel } from 'store/juju/state/utils';
+import { unitStatusSeverityIcon } from 'store/juju/state/utils';
 import { actionTypes } from 'store/juju/actions';
 import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
-
-interface FilledModel extends Model {
-  applications: FilledApplication[];
-  statusIcon: StatusIcon;
-}
-
-interface FilledApplication extends Application {
-  charm: Charm;
-  units: FilledUnit[];
-  statusIcon: StatusIcon;
-  // The "worst" status of its units
-  severity: UnitStatusSeverityString;
-}
-
-interface FilledUnit extends Unit {
-  statusIcon: StatusIcon;
-}
-
-// Green check circle
-const greenCheckCircle: StatusIcon = {
-  icon: 'fas fa-check-circle',
-  color: 'var(--q-color-positive)'
-};
-// Yellow ! triangle
-const yellowExclamationTriangle: StatusIcon = {
-  icon: 'fas fa-exclamation-triangle',
-  color: 'var(--q-color-warning)'
-};
-// Red ! circle
-const redExclamationCircle: StatusIcon = {
-  icon: 'fas fa-exclamation-circle',
-  color: 'var(--q-color-negative)'
-};
-// Green plain circle
-const greenCircle: StatusIcon = {
-  icon: 'fas fa-circle',
-  color: 'var(--q-color-positive)'
-};
-// yellow plain circle
-const yellowCircle: StatusIcon = {
-  icon: 'fas fa-circle',
-  color: 'var(--q-color-warning)'
-};
-// Red plain circle
-const redCircle: StatusIcon = {
-  icon: 'fas fa-circle',
-  color: 'var(--q-color-negative)'
-};
-
-interface StatusIcon {
-  icon: string;
-  color: string;
-}
-
-// Get a status icon for the given unit status severity
-function unitStatusSeverityIcon(
-  severity: UnitStatusSeverityString,
-  mini?: boolean
-): StatusIcon {
-  const sev = UnitStatusSeverity[severity];
-  if (sev == UnitStatusSeverity.blocked) {
-    return mini ? redCircle : redExclamationCircle;
-  } else if (sev >= UnitStatusSeverity.maintenance) {
-    return mini ? yellowCircle : yellowExclamationTriangle;
-  } else {
-    return mini ? greenCircle : greenCheckCircle;
-  }
-}
 
 @Component({
   components: {

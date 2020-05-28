@@ -23,6 +23,7 @@ export const actionTypes = {
   // Global
   loadAllState: 'loadAllState',
   persistState: 'persistState',
+  clearAllState: 'clearAllState',
   // Controllers
   // loadControllers: 'loadControllers',
   addController: 'addController',
@@ -60,6 +61,12 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   // Persist whole state
   [actionTypes.persistState](ctx) {
     LocalStorage.set(JUJU_STATE_NAME, ctx.state);
+  },
+
+  [actionTypes.clearAllState](ctx) {
+    LocalStorage.remove(JUJU_STATE_NAME);
+    ctx.commit(mutationTypes.setAllState, {});
+    ctx.commit(mutationTypes.setAllState, initialData);
   },
 
   //

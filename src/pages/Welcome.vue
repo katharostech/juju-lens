@@ -48,8 +48,16 @@ import { Location } from 'vue-router';
 
 import { Component, Vue } from 'vue-property-decorator';
 
+import { actionTypes } from 'store/juju/actions';
+import { namespace } from 'vuex-class';
+const juju = namespace('juju');
+
 @Component
 export default class Welcome extends Vue {
+  @juju.Action(actionTypes.clearAllState) clearAllState!: () => Promise<
+    undefined
+  >;
+
   get getStartedLink(): Location {
     const query = this.$route.query;
     const routeTo = query.welcomePageTo;
@@ -66,7 +74,28 @@ export default class Welcome extends Vue {
   }
 
   clearData(): void {
-    alert('TODO: Clear persited data');
+    this.$q
+      .dialog({
+        title: 'Are you sure?',
+        message:
+          'Are you sure you want to clear all GUI data? This will reset everything to the initial demo data.',
+        persistent: true,
+        cancel: true,
+        ok: {
+          label: 'delete',
+          color: 'negative'
+        }
+      })
+      .onOk(() => {
+        this.clearAllState().then(() => {
+          this.$q.notify({
+            type: 'positive',
+            message: 'successfully cleared persisted state.',
+            position: 'bottom-right',
+            timeout: 2000
+          });
+        });
+      });
   }
 }
 </script>
