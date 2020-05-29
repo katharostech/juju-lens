@@ -339,6 +339,7 @@
                   hide-bottom
                   :data="activeApplication.units"
                   :columns="activeApplicationUnitsColumns"
+                  :pagination="{ rowsPerPage: 0}"
                   :grid="$q.screen.xs"
                   row-key="index"
                   class="fit"
