@@ -142,29 +142,16 @@
           }"
         >
           <q-list>
+            <!-- TODO: Use transition group for adding and removing these items
+            with an animation -->
             <q-item
-              v-for="(item, i) in [
-                {
-                  type: 'term',
-                  unitName: 'my-app/1'
-                },
-                {
-                  type: 'log',
-                  unitName: 'my-app/2'
-                },
-                {
-                  type: 'log',
-                  unitName: 'my-db/1'
-                },
-                {
-                  type: 'log',
-                  unitName: 'my-longer-app-name-app/2'
-                }
-              ]"
-              :key="i"
+              v-for="window in floatingWindows"
+              :key="window.id"
               clickable
               v-ripple
+              @click="toggleFloatingWindowVisible(window.id)"
             >
+              <!-- Taskbar icon close menu -->
               <q-menu
                 context-menu
                 anchor="center right"
@@ -185,12 +172,12 @@
               <q-item-section avatar>
                 <q-icon
                   :name="
-                    item.type == 'log' ? 'fas fa-file-alt' : 'fas fa-terminal'
+                    window.kind == 'log' ? 'fas fa-file-alt' : 'fas fa-terminal'
                   "
                 />
               </q-item-section>
               <q-item-section avatar class="ellipsis">
-                {{ item.unitName }}
+                {{ window.app.name }} / {{ window.unit.index }}
               </q-item-section>
             </q-item>
             <!-- Debug window -->
@@ -310,7 +297,13 @@
         has a scroll area or somethign to keep from overflowing the page size. -->
           <router-view />
         </transition>
-        <debug-window />
+
+        <!-- Render floating windows -->
+        <floating-terminal-window
+          v-for="window in floatingWindows"
+          :key="window.id"
+          :floatingWindowId="window.id"
+        />
       </q-page>
     </q-page-container>
 
@@ -329,21 +322,26 @@
 <script lang="ts">
 import DarkModeToggle from 'components/DarkModeToggle.vue';
 import Badge from 'components/Badge.vue';
-import FloatingWindow from 'components/FloatingWindow.vue';
+import FloatingWindowComponent from 'components/FloatingWindow.vue';
+import FloatingTerminalWindow from 'components/FloatingTerminalWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
-import { actionTypes } from 'store/juju/actions';
+import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
-const juju = namespace('juju');
+
+import { actionTypes as jujuActionTypes } from 'store/juju/actions';
 import {
   Controller,
   Unit,
   Application,
   UnitStatusSeverity
 } from 'store/juju/state';
+const juju = namespace('juju');
 
-import { Component, Vue } from 'vue-property-decorator';
+import { FloatingWindow } from 'store/app/state';
+import { mutationTypes as appMutationTypes } from 'store/app/mutations';
+const app = namespace('app');
 
 interface UnitNotification {
   unit: Unit;
@@ -354,22 +352,32 @@ interface UnitNotification {
 @Component({
   components: {
     DarkModeToggle,
-    FloatingWindow,
+    FloatingWindowComponent,
+    FloatingTerminalWindow,
     DebugWindow,
     EmbeddedTerminal,
     Badge
   }
 })
 export default class MainLayout extends Vue {
-  //
-  // Current controller handling
-  //
+  @app.State floatingWindows!: FloatingWindow[];
+  @app.Mutation(appMutationTypes.removeFloatingWindow) removeFloatingWindow!: (
+    id: string
+  ) => void;
+  @app.Mutation(appMutationTypes.toggleFloatingWindowVisible)
+  toggleFloatingWindowVisible!: (id: string) => void;
 
   @juju.State('currentController') globalCurrentController!: Controller | 'All';
   @juju.State controllers!: Controller[];
-  @juju.Action(actionTypes.setCurrentController) setCurrentController!: (
+  @juju.State units!: Unit[];
+  @juju.State applications!: Application[];
+  @juju.Getter controllerUnits!: Unit[];
+  @juju.Action(jujuActionTypes.setCurrentController) setCurrentController!: (
     controller: Controller | 'All'
   ) => Promise<undefined>;
+  @juju.Action(jujuActionTypes.loadAllState) loadAllState!: () => Promise<
+    undefined
+  >;
 
   get currentController(): Controller | 'All' {
     return this.globalCurrentController;
@@ -380,16 +388,6 @@ export default class MainLayout extends Vue {
   get controllerOptions(): (Controller | 'All')[] {
     return ['All', ...this.controllers];
   }
-
-  //
-  // Misc. State
-  //
-
-  @juju.State units!: Unit[];
-  @juju.State applications!: Application[];
-  @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
-    undefined
-  >;
 
   readonly taskbarBreakpoint = 599;
   showTaskbar = false;
@@ -425,8 +423,6 @@ export default class MainLayout extends Vue {
   created(): void {
     this.loadAllState();
   }
-
-  @juju.Getter controllerUnits!: Unit[];
 
   // Getter for the notifications list
   get unitNotifications(): UnitNotification[] {

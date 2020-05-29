@@ -226,7 +226,7 @@
                                       <q-item
                                         v-ripple
                                         clickable
-                                        @click="openLogs(unit)"
+                                        @click="openLogs(unit, application)"
                                       >
                                         <q-item-section avatar>
                                           <q-icon name="fas fa-file-alt" />
@@ -238,7 +238,7 @@
                                       <q-item
                                         v-ripple
                                         clickable
-                                        @click="openTerminal(unit)"
+                                        @click="openTerminal(unit, application)"
                                       >
                                         <q-item-section avatar>
                                           <q-icon name="fas fa-terminal" />
@@ -366,7 +366,7 @@
                         flat
                         size="0.8em"
                         icon="fas fa-file-alt"
-                        @click="openLogs(props.value)"
+                        @click="openLogs(props.value, activeApplication)"
                       >
                         <q-tooltip>Open Logs</q-tooltip>
                       </q-btn>
@@ -375,7 +375,7 @@
                         flat
                         size="0.8em"
                         icon="fas fa-terminal"
-                        @click="openTerminal(props.value)"
+                        @click="openTerminal(props.value, activeApplication)"
                       >
                         <q-tooltip>Open Terminal</q-tooltip>
                       </q-btn>
@@ -490,6 +490,8 @@
 <script lang="ts">
 import JujuLoading from 'components/JujuLoading.vue';
 
+import { Component, Watch, Vue } from 'vue-property-decorator';
+import { namespace } from 'vuex-class';
 import {
   Model,
   Application,
@@ -500,12 +502,18 @@ import {
   UnitStatusSeverity,
   UnitStatusSeverityString
 } from 'store/juju/state';
-import { FilledApplication, FilledModel } from 'store/juju/state/utils';
+import {
+  FilledApplication,
+  FilledModel,
+  fillApp
+} from 'store/juju/state/utils';
 import { unitStatusSeverityIcon } from 'store/juju/state/utils';
-import { actionTypes } from 'store/juju/actions';
-import { Component, Watch, Vue } from 'vue-property-decorator';
-import { namespace } from 'vuex-class';
+import { actionTypes as jujuActionTypes } from 'store/juju/actions';
 const juju = namespace('juju');
+
+import { FloatingWindowKind } from 'store/app/state';
+import { actionTypes as appActionTypes } from 'store/app/actions';
+const app = namespace('app');
 
 import { scroll, dom, QScrollArea, LocalStorage } from 'quasar';
 const { offset } = dom;
@@ -526,7 +534,16 @@ export default class Index extends Vue {
   @juju.State machines!: Machine[];
   @juju.State units!: Unit[];
 
-  @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
+  @app.Action(appActionTypes.addFloatingWindow) addFloatingWindow!: ({
+    unit,
+    app,
+    kind
+  }: {
+    unit: Unit;
+    app: Application;
+    kind: FloatingWindowKind;
+  }) => string;
+  @juju.Action(jujuActionTypes.loadAllState) loadAllState!: () => Promise<
     undefined
   >;
 
@@ -726,37 +743,6 @@ export default class Index extends Vue {
     );
   }
 
-  // Fill in application data such as units and statuses, etc. from the ids
-  fillApp(app: Application): FilledApplication {
-    // Fill extra unit information for the application
-    const filledUnits = this.units
-      .filter(unit => unit.applicationId == app.id)
-      .map(unit => {
-        return {
-          statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
-          ...unit
-        };
-      })
-      .sort(
-        (a, b) =>
-          UnitStatusSeverity[b.status.severity] -
-          UnitStatusSeverity[a.status.severity]
-      );
-
-    // The severity for the app is the "worst" severity out of its units.
-    // Note that we've already sorted them by severity so we just grab the first on in
-    // the list.
-    const statusSeverity = filledUnits.map(x => x.status.severity)[0];
-
-    return {
-      charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
-      units: filledUnits,
-      statusIcon: unitStatusSeverityIcon(statusSeverity),
-      statusSeverity,
-      ...app
-    };
-  }
-
   // Get a model list with additional fiels that prevent having to lookup related components by
   // id every time they must be accessed.
   get models(): FilledModel[] {
@@ -766,7 +752,9 @@ export default class Index extends Vue {
       // Fill extra application information for the model
       const filledApplications: FilledApplication[] = this.applications
         .filter(app => app.modelId == model.id)
-        .map(this.fillApp.bind(this));
+        .map(app =>
+          fillApp({ units: this.units, store: this.charmStore }, app)
+        );
 
       const statusSeverity = filledApplications
         .map(x => x.statusSeverity)
@@ -829,17 +817,20 @@ export default class Index extends Vue {
 
     // Show the app details
     this.footerVisible = true;
-    this.activeApplication = this.fillApp(app);
+    this.activeApplication = fillApp(
+      { units: this.units, store: this.charmStore },
+      app
+    );
 
     // TODO: Hightlight individual unit?
   }
 
-  openLogs(unit: Unit): void {
-    alert('TODO');
+  openLogs(unit: Unit, app: Application): void {
+    this.addFloatingWindow({ unit, app, kind: FloatingWindowKind.log });
   }
 
-  openTerminal(unit: Unit): void {
-    alert('TODO');
+  openTerminal(unit: Unit, app: Application): void {
+    this.addFloatingWindow({ unit, app, kind: FloatingWindowKind.terminal });
   }
 }
 </script>

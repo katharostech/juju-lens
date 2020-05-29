@@ -82,3 +82,40 @@ export function unitStatusSeverityIcon(
     return mini ? greenCircle : greenCheckCircle;
   }
 }
+
+/** Fill in unit data such as status icon and  */
+export function fillUnit(unit: Unit): FilledUnit {
+  return {
+    statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
+    ...unit
+  };
+}
+
+/** Fill in application data such as units and statuses, etc. from the ids */
+export function fillApp(
+  { units, store }: { units: Unit[]; store: Charm[] },
+  app: Application
+): FilledApplication {
+  // Fill extra unit information for the application
+  const filledUnits = units
+    .filter(unit => unit.applicationId == app.id)
+    .map(fillUnit)
+    .sort(
+      (a, b) =>
+        UnitStatusSeverity[b.status.severity] -
+        UnitStatusSeverity[a.status.severity]
+    );
+
+  // The severity for the app is the "worst" severity out of its units.
+  // Note that we've already sorted them by severity so we just grab the first on in
+  // the list.
+  const statusSeverity = filledUnits.map(x => x.status.severity)[0];
+
+  return {
+    charm: store.filter(charm => charm.id == app.charmId)[0],
+    units: filledUnits,
+    statusIcon: unitStatusSeverityIcon(statusSeverity),
+    statusSeverity,
+    ...app
+  };
+}

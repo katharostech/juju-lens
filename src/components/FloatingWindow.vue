@@ -13,10 +13,10 @@
         :style="floatingWindowStyle"
         v-if="visible"
       >
-        <q-card class="fit">
+        <q-card class="fit column">
           <q-bar
             v-touch-pan.mouse.prevent="moveWindow"
-            class="floating-window--bar cursor-pointer"
+            class="col-auto floating-window--bar cursor-pointer"
           >
             <q-icon v-if="icon" :name="icon" />
 
@@ -166,8 +166,10 @@
           </q-bar>
 
           <!-- Window Content -->
-          <div class="floating-window--content">
-            <slot name="default" />
+          <div class="col relative-position">
+            <div class="floating-window--content">
+              <slot name="default" />
+            </div>
           </div>
 
           <!-- RESIZE HANDLES -->
@@ -431,9 +433,11 @@ export default class FloatingWindow extends Vue {
   pointer-events auto
 
   .floating-window--content
-    max-width 100%
-    max-height 100%
-    overflow auto
+    position absolute
+    top 0
+    right 0
+    left 0
+    bottom 0
 
 .body--light .floating-window .q-card
   background-color $blue-grey-1
