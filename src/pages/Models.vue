@@ -3,7 +3,7 @@
   <div class="models absolute fit flex items-stretch" style="overflow: hidden;">
     <div class="fit column">
       <!-- Controllers Toolbar -->
-      <q-toolbar class="col-auto row q-mb-sm">
+      <q-toolbar class="col-auto row items-center">
         <!-- Tabs -->
         <q-tabs
           inline-label
@@ -12,9 +12,9 @@
           class="model-machine-tabs q-pa-xs"
         >
           <q-route-tab
-            label="Models"
+            label="Applications"
             icon="share"
-            name="models"
+            name="applications"
             :to="{ name: 'models' }"
           />
           <q-route-tab
@@ -25,8 +25,10 @@
           />
         </q-tabs>
         <q-space />
-        <div style="flex: 0.1 0.5 10em;" id="sort-models-select">
+        <!-- Sort Models select -->
+        <div style="flex: 0.1 0.5 10em;" id="sort-models-select" >
           <q-select
+            dense
             v-model="sortModelsBy"
             label="Sort By"
             :options="sortModelsByOptions"
@@ -52,7 +54,7 @@
             <div class="row">
               <!-- Mobile heading for tab panel -->
               <div class="col-grow text-h5 q-mb-md xs">
-                Models
+                {{ tab == 'applications' ?  'Applications' : 'Machines' }}
               </div>
 
               <!-- Mobile sort selection -->
@@ -95,6 +97,9 @@
                     }"
                     size="1.7em"
                   />
+
+                  <q-separator vertical class="on-right" />
+
                   <q-toolbar-title style="flex: 1 1 0%">
                     <span>
                       {{ model.name }}
@@ -150,7 +155,7 @@
                       <!-- Model list -->
                       <q-tab-panel
                         :id="`model-${model.id}`"
-                        name="models"
+                        name="applications"
                         class="q-pa-none"
                       >
                         <!-- Application Row -->
@@ -174,13 +179,13 @@
                                 :style="{
                                   color: application.statusIcon.color
                                 }"
-                                size="1.7em"
+                                size="1.4em"
                               />
                             </q-item-section>
 
                             <!-- App Logo -->
                             <q-item-section avatar>
-                              <q-img :src="application.charm.imageUrl" />
+                              <q-img :src="application.charm.imageUrl" style="width: 2.5em" />
                             </q-item-section>
 
                             <q-item-section>
@@ -242,7 +247,7 @@
 
         <!-- Application info Footer -->
         <div
-          v-if="tab == 'models'"
+          v-if="tab == 'applications'"
           :style="{
             height: footerVisible ? `${footerHeight}%` : '0%',
             transition: footerTransitioning
@@ -346,7 +351,7 @@ export default class Index extends Vue {
   readonly sortModelsByOptions = ['Status', 'Name'];
   sortModelsBy: 'Status' | 'Name' = 'Status';
 
-  tab = 'models';
+  tab = 'applications';
   modelsExpanded: { [key: string]: boolean } = {};
   activeApplication: Application | null = null;
   // The total height for both the footer and the content list area
@@ -549,7 +554,7 @@ export default class Index extends Vue {
     @media(min-width: 376px)
       display none !important
 
-  $model-machine-tabs-breakpoint=476px
+  $model-machine-tabs-breakpoint=515px
 
   .avatar-stack
     .q-avatar
