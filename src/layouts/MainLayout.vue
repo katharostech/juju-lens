@@ -144,6 +144,7 @@
           <q-list>
             <!-- TODO: Use transition group for adding and removing these items
             with an animation -->
+            <!-- Floating Window List -->
             <q-item
               v-for="window in floatingWindows"
               :key="window.id"
@@ -178,24 +179,6 @@
               </q-item-section>
               <q-item-section avatar class="ellipsis">
                 {{ window.app.name }} / {{ window.unit.index }}
-              </q-item-section>
-            </q-item>
-            <!-- Debug window -->
-            <q-item
-              clickable
-              v-ripple
-              @click="
-                $store.commit('app/toggleDebugWindow');
-                if (windowWidth() <= taskbarBreakpoint) {
-                  showTaskbar = false;
-                }
-              "
-            >
-              <q-item-section avatar>
-                <q-icon name="fas fa-bug" />
-              </q-item-section>
-              <q-item-section>
-                Debug Window
               </q-item-section>
             </q-item>
           </q-list>
@@ -298,9 +281,14 @@
           <router-view />
         </transition>
 
-        <!-- Render floating windows -->
+        <!-- Floating Windows -->
         <floating-terminal-window
-          v-for="window in floatingWindows"
+          v-for="window in floatingTermWindows"
+          :key="window.id"
+          :floatingWindowId="window.id"
+        />
+        <floating-log-window
+          v-for="window in floatingLogWindows"
           :key="window.id"
           :floatingWindowId="window.id"
         />
@@ -324,6 +312,7 @@ import DarkModeToggle from 'components/DarkModeToggle.vue';
 import Badge from 'components/Badge.vue';
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
 import FloatingTerminalWindow from 'components/FloatingTerminalWindow.vue';
+import FloatingLogWindow from 'components/FloatingLogWindow.vue';
 import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
@@ -339,7 +328,11 @@ import {
 } from 'store/juju/state';
 const juju = namespace('juju');
 
-import { FloatingWindow } from 'store/app/state';
+import {
+  FloatingWindow,
+  FloatingWindowKind,
+  FloatingWindowKindString
+} from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
 const app = namespace('app');
 
@@ -354,18 +347,36 @@ interface UnitNotification {
     DarkModeToggle,
     FloatingWindowComponent,
     FloatingTerminalWindow,
+    FloatingLogWindow,
     DebugWindow,
     EmbeddedTerminal,
     Badge
   }
 })
 export default class MainLayout extends Vue {
-  @app.State floatingWindows!: FloatingWindow[];
+  @app.State readonly floatingWindows!: FloatingWindow[];
   @app.Mutation(appMutationTypes.removeFloatingWindow) removeFloatingWindow!: (
     id: string
   ) => void;
   @app.Mutation(appMutationTypes.toggleFloatingWindowVisible)
   toggleFloatingWindowVisible!: (id: string) => void;
+
+  get floatingTermWindows(): FloatingWindow[] {
+    return this.floatingWindows.filter(
+      window =>
+        (window.kind == FloatingWindowKind[
+          FloatingWindowKind.terminal
+        ] as FloatingWindowKindString)
+    );
+  }
+  get floatingLogWindows(): FloatingWindow[] {
+    return this.floatingWindows.filter(
+      window =>
+        (window.kind == FloatingWindowKind[
+          FloatingWindowKind.log
+        ] as FloatingWindowKindString)
+    );
+  }
 
   @juju.State('currentController') globalCurrentController!: Controller | 'All';
   @juju.State controllers!: Controller[];

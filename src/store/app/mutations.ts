@@ -22,7 +22,7 @@ const mutation: MutationTree<AppStateInterface> = {
     state.debugWindow.maximized = !state.debugWindow.maximized;
   },
 
-  /** Add log window */
+  /** Add floating window */
   [mutationTypes.addFloatingWindow](state, window: FloatingWindow) {
     state.floatingWindows.push(window);
   },
