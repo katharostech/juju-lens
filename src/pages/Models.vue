@@ -157,6 +157,7 @@
                         :id="`model-${model.id}`"
                         name="applications"
                         class="q-pa-none"
+                        style="overflow: hidden;"
                       >
                         <!-- Application Row -->
                         <q-list bordered separator>
