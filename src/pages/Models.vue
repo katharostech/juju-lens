@@ -306,7 +306,6 @@
             </q-bar>
             <div class="col">
               <q-scroll-area class="fit">
-                <!-- <q-scroll-area > -->
                 <q-table
                   dense
                   hide-bottom
@@ -319,6 +318,7 @@
                   virtual-scroll
                   binary-state-sort
                 >
+                  <!-- Custom cells for unit and agent statuses -->
                   <template v-slot:body-cell-agent-status="props">
                     <q-td :props="props">
                       <div>
@@ -339,6 +339,7 @@
                       </div>
                     </q-td>
                   </template>
+                  <!-- Moble card view for unit list table -->
                   <template v-slot:item="props">
                     <div class="column col-6">
                       <q-card class="q-ma-xs">
@@ -395,7 +396,6 @@
                     </div>
                   </template>
                 </q-table>
-                <!-- </q-scroll-area> -->
               </q-scroll-area>
             </div>
           </div>
