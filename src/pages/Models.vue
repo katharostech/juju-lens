@@ -1,6 +1,6 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
-  <div class="models absolute fit flex items-stretch">
+  <div class="models absolute fit flex items-stretch" style="overflow: hidden;">
     <div class="fit column">
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row q-mb-sm">
@@ -38,236 +38,262 @@
         <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
       </q-toolbar>
 
-      <!-- Content scroll area -->
-      <q-scroll-area
-        ref="modelScrollArea"
-        class="col-grow"
-        :thumb-style="{ width: '5px' }"
-      >
-        <div class="q-pa-sm">
-          <div class="row">
-            <!-- Mobile heading for tab panel -->
-            <div class="col-grow text-h5 q-mb-md xs">
-              Models
-            </div>
+      <div class="col-grow column relative-position">
+        <!-- Content area resize observer -->
+        <q-resize-observer @resize="onResizeContent" />
 
-            <!-- Mobile sort selection -->
-            <div
-              style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
-              id="sort-models-select-mobile"
-            >
-              <q-select
-                dense
-                v-model="sortModelsBy"
-                label="Sort By"
-                :options="sortModelsByOptions"
-                :color="$q.dark.isActive ? 'secondary' : 'primary'"
-                filled
-                class="on-left"
-              />
-            </div>
-          </div>
+        <!-- Content scroll area -->
+        <q-scroll-area
+          ref="modelScrollArea"
+          class="col-grow"
+          :thumb-style="{ width: '5px' }"
+        >
+          <div class="q-pa-sm">
+            <div class="row">
+              <!-- Mobile heading for tab panel -->
+              <div class="col-grow text-h5 q-mb-md xs">
+                Models
+              </div>
 
-          <!-- Model -->
-          <transition-group name="model-group-trans" tag="div">
-            <div
-              class="q-mb-md full-width"
-              v-for="model in models"
-              :key="model.id"
-            >
-              <!-- Model toolbar -->
-              <q-toolbar
-                v-ripple
-                class="bg-primary text-white full-width"
-                @click="
-                  $set(modelsExpanded, model.id, !modelsExpanded[model.id])
-                "
+              <!-- Mobile sort selection -->
+              <div
+                style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
+                id="sort-models-select-mobile"
               >
-                <!-- Model Status -->
-                <q-icon
-                  :name="model.statusIcon.icon"
-                  :style="{
-                    color: model.statusIcon.color
-                  }"
-                  size="1.7em"
-                />
-                <q-toolbar-title style="flex: 1 1 0%">
-                  <span>
-                    {{ model.name }}
-                    <q-tooltip anchor="top middle" self="bottom middle">
-                      {{ model.name }}
-                    </q-tooltip>
-                  </span>
-                </q-toolbar-title>
-                <div class="avatar-stack">
-                  <q-avatar
-                    v-for="application in model.applications"
-                    :key="application.id"
-                    size="2em"
-                  >
-                    <q-img :src="application.charm.imageUrl" />
-                    <q-tooltip
-                      anchor="top middle"
-                      self="bottom middle"
-                      content-style="font-size: 0.8em;"
-                    >
-                      {{ application.name }}
-                    </q-tooltip>
-                  </q-avatar>
-                </div>
-                <q-btn
-                  round
+                <q-select
                   dense
-                  flat
-                  icon="arrow_downward"
-                  style="transition: transform 0.2s;"
-                  :style="{
-                    transform: modelsExpanded[model.id]
-                      ? 'rotateZ(180deg)'
-                      : 'none'
-                  }"
+                  v-model="sortModelsBy"
+                  label="Sort By"
+                  :options="sortModelsByOptions"
+                  :color="$q.dark.isActive ? 'secondary' : 'primary'"
+                  filled
+                  class="on-left"
                 />
-                <q-btn
-                  round
-                  dense
-                  flat
-                  icon="more_vert"
-                  @click.stop="() => undefined"
-                />
-              </q-toolbar>
-              <q-slide-transition>
-                <div v-if="modelsExpanded[model.id]">
-                  <!-- Tab content -->
-                  <q-tab-panels
-                    animated
-                    v-model="tab"
-                    style="background-color: hsla(0, 0%, 0%, 0);"
-                  >
-                    <!-- Model list -->
-                    <q-tab-panel
-                      :id="`model-${model.id}`"
-                      name="models"
-                      class="q-pa-none"
-                    >
-                      <!-- Application Row -->
-                      <q-list bordered separator>
-                        <q-item
-                          v-for="application in model.applications"
-                          :key="application.id"
-                          clickable
-                          v-ripple
-                          :id="`application-${application.id}`"
-                          class="row"
-                        >
-                          <!-- App Status -->
-                          <q-item-section avatar>
-                            <q-icon
-                              :name="application.statusIcon.icon"
-                              :style="{
-                                color: application.statusIcon.color
-                              }"
-                              size="1.7em"
-                            />
-                          </q-item-section>
-
-                          <!-- App Logo -->
-                          <q-item-section avatar>
-                            <q-img :src="application.charm.imageUrl" />
-                          </q-item-section>
-
-                          <q-item-section>
-                            <!-- App Name -->
-                            <div>
-                              {{ application.name }}
-                            </div>
-                            <!-- Unit Preview -->
-                            <div class="row reverse">
-                              <div
-                                v-for="unit in application.units"
-                                :key="unit.id"
-                              >
-                                <q-icon
-                                  :name="unit.statusIcon.icon"
-                                  :style="{
-                                    color: unit.statusIcon.color
-                                  }"
-                                  size="1.em"
-                                  class="q-ma-xs"
-                                />
-                                <q-tooltip
-                                  anchor="top middle"
-                                  self="bottom middle"
-                                  content-style="font-size: 0.8rem;"
-                                >
-                                  {{
-                                    unit.status.message ||
-                                      `status: ${unit.status.severity}`
-                                  }}
-                                </q-tooltip>
-                              </div>
-                            </div>
-                          </q-item-section>
-                          <q-item-section side>
-                            <q-btn
-                              round
-                              dense
-                              flat
-                              icon="more_vert"
-                              @click.stop="() => undefined"
-                            />
-                          </q-item-section>
-                        </q-item>
-                      </q-list>
-                    </q-tab-panel>
-
-                    <!-- Machines List -->
-                    <q-tab-panel name="machines">
-                      <div class="text-h5">Machine List Comming Soon!</div>
-                    </q-tab-panel>
-                  </q-tab-panels>
-                </div>
-              </q-slide-transition>
+              </div>
             </div>
-          </transition-group>
+
+            <!-- Model -->
+            <transition-group name="model-group-trans" tag="div">
+              <div
+                class="q-mb-md full-width"
+                v-for="model in models"
+                :key="model.id"
+              >
+                <!-- Model toolbar -->
+                <q-toolbar
+                  v-ripple
+                  class="bg-primary text-white full-width"
+                  @click="
+                    $set(modelsExpanded, model.id, !modelsExpanded[model.id])
+                  "
+                >
+                  <!-- Model Status -->
+                  <q-icon
+                    :name="model.statusIcon.icon"
+                    :style="{
+                      color: model.statusIcon.color
+                    }"
+                    size="1.7em"
+                  />
+                  <q-toolbar-title style="flex: 1 1 0%">
+                    <span>
+                      {{ model.name }}
+                      <q-tooltip anchor="top middle" self="bottom middle">
+                        {{ model.name }}
+                      </q-tooltip>
+                    </span>
+                  </q-toolbar-title>
+                  <div class="avatar-stack">
+                    <q-avatar
+                      v-for="application in model.applications"
+                      :key="application.id"
+                      size="2em"
+                    >
+                      <q-img :src="application.charm.imageUrl" />
+                      <q-tooltip
+                        anchor="top middle"
+                        self="bottom middle"
+                        content-style="font-size: 0.8em;"
+                      >
+                        {{ application.name }}
+                      </q-tooltip>
+                    </q-avatar>
+                  </div>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    icon="arrow_downward"
+                    style="transition: transform 0.2s;"
+                    :style="{
+                      transform: modelsExpanded[model.id]
+                        ? 'rotateZ(180deg)'
+                        : 'none'
+                    }"
+                  />
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    icon="more_vert"
+                    @click.stop="() => undefined"
+                  />
+                </q-toolbar>
+                <q-slide-transition>
+                  <div v-if="modelsExpanded[model.id]">
+                    <!-- Tab content -->
+                    <q-tab-panels
+                      animated
+                      v-model="tab"
+                      style="background-color: hsla(0, 0%, 0%, 0);"
+                    >
+                      <!-- Model list -->
+                      <q-tab-panel
+                        :id="`model-${model.id}`"
+                        name="models"
+                        class="q-pa-none"
+                      >
+                        <!-- Application Row -->
+                        <q-list bordered separator>
+                          <q-item
+                            v-for="application in model.applications"
+                            :key="application.id"
+                            clickable
+                            v-ripple
+                            :id="`application-${application.id}`"
+                            class="row"
+                            @click="
+                              activeApplication = application;
+                              showFooter();
+                            "
+                          >
+                            <!-- App Status -->
+                            <q-item-section avatar>
+                              <q-icon
+                                :name="application.statusIcon.icon"
+                                :style="{
+                                  color: application.statusIcon.color
+                                }"
+                                size="1.7em"
+                              />
+                            </q-item-section>
+
+                            <!-- App Logo -->
+                            <q-item-section avatar>
+                              <q-img :src="application.charm.imageUrl" />
+                            </q-item-section>
+
+                            <q-item-section>
+                              <!-- App Name -->
+                              <div>
+                                {{ application.name }}
+                              </div>
+                              <!-- Unit Preview -->
+                              <div class="row reverse">
+                                <div
+                                  v-for="unit in application.units"
+                                  :key="unit.id"
+                                >
+                                  <q-icon
+                                    :name="unit.statusIcon.icon"
+                                    :style="{
+                                      color: unit.statusIcon.color
+                                    }"
+                                    size="1.em"
+                                    class="q-ma-xs"
+                                  />
+                                  <q-tooltip
+                                    anchor="top middle"
+                                    self="bottom middle"
+                                    content-style="font-size: 0.8rem;"
+                                  >
+                                    {{
+                                      unit.status.message ||
+                                        `status: ${unit.status.severity}`
+                                    }}
+                                  </q-tooltip>
+                                </div>
+                              </div>
+                            </q-item-section>
+                            <q-item-section side>
+                              <q-btn
+                                round
+                                dense
+                                flat
+                                icon="more_vert"
+                                @click.stop="() => undefined"
+                              />
+                            </q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-tab-panel>
+
+                      <!-- Machines List -->
+                      <q-tab-panel name="machines">
+                        <div class="text-h5">Machine List Comming Soon!</div>
+                      </q-tab-panel>
+                    </q-tab-panels>
+                  </div>
+                </q-slide-transition>
+              </div>
+            </transition-group>
+          </div>
+        </q-scroll-area>
+
+        <!-- Application info Footer -->
+        <div
+          v-if="tab == 'models'"
+          :style="{
+            height: footerVisible ? `${footerHeight}%` : '0%',
+            transition: footerTransitioning
+              ? `all ${footerTransitionDuration / 1000}s`
+              : `unset`
+          }"
+          class="bg-dark text-white relative-position"
+          style="overflow: hidden"
+        >
+          <div v-if="activeApplication && (footerVisible || footerTransitioning)">
+            <!-- Top Resize Handle -->
+            <div
+              v-touch-pan.mouse.up.down.prevent="resizeFooter"
+              style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em;"
+            ></div>
+
+            <!-- Footer Top Bar -->
+            <q-bar dense>
+              <img
+                :src="activeApplication.charm.imageUrl"
+                style="height: 1em;"
+                :ratio="1"
+              />
+
+              <div class="text-weight-bold ellipsis">
+                {{ activeApplication.name }}
+              </div>
+
+              <q-space />
+
+              <!-- Minimize button -->
+              <q-btn
+                v-ripple
+                dense
+                flat
+                icon="fas fa-window-minimize"
+                @click="hideFooter()"
+              >
+                <q-tooltip
+                  transition-show="jump-up"
+                  transition-hide="jump-down"
+                  anchor="top middle"
+                  self="bottom middle"
+                  :delay="300"
+                >
+                  Hide
+                </q-tooltip>
+              </q-btn>
+            </q-bar>
+          </div>
         </div>
-      </q-scroll-area>
-
-      <!-- TODO: Unit info Footer -->
-      <div
-        style="height: 2em;"
-        v-if="tab == 'models'"
-        class="bg-dark text-white"
-      >
-        <q-bar dense>
-          <img
-            src="/statics/charmIcons/spark.svg"
-            style="height: 1em;"
-            :ratio="1"
-          />
-
-          <div class="text-weight-bold ellipsis">my-app</div>
-
-          <q-space />
-
-          <!-- Minimize button -->
-          <q-btn
-            v-ripple
-            dense
-            flat
-            icon="fas fa-window-minimize"
-            @click="$emit('minimize')"
-          >
-            <q-tooltip
-              transition-show="jump-up"
-              transition-hide="jump-down"
-              anchor="top middle"
-              self="bottom middle"
-              :delay="300"
-            >
-              Hide
-            </q-tooltip>
-          </q-btn>
-        </q-bar>
       </div>
     </div>
 
@@ -315,8 +341,63 @@ export default class Index extends Vue {
     undefined
   >;
 
+  loading = false;
+
   readonly sortModelsByOptions = ['Status', 'Name'];
   sortModelsBy: 'Status' | 'Name' = 'Status';
+
+  tab = 'models';
+  modelsExpanded: { [key: string]: boolean } = {};
+  activeApplication: Application | null = null;
+  // The total height for both the footer and the content list area
+  pageHeight = 0; // This is updated by onResizeContent
+  footerVisible = false;
+  // Footer height percentage of content area ( the area of the page minus the page 
+  // header with the tabs and sort options )
+  footerHeight = 50;
+  footerTransitioning = false;
+  readonly footerTransitionDuration = 300;
+
+  // Handles the content area resizing and sets `this.pageHeight`
+  onResizeContent({ height }: { width: number; height: number }): void {
+    this.pageHeight = height;
+  }
+
+  // Resizes the footer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resizeFooter(event: any): void {
+    const delta = event.delta.y;
+    const deltaPercent = (delta / this.pageHeight) * 100;
+    const height = this.footerHeight - deltaPercent;
+
+    if (height > 100) {
+      this.footerHeight = 100;
+    } else if (height < 2) {
+      // If footer gets tiny, collapse it completely and reset size
+      this.footerVisible = false;
+      this.footerHeight = 50;
+    } else {
+      this.footerHeight = height;
+    }
+  }
+
+  // Functions to hide and show the footer ( used in button clicks )
+  hideFooter(): void {
+    this.footerTransitioning = true;
+    this.footerVisible = false;
+    setTimeout(
+      () => (this.footerTransitioning = false),
+      this.footerTransitionDuration
+    );
+  }
+  showFooter(): void {
+    this.footerTransitioning = true;
+    this.footerVisible = true;
+    setTimeout(
+      () => (this.footerTransitioning = false),
+      this.footerTransitionDuration
+    );
+  }
 
   @Watch('sortModelsBy')
   onSortModelsByChange(value: string): void {
@@ -398,12 +479,6 @@ export default class Index extends Vue {
     });
   }
 
-  loading = false;
-  tab = 'models';
-  activeApplication: Application | null = null;
-
-  modelsExpanded: { [key: string]: boolean } = {};
-
   async created(): Promise<void> {
     // Load the sort models preference
     const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
@@ -473,9 +548,6 @@ export default class Index extends Vue {
   #sort-models-select-mobile
     @media(min-width: 376px)
       display none !important
-
-
-
 
   $model-machine-tabs-breakpoint=476px
 

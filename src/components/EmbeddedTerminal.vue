@@ -7,6 +7,9 @@
     }"
   >
     <!-- Top Resize Handle -->
+    <!-- TODO: If you maximize the window and try to drag it down it sticks a little before
+    comming all the way down for some reason. Probably has something to do with the un-maximize
+    function? -->
     <div
       v-touch-pan.mouse.up.down.prevent="resizeTop"
       style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em;"
