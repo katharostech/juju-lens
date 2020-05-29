@@ -146,7 +146,6 @@
                 </q-toolbar>
                 <q-slide-transition>
                   <div v-if="modelsExpanded[model.id]">
-                    <!-- Tab content -->
                     <q-tab-panels
                       animated
                       v-model="tab"
@@ -221,6 +220,35 @@
                                         `status: ${unit.status.severity}`
                                     }}
                                   </q-tooltip>
+                                  <!-- Unit dot context menu -->
+                                  <q-menu context-menu auto-close>
+                                    <q-list>
+                                      <q-item
+                                        v-ripple
+                                        clickable
+                                        @click="openLogs(unit)"
+                                      >
+                                        <q-item-section avatar>
+                                          <q-icon name="fas fa-file-alt" />
+                                        </q-item-section>
+                                        <q-item-section>
+                                          Open Logs
+                                        </q-item-section>
+                                      </q-item>
+                                      <q-item
+                                        v-ripple
+                                        clickable
+                                        @click="openTerminal(unit)"
+                                      >
+                                        <q-item-section avatar>
+                                          <q-icon name="fas fa-terminal" />
+                                        </q-item-section>
+                                        <q-item-section>
+                                          Open Terminal
+                                        </q-item-section>
+                                      </q-item>
+                                    </q-list>
+                                  </q-menu>
                                 </div>
                               </div>
                             </q-item-section>
@@ -319,6 +347,7 @@
                   binary-state-sort
                 >
                   <!-- Custom cells for unit and agent statuses -->
+                  <!-- Actions Cell -->
                   <template v-slot:body-cell-agent-status="props">
                     <q-td :props="props">
                       <div>
@@ -329,6 +358,30 @@
                       </div>
                     </q-td>
                   </template>
+                  <!-- Agent Status Cell -->
+                  <template v-slot:body-cell-actions="props">
+                    <q-td :props="props">
+                      <q-btn
+                        dense
+                        flat
+                        size="0.8em"
+                        icon="fas fa-file-alt"
+                        @click="openLogs(props.value)"
+                      >
+                        <q-tooltip>Open Logs</q-tooltip>
+                      </q-btn>
+                      <q-btn
+                        dense
+                        flat
+                        size="0.8em"
+                        icon="fas fa-terminal"
+                        @click="openTerminal(props.value)"
+                      >
+                        <q-tooltip>Open Terminal</q-tooltip>
+                      </q-btn>
+                    </q-td>
+                  </template>
+                  <!-- Unit Status Cell -->
                   <template v-slot:body-cell-status="props">
                     <q-td :props="props">
                       <div>
@@ -372,7 +425,9 @@
                           <q-item
                             v-for="col in props.cols.filter(
                               col =>
-                                col.name !== 'name' && col.name !== 'status'
+                                col.name !== 'name' &&
+                                col.name !== 'status' &&
+                                col.name
                             )"
                             :key="col.name"
                           >
@@ -387,7 +442,32 @@
                             </q-item-section>
                             <q-item-section v-if="col.name != 'message'" side>
                               <q-item-label caption>
-                                {{ col.value }}
+                                <span v-if="col.name != 'actions'">
+                                  {{ col.value }}
+                                </span>
+                                <!-- Action buttons -->
+                                <span v-else>
+                                  <q-btn
+                                    dense
+                                    flat
+                                    size="1em"
+                                    icon="fas fa-file-alt"
+                                    class="q-ma-xs"
+                                    @click="openLogs(col.value)"
+                                  >
+                                    <q-tooltip>Open Logs</q-tooltip>
+                                  </q-btn>
+                                  <q-btn
+                                    dense
+                                    flat
+                                    size="1em"
+                                    icon="fas fa-terminal"
+                                    class="q-ma-xs"
+                                    @click="openTerminal(col.value)"
+                                  >
+                                    <q-tooltip>Open Terminal</q-tooltip>
+                                  </q-btn>
+                                </span>
                               </q-item-label>
                             </q-item-section>
                           </q-item>
@@ -467,6 +547,26 @@ export default class Index extends Vue {
   footerTransitioning = false;
   readonly footerTransitionDuration = 300;
 
+  async created(): Promise<void> {
+    // Load the sort models preference
+    const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
+    if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
+      this.sortModelsBy = sortModelsBy;
+    }
+
+    await this.fetchData();
+
+    // Scroll to the app for a unit specified by route if necessary
+    this.scrollToApp();
+  }
+
+  async fetchData(): Promise<void> {
+    this.loading = true;
+
+    await this.loadAllState();
+    this.loading = false;
+  }
+
   get activeApplicationUnitsColumns() {
     return [
       {
@@ -477,6 +577,14 @@ export default class Index extends Vue {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         format: (index: number) => `${this.activeApplication!.name}/${index}`,
         sortable: true
+      },
+      // This is sort of a dummy column that we stick the log and terminal buttons
+      // in using the template.
+      {
+        name: 'actions',
+        label: 'Actions',
+        alight: 'left',
+        field: (row: Unit) => row
       },
       {
         name: 'agent-status',
@@ -684,26 +792,6 @@ export default class Index extends Vue {
     });
   }
 
-  async created(): Promise<void> {
-    // Load the sort models preference
-    const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
-    if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
-      this.sortModelsBy = sortModelsBy;
-    }
-
-    await this.fetchData();
-
-    // Scroll to the app for a unit specified by route if necessary
-    this.scrollToApp();
-  }
-
-  async fetchData(): Promise<void> {
-    this.loading = true;
-
-    await this.loadAllState();
-    this.loading = false;
-  }
-
   // Scroll to the unit specified by the route
   @Watch('$route')
   scrollToApp(): void {
@@ -744,6 +832,14 @@ export default class Index extends Vue {
     this.activeApplication = this.fillApp(app);
 
     // TODO: Hightlight individual unit?
+  }
+
+  openLogs(unit: Unit): void {
+    alert('TODO');
+  }
+
+  openTerminal(unit: Unit): void {
+    alert('TODO');
   }
 }
 </script>
