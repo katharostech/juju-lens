@@ -26,7 +26,7 @@
         </q-tabs>
         <q-space />
         <!-- Sort Models select -->
-        <div style="flex: 0.1 0.5 10em;" id="sort-models-select" >
+        <div style="flex: 0.1 0.5 10em;" id="sort-models-select">
           <q-select
             dense
             v-model="sortModelsBy"
@@ -54,7 +54,7 @@
             <div class="row">
               <!-- Mobile heading for tab panel -->
               <div class="col-grow text-h5 q-mb-md xs">
-                {{ tab == 'applications' ?  'Applications' : 'Machines' }}
+                {{ tab == 'applications' ? 'Applications' : 'Machines' }}
               </div>
 
               <!-- Mobile sort selection -->
@@ -98,7 +98,7 @@
                     size="1.7em"
                   />
 
-                  <q-separator vertical class="on-right" />
+                  <q-separator vertical class="on-right" color="grey-6" />
 
                   <q-toolbar-title style="flex: 1 1 0%">
                     <span>
@@ -186,7 +186,10 @@
 
                             <!-- App Logo -->
                             <q-item-section avatar>
-                              <q-img :src="application.charm.imageUrl" style="width: 2.5em" />
+                              <q-img
+                                :src="application.charm.imageUrl"
+                                style="width: 2.5em"
+                              />
                             </q-item-section>
 
                             <q-item-section>
@@ -255,10 +258,13 @@
               ? `all ${footerTransitionDuration / 1000}s`
               : `unset`
           }"
-          class="bg-dark text-white relative-position"
+          class="column bg-dark text-white relative-position"
           style="overflow: hidden"
         >
-          <div v-if="activeApplication && (footerVisible || footerTransitioning)">
+          <div
+            v-if="activeApplication && (footerVisible || footerTransitioning)"
+            class="col-grow column overflow-hidden"
+          >
             <!-- Top Resize Handle -->
             <div
               v-touch-pan.mouse.up.down.prevent="resizeFooter"
@@ -266,7 +272,7 @@
             ></div>
 
             <!-- Footer Top Bar -->
-            <q-bar dense>
+            <q-bar dense class="col-auto">
               <img
                 :src="activeApplication.charm.imageUrl"
                 style="height: 1em;"
@@ -298,6 +304,18 @@
                 </q-tooltip>
               </q-btn>
             </q-bar>
+            <div class="col">
+              <q-table
+                hide-bottom
+                dense
+                :data="activeApplication.units"
+                :columns="activeApplicationUnitsColumns"
+                row-key="index"
+                class="fit"
+                style="border-radius: 0px;"
+                virtual-scroll
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -354,15 +372,29 @@ export default class Index extends Vue {
 
   tab = 'applications';
   modelsExpanded: { [key: string]: boolean } = {};
-  activeApplication: Application | null = null;
+  activeApplication: FilledApplication | null = null;
   // The total height for both the footer and the content list area
   pageHeight = 0; // This is updated by onResizeContent
   footerVisible = false;
-  // Footer height percentage of content area ( the area of the page minus the page 
+  // Footer height percentage of content area ( the area of the page minus the page
   // header with the tabs and sort options )
   footerHeight = 50;
   footerTransitioning = false;
   readonly footerTransitionDuration = 300;
+
+  get activeApplicationUnitsColumns() {
+    return [
+      {
+        name: 'name',
+        label: 'Units',
+        field: 'index',
+        align: 'left',
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        format: (index: number) => `${this.activeApplication!.name}/${index}`,
+        sortable: true
+      }
+    ];
+  }
 
   // Handles the content area resizing and sets `this.pageHeight`
   onResizeContent({ height }: { width: number; height: number }): void {
@@ -427,6 +459,32 @@ export default class Index extends Vue {
     );
   }
 
+  // Fill in application data such as units and statuses, etc. from the ids
+  fillApp(app: Application): FilledApplication {
+    // Fill extra unit information for the application
+    const filledUnits = this.units
+      .filter(unit => unit.applicationId == app.id)
+      .map(unit => {
+        return {
+          statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
+          ...unit
+        };
+      });
+
+    // The severity for the app is the "worst" severity out of its units
+    const statusSeverity = filledUnits
+      .map(x => x.status.severity)
+      .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
+
+    return {
+      charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
+      units: filledUnits,
+      statusIcon: unitStatusSeverityIcon(statusSeverity),
+      statusSeverity,
+      ...app
+    };
+  }
+
   // Get a model list with additional fiels that prevent having to lookup related components by
   // id every time they must be accessed.
   get models(): FilledModel[] {
@@ -436,30 +494,7 @@ export default class Index extends Vue {
       // Fill extra application information for the model
       const filledApplications: FilledApplication[] = this.applications
         .filter(app => app.modelId == model.id)
-        .map(app => {
-          // Fill extra unit information for the application
-          const filledUnits = this.units
-            .filter(unit => unit.applicationId == app.id)
-            .map(unit => {
-              return {
-                statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
-                ...unit
-              };
-            });
-
-          // The severity for the app is the "worst" severity out of its units
-          const statusSeverity = filledUnits
-            .map(x => x.status.severity)
-            .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
-
-          return {
-            charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
-            units: filledUnits,
-            statusIcon: unitStatusSeverityIcon(statusSeverity),
-            statusSeverity,
-            ...app
-          };
-        });
+        .map(this.fillApp.bind(this));
 
       const statusSeverity = filledApplications
         .map(x => x.statusSeverity)
@@ -540,7 +575,11 @@ export default class Index extends Vue {
       200
     );
 
-    // TODO: Show the footer with the unit details in it
+    // Show the app details
+    this.footerVisible = true;
+    this.activeApplication = this.fillApp(app);
+
+    // TODO: Hightlight individual unit?
   }
 }
 </script>
