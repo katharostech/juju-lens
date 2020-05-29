@@ -16,7 +16,10 @@
     ></div>
 
     <!-- Terminal Top Bar -->
-    <q-bar class="embedded-terminal--bar bg-primary" dense>
+    <q-bar
+      class="embedded-terminal--bar bg-primary top-border"
+      dense
+    >
       <q-icon name="fas fa-terminal" />
 
       <div class="text-weight-bold ellipsis">Terminal</div>
@@ -170,6 +173,12 @@ export default class EmbeddedTerminal extends Vue {
   textarea
     color white
     padding 0 !important
+
+.body--light .embedded-terminal .q-bar.top-border
+  border-top 1px solid lighten($primary, 10%)
+
+.body--dark .embedded-terminal .q-bar.top-border
+  border-top 1px solid darken($primary, 20%)
 
 .body--light .embedded-terminal--body .q-field--standard .q-field__control::before
   border-bottom-color $grey-4 !important

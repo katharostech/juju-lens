@@ -14,7 +14,6 @@ function controllerModels(state: JujuStateInterface): Model[] {
 /** Returns the applications that in the selected current controller */
 function controllerApplications(state: JujuStateInterface): Application[] {
   const modelIds = controllerModels(state).map(model => model.id);
-  console.log(modelIds);
 
   return state.applications.filter(app => modelIds.includes(app.modelId));
 }

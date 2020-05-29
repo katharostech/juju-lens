@@ -55,7 +55,8 @@ export interface Unit {
   machineId: string;
   exposedPorts: number[];
   status: UnitStatus;
-  agentStatus: 'active' | 'idle';
+  // TODO: Create agent status enum similar to UnitStatusSeverity
+  agentStatus: 'active' | 'idle' | 'errored';
 }
 
 export enum UnitStatusSeverity {

@@ -258,7 +258,7 @@
               ? `all ${footerTransitionDuration / 1000}s`
               : `unset`
           }"
-          class="column bg-dark text-white relative-position"
+          class="column relative-position"
           style="overflow: hidden"
         >
           <div
@@ -272,7 +272,7 @@
             ></div>
 
             <!-- Footer Top Bar -->
-            <q-bar dense class="col-auto">
+            <q-bar dense class="col-auto bg-primary text-white top-border">
               <img
                 :src="activeApplication.charm.imageUrl"
                 style="height: 1em;"
@@ -305,16 +305,98 @@
               </q-btn>
             </q-bar>
             <div class="col">
-              <q-table
-                hide-bottom
-                dense
-                :data="activeApplication.units"
-                :columns="activeApplicationUnitsColumns"
-                row-key="index"
-                class="fit"
-                style="border-radius: 0px;"
-                virtual-scroll
-              />
+              <q-scroll-area class="fit">
+                <!-- <q-scroll-area > -->
+                <q-table
+                  dense
+                  hide-bottom
+                  :data="activeApplication.units"
+                  :columns="activeApplicationUnitsColumns"
+                  :grid="$q.screen.xs"
+                  row-key="index"
+                  class="fit"
+                  style="border-radius: 0px; box-shadow: none;"
+                  virtual-scroll
+                  binary-state-sort
+                >
+                  <template v-slot:body-cell-agent-status="props">
+                    <q-td :props="props">
+                      <div>
+                        <q-badge
+                          :color="unitAgentStatusBadgeColor(props.value)"
+                          :label="props.value"
+                        />
+                      </div>
+                    </q-td>
+                  </template>
+                  <template v-slot:body-cell-status="props">
+                    <q-td :props="props">
+                      <div>
+                        <q-badge
+                          :color="unitStatusSeverityBadgeColor(props.value)"
+                          :label="props.value"
+                        />
+                      </div>
+                    </q-td>
+                  </template>
+                  <template v-slot:item="props">
+                    <div class="column col-6">
+                      <q-card class="q-ma-xs">
+                        <q-card-section>
+                          <div class="row">
+                            <div class="col">
+                              {{
+                                props.cols.filter(col => col.name == 'name')[0]
+                                  .value
+                              }}
+                            </div>
+                            <div class="col" style="text-align: right;">
+                              <!-- Here we use v-for just to bind the status to a variable name -->
+                              <q-badge
+                                :color="unitStatusSeverityBadgeColor(status)"
+                                v-for="status in [
+                                  props.cols.filter(
+                                    col => col.name == 'status'
+                                  )[0].value
+                                ]"
+                                :key="status"
+                              >
+                                {{ status }}
+                              </q-badge>
+                            </div>
+                          </div>
+                        </q-card-section>
+                        <q-separator />
+                        <q-list dense>
+                          <q-item
+                            v-for="col in props.cols.filter(
+                              col =>
+                                col.name !== 'name' && col.name !== 'status'
+                            )"
+                            :key="col.name"
+                          >
+                            <q-item-section>
+                              <q-item-label>{{ col.label }}</q-item-label>
+                              <q-item-label
+                                v-if="col.name == 'message'"
+                                caption
+                              >
+                                {{ col.value }}
+                              </q-item-label>
+                            </q-item-section>
+                            <q-item-section v-if="col.name != 'message'" side>
+                              <q-item-label caption>
+                                {{ col.value }}
+                              </q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-card>
+                    </div>
+                  </template>
+                </q-table>
+                <!-- </q-scroll-area> -->
+              </q-scroll-area>
             </div>
           </div>
         </div>
@@ -334,7 +416,9 @@ import {
   Charm,
   Unit,
   Controller,
-  UnitStatusSeverity
+  Machine,
+  UnitStatusSeverity,
+  UnitStatusSeverityString
 } from 'store/juju/state';
 import { FilledApplication, FilledModel } from 'store/juju/state/utils';
 import { unitStatusSeverityIcon } from 'store/juju/state/utils';
@@ -359,6 +443,7 @@ export default class Index extends Vue {
   @juju.Getter controllerModels!: Model[];
   @juju.State('store') charmStore!: Charm[];
   @juju.State applications!: Application[];
+  @juju.State machines!: Machine[];
   @juju.State units!: Unit[];
 
   @juju.Action(actionTypes.loadAllState) loadAllState!: () => Promise<
@@ -386,14 +471,88 @@ export default class Index extends Vue {
     return [
       {
         name: 'name',
-        label: 'Units',
+        label: 'Unit',
         field: 'index',
         align: 'left',
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         format: (index: number) => `${this.activeApplication!.name}/${index}`,
         sortable: true
+      },
+      {
+        name: 'agent-status',
+        label: 'Workload',
+        field: 'agentStatus',
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'status',
+        label: 'Status',
+        field: (row: Unit) => row.status.severity,
+        sort: (a: UnitStatusSeverityString, b: UnitStatusSeverityString) =>
+          UnitStatusSeverity[b] - UnitStatusSeverity[a],
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'message',
+        label: 'Message',
+        align: 'left',
+        field: (row: Unit) => row.status.message
+      },
+      {
+        name: 'machine',
+        label: 'Machine',
+        field: 'machineId',
+        // FIXME: Make this more efficient by including machine data in FilledUnit
+        format: (machineId: string) =>
+          this.machines.filter(machine => machine.id == machineId)[0].index,
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'public-ip',
+        label: 'Public IP',
+        field: 'machineId',
+        // FIXME: Make this more efficient by including machine data in FilledUnit
+        format: (machineId: string) =>
+          this.machines.filter(machine => machine.id == machineId)[0].publicIp,
+        align: 'left',
+        sortable: true
+      },
+      {
+        name: 'exposed-ports',
+        label: 'Exposed Ports',
+        field: 'exposedPorts',
+        align: 'left',
+        format: (ports: number[]) => ports.join(', '),
+        sortable: true
       }
     ];
+  }
+
+  // TODO: Create agent status enum similar to UnitStatusSeverity
+  unitAgentStatusBadgeColor(agentStatus: string): string {
+    return agentStatus == 'idle'
+      ? 'positive'
+      : agentStatus == 'active'
+      ? 'warning'
+      : 'negative';
+  }
+
+  unitStatusSeverityBadgeColor(severity: UnitStatusSeverityString): string {
+    const sev = UnitStatusSeverity[severity];
+
+    if (sev == UnitStatusSeverity.active) {
+      return 'positive';
+    } else if (
+      UnitStatusSeverity.active < sev &&
+      sev < UnitStatusSeverity.blocked
+    ) {
+      return 'warning';
+    } else {
+      return 'negative';
+    }
   }
 
   // Handles the content area resizing and sets `this.pageHeight`
@@ -469,12 +628,17 @@ export default class Index extends Vue {
           statusIcon: unitStatusSeverityIcon(unit.status.severity, true),
           ...unit
         };
-      });
+      })
+      .sort(
+        (a, b) =>
+          UnitStatusSeverity[b.status.severity] -
+          UnitStatusSeverity[a.status.severity]
+      );
 
-    // The severity for the app is the "worst" severity out of its units
-    const statusSeverity = filledUnits
-      .map(x => x.status.severity)
-      .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
+    // The severity for the app is the "worst" severity out of its units.
+    // Note that we've already sorted them by severity so we just grab the first on in
+    // the list.
+    const statusSeverity = filledUnits.map(x => x.status.severity)[0];
 
     return {
       charm: this.charmStore.filter(charm => charm.id == app.charmId)[0],
@@ -613,6 +777,11 @@ export default class Index extends Vue {
       .q-tab__label
         display none
 
+  .body--light & .q-bar.top-border
+    border-top 1px solid lighten($primary, 10%)
+
+  .body--dark & .q-bar.top-border
+    border-top 1px solid darken($primary, 20%)
 
 // Model list transition
 
@@ -629,5 +798,5 @@ export default class Index extends Vue {
   transform translateX(-100vw) !important
 
 .model-group-trans-move
-  transition: transform 0.5s;
+  transition: transform 0.5s
 </style>
