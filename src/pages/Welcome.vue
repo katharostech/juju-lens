@@ -7,15 +7,15 @@
       >
         <div class="text-center text-h3 q-mb-md">Juju Lens GUI Prototype</div>
         <a href="https://katharostech.com" class="logo-banner">
-          <q-img src="/statics/katharostech-banner.svg" />
+          <q-img src="/juju-lens/statics/katharostech-banner.svg" />
         </a>
         <p class="q-ma-md text-body1">
           Welcome to Juju Lens, a GUI prototype developed by
           <a href="https://katharostech.com">Katharos Technology</a>. This
-          prototype has been developed as a concept of what we think the Juju
-          GUI should be like. We are hoping that this can serve as a reference
-          of what works well and what does not as well a test-bed for
-          experimentation and feedback for the Juju GUI.
+          prototype has been developed as a concept of our "dream" Juju UI. We
+          are hoping that this can serve as a reference of what works well and
+          what does not as well a test-bed for experimentation and feedback for
+          the Juju GUI.
         </p>
         <p class="q-ma-md text-body1">
           This GUI is not connected to any real Juju controllers or models. All
