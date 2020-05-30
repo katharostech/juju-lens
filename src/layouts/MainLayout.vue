@@ -131,8 +131,8 @@
       :breakpoint="taskbarBreakpoint"
       :width="200"
       content-class="taskbar"
-      @mouseover="taskbarMini = false"
-      @mouseout="taskbarMini = true"
+      @mouseover="expandTaskbar"
+      @mouseout="collapseTaskbar"
     >
       <div class="column fit">
         <q-scroll-area
@@ -175,14 +175,18 @@
                   </q-item>
                 </q-list>
               </q-menu>
-              <q-item-section avatar>
+              <!-- TODO: There's a *tiny* bit of movement with the icon when the tab expands
+              here because we lowered the width of the avatar a little bit. It would be nice
+              to get rid of it or make it a smooth transition, but for now gaining the extra
+              space for the label is worth it. -->
+              <q-item-section avatar style="min-width: 2em;">
                 <q-icon
                   :name="
                     window.kind == 'log' ? 'fas fa-file-alt' : 'fas fa-terminal'
                   "
                 />
               </q-item-section>
-              <q-item-section avatar class="ellipsis">
+              <q-item-section>
                 {{ window.app.name }} / {{ window.unit.index }}
               </q-item-section>
             </q-item>
@@ -435,6 +439,31 @@ export default class MainLayout extends Vue {
       to: { name: 'admin' }
     }
   ];
+
+  taskbarExpandChangeTimeout: NodeJS.Timeout | null = null;
+
+  expandTaskbar(): void {
+    // Clear any pending, delayed collapse of the taskbar
+    if (this.taskbarExpandChangeTimeout) {
+      clearTimeout(this.taskbarExpandChangeTimeout);
+    }
+    
+    this.taskbarMini = false; 
+  }
+
+  collapseTaskbar(): void {
+    // Clear any previous, pending, delayed collapse of the taskbar
+    if (this.taskbarExpandChangeTimeout) {
+      clearTimeout(this.taskbarExpandChangeTimeout);
+    }
+
+    // Delay collapsing the taskbor just a little bit/
+    // This helps fix some glitchy wrapping and unwrapping behavior of the
+    // items in the menu that have labels that overflow and wrap.
+    this.taskbarExpandChangeTimeout = setTimeout(() => {
+      this.taskbarMini = true;
+    }, 300); 
+  }
 
   created(): void {
     this.loadAllState();
