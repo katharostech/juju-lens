@@ -26,6 +26,12 @@
           button below.
         </p>
         <p class="q-ma-md text-body1">
+          Many components of this demo aren't fully complete yet, and we still
+          have a lot of ideas that we have yet to throw in here, but we are
+          moving quickly. Check back here or subscribe to the forum topic (
+          TODO! ) to stay tuned for updates!
+        </p>
+        <p class="q-ma-md text-body1">
           You can get back to this screen at any time by clicking the info icon
           in the bottom left menu.
         </p>
