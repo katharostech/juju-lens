@@ -353,7 +353,7 @@
                   binary-state-sort
                 >
                   <!-- Custom cells for unit and agent statuses -->
-                  <!-- Actions Cell -->
+                  <!-- Agent Status Cell -->
                   <template v-slot:body-cell-agent-status="props">
                     <q-td :props="props">
                       <div>
@@ -364,7 +364,7 @@
                       </div>
                     </q-td>
                   </template>
-                  <!-- Agent Status Cell -->
+                  <!-- Actions Cell -->
                   <template v-slot:body-cell-actions="props">
                     <q-td :props="props">
                       <q-btn
@@ -459,7 +459,7 @@
                                     size="1em"
                                     icon="fas fa-file-alt"
                                     class="q-ma-xs"
-                                    @click="openLogs(col.value)"
+                                    @click="openLogs(col.value, activeApplication)"
                                   >
                                     <q-tooltip>Open Logs</q-tooltip>
                                   </q-btn>
@@ -469,7 +469,7 @@
                                     size="1em"
                                     icon="fas fa-terminal"
                                     class="q-ma-xs"
-                                    @click="openTerminal(col.value)"
+                                    @click="openTerminal(col.value, activeApplication)"
                                   >
                                     <q-tooltip>Open Terminal</q-tooltip>
                                   </q-btn>
