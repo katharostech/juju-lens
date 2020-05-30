@@ -40,242 +40,249 @@
         <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
       </q-toolbar>
 
-      <div class="col-grow column relative-position">
+      <div class="col relative-position">
         <!-- Content area resize observer -->
         <q-resize-observer @resize="onResizeContent" />
 
-        <!-- Content scroll area -->
-        <q-scroll-area
-          ref="modelScrollArea"
-          class="col-grow"
-          :thumb-style="{ width: '5px' }"
-        >
-          <div class="q-pa-sm">
-            <div class="row">
-              <!-- Mobile heading for tab panel -->
-              <div class="col-grow text-h5 q-mb-md xs">
-                {{ tab == 'applications' ? 'Applications' : 'Machines' }}
-              </div>
+          <!-- Content scroll area -->
+          <q-scroll-area
+            ref="modelScrollArea"
+            :style="{
+              height: footerVisible ? `${100 - footerHeight}%` : '100%',
+              transition: footerTransitioning
+              ? `all ${footerTransitionDuration / 1000}s`
+              : `unset`
+            }"
+            :thumb-style="{ width: '5px' }"
+          >
+            <div class="q-pa-sm">
+              <div class="row">
+                <!-- Mobile heading for tab panel -->
+                <div class="col-grow text-h5 q-mb-md xs">
+                  {{ tab == 'applications' ? 'Applications' : 'Machines' }}
+                </div>
 
-              <!-- Mobile sort selection -->
-              <div
-                style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
-                id="sort-models-select-mobile"
-              >
-                <q-select
-                  dense
-                  v-model="sortModelsBy"
-                  label="Sort By"
-                  :options="sortModelsByOptions"
-                  :color="$q.dark.isActive ? 'secondary' : 'primary'"
-                  filled
-                  class="on-left"
-                />
-              </div>
-            </div>
-
-            <!-- Model -->
-            <transition-group name="model-group-trans" tag="div">
-              <div
-                class="q-mb-md full-width"
-                v-for="model in models"
-                :key="model.id"
-              >
-                <!-- Model toolbar -->
-                <q-toolbar
-                  v-ripple
-                  class="bg-primary text-white full-width"
-                  @click="
-                    $set(modelsExpanded, model.id, !modelsExpanded[model.id])
-                  "
+                <!-- Mobile sort selection -->
+                <div
+                  style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
+                  id="sort-models-select-mobile"
                 >
-                  <!-- Model Status -->
-                  <q-icon
-                    :name="model.statusIcon.icon"
-                    :style="{
-                      color: model.statusIcon.color
-                    }"
-                    size="1.7em"
-                  />
-
-                  <q-separator vertical class="on-right" color="grey-6" />
-
-                  <q-toolbar-title style="flex: 1 1 0%">
-                    <span>
-                      {{ model.name }}
-                      <q-tooltip anchor="top middle" self="bottom middle">
-                        {{ model.name }}
-                      </q-tooltip>
-                    </span>
-                  </q-toolbar-title>
-                  <div class="avatar-stack">
-                    <q-avatar
-                      v-for="application in model.applications"
-                      :key="application.id"
-                      size="2em"
-                    >
-                      <q-img :src="application.charm.imageUrl" />
-                      <q-tooltip
-                        anchor="top middle"
-                        self="bottom middle"
-                        content-style="font-size: 0.8em;"
-                      >
-                        {{ application.name }}
-                      </q-tooltip>
-                    </q-avatar>
-                  </div>
-                  <q-btn
-                    round
+                  <q-select
                     dense
-                    flat
-                    icon="arrow_downward"
-                    style="transition: transform 0.2s;"
-                    :style="{
-                      transform: modelsExpanded[model.id]
-                        ? 'rotateZ(180deg)'
-                        : 'none'
-                    }"
+                    v-model="sortModelsBy"
+                    label="Sort By"
+                    :options="sortModelsByOptions"
+                    :color="$q.dark.isActive ? 'secondary' : 'primary'"
+                    filled
+                    class="on-left"
                   />
-                  <q-btn
-                    round
-                    dense
-                    flat
-                    icon="more_vert"
-                    @click.stop="() => undefined"
-                  />
-                </q-toolbar>
-                <q-slide-transition>
-                  <div v-if="modelsExpanded[model.id]">
-                    <q-tab-panels
-                      animated
-                      v-model="tab"
-                      style="background-color: hsla(0, 0%, 0%, 0);"
-                    >
-                      <!-- Model list -->
-                      <q-tab-panel
-                        :id="`model-${model.id}`"
-                        name="applications"
-                        class="q-pa-none"
-                        style="overflow: hidden;"
-                      >
-                        <!-- Application Row -->
-                        <q-list bordered separator>
-                          <q-item
-                            v-for="application in model.applications"
-                            :key="application.id"
-                            clickable
-                            v-ripple
-                            :id="`application-${application.id}`"
-                            class="row"
-                            @click="
-                              activeApplication = application;
-                              showFooter();
-                            "
-                          >
-                            <!-- App Status -->
-                            <q-item-section avatar>
-                              <q-icon
-                                :name="application.statusIcon.icon"
-                                :style="{
-                                  color: application.statusIcon.color
-                                }"
-                                size="1.4em"
-                              />
-                            </q-item-section>
-
-                            <!-- App Logo -->
-                            <q-item-section avatar>
-                              <q-img
-                                :src="application.charm.imageUrl"
-                                style="width: 2.5em"
-                              />
-                            </q-item-section>
-
-                            <q-item-section>
-                              <!-- App Name -->
-                              <div>
-                                {{ application.name }}
-                              </div>
-                              <!-- Unit Preview -->
-                              <div class="row reverse">
-                                <div
-                                  v-for="unit in application.units"
-                                  :key="unit.id"
-                                >
-                                  <q-icon
-                                    :name="unit.statusIcon.icon"
-                                    :style="{
-                                      color: unit.statusIcon.color
-                                    }"
-                                    size="1.em"
-                                    class="q-ma-xs"
-                                  />
-                                  <q-tooltip
-                                    anchor="top middle"
-                                    self="bottom middle"
-                                    content-style="font-size: 0.8rem;"
-                                  >
-                                    {{
-                                      unit.status.message ||
-                                        `status: ${unit.status.severity}`
-                                    }}
-                                  </q-tooltip>
-                                  <!-- Unit dot context menu -->
-                                  <q-menu context-menu auto-close>
-                                    <q-list>
-                                      <q-item
-                                        v-ripple
-                                        clickable
-                                        @click="openLogs(unit, application)"
-                                      >
-                                        <q-item-section avatar>
-                                          <q-icon name="fas fa-file-alt" />
-                                        </q-item-section>
-                                        <q-item-section>
-                                          Open Logs
-                                        </q-item-section>
-                                      </q-item>
-                                      <q-item
-                                        v-ripple
-                                        clickable
-                                        @click="openTerminal(unit, application)"
-                                      >
-                                        <q-item-section avatar>
-                                          <q-icon name="fas fa-terminal" />
-                                        </q-item-section>
-                                        <q-item-section>
-                                          Open Terminal
-                                        </q-item-section>
-                                      </q-item>
-                                    </q-list>
-                                  </q-menu>
-                                </div>
-                              </div>
-                            </q-item-section>
-                            <q-item-section side>
-                              <q-btn
-                                round
-                                dense
-                                flat
-                                icon="more_vert"
-                                @click.stop="() => undefined"
-                              />
-                            </q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-tab-panel>
-
-                      <!-- Machines List -->
-                      <q-tab-panel name="machines">
-                        <div class="text-h5">Machine List Comming Soon!</div>
-                      </q-tab-panel>
-                    </q-tab-panels>
-                  </div>
-                </q-slide-transition>
+                </div>
               </div>
-            </transition-group>
-          </div>
-        </q-scroll-area>
+
+              <!-- Model -->
+              <transition-group name="model-group-trans" tag="div">
+                <div
+                  class="q-mb-md full-width"
+                  v-for="model in models"
+                  :key="model.id"
+                >
+                  <!-- Model toolbar -->
+                  <q-toolbar
+                    v-ripple
+                    class="bg-primary text-white full-width"
+                    @click="
+                      $set(modelsExpanded, model.id, !modelsExpanded[model.id])
+                    "
+                  >
+                    <!-- Model Status -->
+                    <q-icon
+                      :name="model.statusIcon.icon"
+                      :style="{
+                        color: model.statusIcon.color
+                      }"
+                      size="1.7em"
+                    />
+
+                    <q-separator vertical class="on-right" color="grey-6" />
+
+                    <q-toolbar-title style="flex: 1 1 0%">
+                      <span>
+                        {{ model.name }}
+                        <q-tooltip anchor="top middle" self="bottom middle">
+                          {{ model.name }}
+                        </q-tooltip>
+                      </span>
+                    </q-toolbar-title>
+                    <div class="avatar-stack">
+                      <q-avatar
+                        v-for="application in model.applications"
+                        :key="application.id"
+                        size="2em"
+                      >
+                        <q-img :src="application.charm.imageUrl" />
+                        <q-tooltip
+                          anchor="top middle"
+                          self="bottom middle"
+                          content-style="font-size: 0.8em;"
+                        >
+                          {{ application.name }}
+                        </q-tooltip>
+                      </q-avatar>
+                    </div>
+                    <q-btn
+                      round
+                      dense
+                      flat
+                      icon="arrow_downward"
+                      style="transition: transform 0.2s;"
+                      :style="{
+                        transform: modelsExpanded[model.id]
+                          ? 'rotateZ(180deg)'
+                          : 'none'
+                      }"
+                    />
+                    <q-btn
+                      round
+                      dense
+                      flat
+                      icon="more_vert"
+                      @click.stop="() => undefined"
+                    />
+                  </q-toolbar>
+                  <q-slide-transition>
+                    <div v-if="modelsExpanded[model.id]">
+                      <q-tab-panels
+                        animated
+                        v-model="tab"
+                        style="background-color: hsla(0, 0%, 0%, 0);"
+                      >
+                        <!-- Model list -->
+                        <q-tab-panel
+                          :id="`model-${model.id}`"
+                          name="applications"
+                          class="q-pa-none"
+                          style="overflow: hidden;"
+                        >
+                          <!-- Application Row -->
+                          <q-list bordered separator>
+                            <q-item
+                              v-for="application in model.applications"
+                              :key="application.id"
+                              clickable
+                              v-ripple
+                              :id="`application-${application.id}`"
+                              class="row"
+                              @click="
+                                activeApplication = application;
+                                showFooter();
+                              "
+                            >
+                              <!-- App Status -->
+                              <q-item-section avatar>
+                                <q-icon
+                                  :name="application.statusIcon.icon"
+                                  :style="{
+                                    color: application.statusIcon.color
+                                  }"
+                                  size="1.4em"
+                                />
+                              </q-item-section>
+
+                              <!-- App Logo -->
+                              <q-item-section avatar>
+                                <q-img
+                                  :src="application.charm.imageUrl"
+                                  style="width: 2.5em"
+                                />
+                              </q-item-section>
+
+                              <q-item-section>
+                                <!-- App Name -->
+                                <div>
+                                  {{ application.name }}
+                                </div>
+                                <!-- Unit Preview -->
+                                <div class="row reverse">
+                                  <div
+                                    v-for="unit in application.units"
+                                    :key="unit.id"
+                                  >
+                                    <q-icon
+                                      :name="unit.statusIcon.icon"
+                                      :style="{
+                                        color: unit.statusIcon.color
+                                      }"
+                                      size="1.em"
+                                      class="q-ma-xs"
+                                    />
+                                    <q-tooltip
+                                      anchor="top middle"
+                                      self="bottom middle"
+                                      content-style="font-size: 0.8rem;"
+                                    >
+                                      {{
+                                        unit.status.message ||
+                                          `status: ${unit.status.severity}`
+                                      }}
+                                    </q-tooltip>
+                                    <!-- Unit dot context menu -->
+                                    <q-menu context-menu auto-close>
+                                      <q-list>
+                                        <q-item
+                                          v-ripple
+                                          clickable
+                                          @click="openLogs(unit, application)"
+                                        >
+                                          <q-item-section avatar>
+                                            <q-icon name="fas fa-file-alt" />
+                                          </q-item-section>
+                                          <q-item-section>
+                                            Open Logs
+                                          </q-item-section>
+                                        </q-item>
+                                        <q-item
+                                          v-ripple
+                                          clickable
+                                          @click="
+                                            openTerminal(unit, application)
+                                          "
+                                        >
+                                          <q-item-section avatar>
+                                            <q-icon name="fas fa-terminal" />
+                                          </q-item-section>
+                                          <q-item-section>
+                                            Open Terminal
+                                          </q-item-section>
+                                        </q-item>
+                                      </q-list>
+                                    </q-menu>
+                                  </div>
+                                </div>
+                              </q-item-section>
+                              <q-item-section side>
+                                <q-btn
+                                  round
+                                  dense
+                                  flat
+                                  icon="more_vert"
+                                  @click.stop="() => undefined"
+                                />
+                              </q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-tab-panel>
+
+                        <!-- Machines List -->
+                        <q-tab-panel name="machines">
+                          <div class="text-h5">Machine List Comming Soon!</div>
+                        </q-tab-panel>
+                      </q-tab-panels>
+                    </div>
+                  </q-slide-transition>
+                </div>
+              </transition-group>
+            </div>
+          </q-scroll-area>
 
         <!-- Application info Footer -->
         <div
@@ -286,12 +293,11 @@
               ? `all ${footerTransitionDuration / 1000}s`
               : `unset`
           }"
-          class="column relative-position"
-          style="overflow: hidden"
+          class="relative-position"
         >
           <div
             v-if="activeApplication && (footerVisible || footerTransitioning)"
-            class="col-grow column overflow-hidden"
+            class="absolute fit column overflow-hidden"
           >
             <!-- Top Resize Handle -->
             <div
@@ -332,18 +338,17 @@
                 </q-tooltip>
               </q-btn>
             </q-bar>
-            <div class="col">
-              <q-scroll-area class="fit">
+            <div class="col-grow relative-position">
+              <q-scroll-area :thumb-style="{ width: '5px' }" class="absolute fit">
                 <q-table
                   dense
                   hide-bottom
                   :data="activeApplication.units"
                   :columns="activeApplicationUnitsColumns"
-                  :pagination="{ rowsPerPage: 0}"
+                  :pagination="{ rowsPerPage: 0 }"
                   :grid="$q.screen.xs"
                   row-key="index"
-                  class="fit"
-                  style="border-radius: 0px; box-shadow: none;"
+                  style="border-radius: 0px; box-shadow: none; margin-bottom: -3em;"
                   virtual-scroll
                   binary-state-sort
                 >
