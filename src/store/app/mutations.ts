@@ -11,6 +11,20 @@ export const mutationTypes = {
   removeFloatingWindow: 'removeFloatingWindow'
 };
 
+/**
+ * Make a floating window the focused window. Extracted to a separate function
+ * so that it can be used in multiple mutators.
+ */
+function focusFloatingWindow(state: AppStateInterface, id: string): void {
+  state.floatingWindows.map(window => {
+    if (window.id == id) {
+      window.zIndex = 1;
+    } else {
+      window.zIndex = 0;
+    }
+  });
+}
+
 const mutation: MutationTree<AppStateInterface> = {
   // The debug window is not something we are planning on using anymore.
   // Leaving this around just in case.
@@ -38,11 +52,18 @@ const mutation: MutationTree<AppStateInterface> = {
 
   /** Toggle floating window visible */
   [mutationTypes.toggleFloatingWindowVisible](state, id: string) {
+    let newVisibleState = false;
     state.floatingWindows.map(window => {
       if (window.id == id) {
         window.visible = !window.visible;
+        newVisibleState = window.visible;
       }
     });
+
+    // Focus the window if it is now visible
+    if (newVisibleState) {
+      focusFloatingWindow(state, id);
+    }
   },
 
   // TODO: Merge this and `toggle` into a setFloatingWindowVisible
@@ -60,13 +81,7 @@ const mutation: MutationTree<AppStateInterface> = {
    * windows.
    */
   [mutationTypes.focusFloatingWindow](state, id: string) {
-    state.floatingWindows.map(window => {
-      if (window.id == id) {
-        window.zIndex = 1;
-      } else {
-        window.zIndex = 0;
-      }
-    });
+    focusFloatingWindow(state, id);
   },
 
   /** Remove log window */

@@ -150,7 +150,12 @@
               :key="window.id"
               clickable
               v-ripple
-              @click="toggleFloatingWindowVisible(window.id)"
+              @click="
+              toggleFloatingWindowVisible(window.id);
+              if (window.visible) {
+                focus
+              }
+              "
             >
               <!-- Taskbar icon close menu -->
               <q-menu
@@ -162,9 +167,9 @@
                 transition-hide="jump-left"
               >
                 <q-list dense>
-                  <q-item clickable v-close-popup>
+                  <q-item clickable v-close-popup @click="removeFloatingWindow(window.id)">
                     <q-item-section side>
-                      <q-icon name="fas fa-window-close" />
+                      <q-icon color="negative" name="fas fa-window-close" />
                     </q-item-section>
                     <q-item-section>Close</q-item-section>
                   </q-item>
