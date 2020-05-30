@@ -16,13 +16,10 @@
     ></div>
 
     <!-- Terminal Top Bar -->
-    <q-bar
-      class="embedded-terminal--bar bg-primary top-border"
-      dense
-    >
+    <q-bar class="embedded-terminal--bar bg-primary top-border" dense>
       <q-icon name="fas fa-terminal" />
 
-      <div class="text-weight-bold ellipsis">Terminal</div>
+      <div class="text-weight-bold ellipsis">Juju Terminal</div>
 
       <q-space />
 
