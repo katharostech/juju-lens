@@ -263,7 +263,7 @@ export default class ControllerEdit extends Vue {
 
         this.$q.notify({
           type: 'positive',
-          message: `successfully created controller: ${controller.name}.`,
+          message: `successfully updated controller: ${controller.name}.`,
           position: 'bottom-right',
           timeout: 2000
         });
