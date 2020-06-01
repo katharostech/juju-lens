@@ -195,6 +195,8 @@
 
         <q-separator style="height: 1px" />
 
+        <!-- TODO: There seems to be some inconsistent "jiggle" when
+        expanding the sidebar by hovering that we should fix if possible. -->
         <q-list>
           <!-- Info Button -->
           <q-item clickable v-ripple :to="{ name: 'welcome' }">
