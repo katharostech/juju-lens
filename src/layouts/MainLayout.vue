@@ -206,6 +206,16 @@
             </q-item-section>
           </q-item>
 
+          <!-- Feedback Button -->
+          <q-item clickable v-ripple @click="showFeedbackDialog">
+            <q-item-section avatar>
+              <q-icon name="fas fa-bullhorn" />
+            </q-item-section>
+            <q-item-section>
+              Leave Feedback
+            </q-item-section>
+          </q-item>
+
           <!-- Dark mode button -->
           <dark-mode-toggle />
 
@@ -508,6 +518,18 @@ export default class MainLayout extends Vue {
   // Used to selectively hide the taskbar on taskbar button click
   windowWidth(): number {
     return window.innerWidth;
+  }
+
+  showFeedbackDialog(): void {
+     this.$q
+      .dialog({
+        title: 'Leave Feedback',
+        html: true,
+        message:
+          'We\'re so glad you want to leave feedback! Right now the best way to do that is to \
+          reply to the public <a target="_blank" href="https://discourse.juju.is/t/juju-lens-juju-gui-prototype-mock-up/3149?u=zicklag">\
+          forum topic</a> so that everyone can see and collaborate on it!',
+      })
   }
 }
 </script>
