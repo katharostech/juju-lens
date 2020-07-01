@@ -1,75 +1,46 @@
 import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
-import { JujuStateInterface, Controller, CloudCredential } from './state';
+import { JujuStateInterface, Controller } from './state';
 import { mutationTypes } from './mutations';
 import { LocalStorage } from 'quasar';
-
-import d from './initialData.yml';
-const initialData = d as JujuStateInterface;
-
-function randomDelay() {
-  const delays = [100, 500, 1000, 1500, 2000];
-
-  return delays[Math.floor(Math.random() * delays.length)];
-}
-
-function runWithRandomDelay<T>(f: () => T): Promise<T> {
-  return new Promise(resolve => {
-    setTimeout(() => resolve(f()), randomDelay());
-  });
-}
+import Jujulib from '@canonical/jujulib';
 
 export const actionTypes = {
-  // Global
-  loadAllState: 'loadAllState',
-  persistState: 'persistState',
-  clearAllState: 'clearAllState',
   // Controllers
-  // loadControllers: 'loadControllers',
+  loadControllers: 'loadControllers',
   setCurrentController: 'setCurrentController',
-  addController: 'addController',
   updateController: 'updateController',
   deleteController: 'deleteController',
-  // Cloud credentials
-  // loadCloudCredentials: 'loadCloudCredentials',
-  addCloudCredential: 'addCloudCredential',
-  updateCloudCredential: 'updateCloudCredential',
-  deleteCloudCredential: 'deleteCloudCredential'
-  // Clouds
-  // loadCloudList: 'loadCloudList'
+  establishControllerConn: 'establishControllerConn'
 };
+const JUJU_LOCAL_STORE_NAME = 'jujuState';
 
-const JUJU_STATE_NAME = 'jujuState';
+function persistControllerState(state: JujuStateInterface) {
+  const controllers: { [key: string]: Controller } = {};
+  // Get all the controllers but leave out the specific model, unit, etc. data
+  for (const controller in state.controllers) {
+    controllers[controller] = {
+      applications: {},
+      charms: {},
+      machines: {},
+      models: {},
+      units: {},
+      username: state.controllers[controller].username,
+      password: state.controllers[controller].password,
+      host: state.controllers[controller].host,
+      port: state.controllers[controller].port
+    };
+  }
+
+  const data: JujuStateInterface = {
+    currentController: state.currentController,
+    controllers
+  };
+
+  LocalStorage.set(JUJU_LOCAL_STORE_NAME, data);
+}
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
-  //
-  // Global
-  //
-
-  // Load entire state from persted store
-  [actionTypes.loadAllState](ctx) {
-    return runWithRandomDelay(() => {
-      const localStore = LocalStorage.getItem(JUJU_STATE_NAME);
-
-      if (localStore) {
-        ctx.commit(mutationTypes.setAllState, localStore);
-      } else {
-        ctx.commit(mutationTypes.setAllState, initialData);
-      }
-    });
-  },
-
-  // Persist whole state
-  [actionTypes.persistState](ctx) {
-    LocalStorage.set(JUJU_STATE_NAME, ctx.state);
-  },
-
-  [actionTypes.clearAllState](ctx) {
-    LocalStorage.remove(JUJU_STATE_NAME);
-    ctx.commit(mutationTypes.setAllState, {});
-    ctx.commit(mutationTypes.setAllState, initialData);
-  },
-
   //
   // Controllers
   //
@@ -77,107 +48,160 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   /**
    * Set the current controller
    */
-  async [actionTypes.setCurrentController](ctx, controller: Controller | 'All') {
+  [actionTypes.setCurrentController](ctx, controller: 'All' | string) {
+    // Update state
     ctx.commit(mutationTypes.setCurrentController, controller);
-    await ctx.dispatch(actionTypes.persistState);
+
+    // Persist state
+    persistControllerState(ctx.state);
   },
 
   /**
    * Load controller data
    */
-  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
-  // [actionTypes.loadControllers](ctx) {
-  //   return runWithRandomDelay(() => {
-  //     ctx.commit(mutationTypes.setControllers, initialData.controllers);
-  //   });
-  // },
+  [actionTypes.loadControllers](ctx) {
+    const localStore: JujuStateInterface = LocalStorage.getItem(
+      JUJU_LOCAL_STORE_NAME
+    ) as JujuStateInterface;
 
-  /**
-   * Add a controller
-   */
-  [actionTypes.addController](ctx, controller: Controller) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.addController, controller);
-      await ctx.dispatch(actionTypes.persistState);
-    });
+    if (localStore) {
+      // Load the current controller
+      ctx.commit(
+        mutationTypes.setCurrentController,
+        localStore.currentController
+      );
+
+      for (const controller in localStore.controllers) {
+        ctx.dispatch(actionTypes.updateController, {
+          name: controller,
+          controller: localStore.controllers[controller]
+        });
+      }
+    }
   },
 
   /**
-   * update a controller
+   * update a controller, also used to add a controller
    */
-  [actionTypes.updateController](ctx, controller: Controller) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.updateController, controller);
-      await ctx.dispatch(actionTypes.persistState);
-    });
+  [actionTypes.updateController](
+    ctx,
+    { name, controller }: { name: string; controller: Controller }
+  ) {
+    const prevController = ctx.state.controllers[name];
+
+    // TODO: only do this if the URL/username/password has changed
+    // If this controller has an open connection
+    if (prevController && prevController.controllerWatchHandle) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      prevController.controllerWatchHandle.stop((err: any) => {
+        if (err) {
+          console.error(err);
+        }
+      });
+      // TODO: Determine whether or not some sort of logout is required
+    }
+
+    // Commit the controller update to the state
+    ctx.commit(mutationTypes.updateController, { name, controller });
+
+    // Persist state
+    persistControllerState(ctx.state);
+
+    // If the controller connection has not been established
+    if (!controller.conn && !controller.controllerWatchHandle) {
+      // Establish controller connection
+      ctx.dispatch(actionTypes.establishControllerConn, name);
+    }
+  },
+
+  [actionTypes.establishControllerConn](ctx, name: string) {
+    const controller = ctx.state.controllers[name];
+    // If the controller doesn't exist, just ignore the request
+    if (!controller) {
+      return;
+    }
+
+    // Establish Juju controller connection and start listening for changes to the
+    // controller models.
+    const facades = [
+      require('@canonical/jujulib/api/facades/all-model-watcher-v2.js'),
+      require('@canonical/jujulib/api/facades/controller-v5.js')
+    ];
+    const options = { debug: false, facades: facades, wsclass: WebSocket };
+    Jujulib.connectAndLogin(
+      `wss://${controller.host}:${controller.port}/api`,
+      {
+        user:
+          // There's a nuance with libjuju where you have to put the username as `user-admin`
+          // to log in as `admin`.
+          controller.username == 'admin' ? 'user-admin' : controller.username,
+        password: controller.password
+      },
+      options,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (err: any, result: any) => {
+        if (err) {
+          console.error(err);
+
+          // Try again in a second
+          setTimeout(() => {
+            ctx.dispatch(actionTypes.establishControllerConn, name);
+          }, 1000);
+          return;
+        }
+        const controllerConn = result.conn.facades.controller;
+
+        // Subscribe to the change-feed
+        const handle = controllerConn.watch(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (err: any, result: any) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+
+            // Update controller data from change feed
+            for (const delta of result.deltas) {
+              ctx.commit(mutationTypes.updateControllerData, {
+                name,
+                data: delta
+              });
+            }
+          }
+        );
+
+        // Update the controller with the connection and listen handle
+        controller.conn = controllerConn;
+        controller.controllerWatchHandle = handle;
+        ctx.commit(mutationTypes.updateController, { name, controller });
+      }
+    );
   },
 
   /**
    * Delete a controller
    */
-  [actionTypes.deleteController](ctx, controllerName: string) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.deleteController, controllerName);
-      await ctx.dispatch(actionTypes.persistState);
-    });
-  },
+  [actionTypes.deleteController](ctx, name: string) {
+    const controller = ctx.state.controllers[name];
+    console.log;
+    // Close controller connection if it is open
+    if (controller && controller.conn && controller.controllerWatchHandle) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      controller.controllerWatchHandle.stop((err: any) => {
+        if (err) {
+          console.error(err);
+        }
+      });
 
-  //
-  // Cloud Credentials
-  //
+      // TODO: Find out if a logout is necessary:
+      // https://github.com/juju/js-libjuju/blob/124ea0969ff9702b07eb2ea79f5b1b471e741b07/examples/watch-all-models.js#L41
+    }
 
-  /**
-   * Load cloudCredential data
-   */
-  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
-  // [actionTypes.loadCloudCredentials](ctx) {
-  //   return runWithRandomDelay(() => {
-  //     ctx.commit(
-  //       mutationTypes.setCloudCredentials,
-  //       initialData.cloudCredentials
-  //     );
-  //   });
-  // },
+    ctx.commit(mutationTypes.deleteController, name);
 
-  /**
-   * Add a cloudCredential
-   */
-  [actionTypes.addCloudCredential](ctx, cloudCredential: CloudCredential) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.addCloudCredential, cloudCredential);
-      await ctx.dispatch(actionTypes.persistState);
-    });
-  },
-
-  /**
-   * update a cloudCredential
-   */
-  [actionTypes.updateCloudCredential](ctx, cloudCredential: CloudCredential) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.updateCloudCredential, cloudCredential);
-      await ctx.dispatch(actionTypes.persistState);
-    });
-  },
-
-  /**
-   * Delete a cloudCredential
-   */
-  [actionTypes.deleteCloudCredential](ctx, cloudCredentialId: string) {
-    return runWithRandomDelay(async () => {
-      ctx.commit(mutationTypes.deleteCloudCredential, cloudCredentialId);
-      await ctx.dispatch(actionTypes.persistState);
-    });
+    // Persist state
+    persistControllerState(ctx.state);
   }
-
-  /**
-   * Load cloud list
-   */
-  // TODO: For now we are not doing partial state loads until we hook up to the real Juju API
-  // [actionTypes.loadCloudList](ctx) {
-  //   return runWithRandomDelay(() => {
-  //     ctx.commit(mutationTypes.setClouds, initialData.clouds);
-  //   });
-  // }
 };
 
 export default actions;

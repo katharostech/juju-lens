@@ -7,9 +7,17 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import { actionTypes } from 'store/juju/actions';
+import { namespace } from 'vuex-class';
+const juju = namespace('juju');
+
 @Component
 export default class App extends Vue {
-  created(): void {
+  @juju.Action(actionTypes.loadControllers) loadControllers!: () => Promise<
+    undefined
+  >;
+
+  async created(): Promise<void> {
     // Set the dark theme from the local storage
     const darkMode = this.$q.localStorage.getItem('darkMode');
     if (
@@ -18,6 +26,9 @@ export default class App extends Vue {
     ) {
       this.$q.dark.set(darkMode);
     }
+
+    // Load the controllers from the local store
+    await this.loadControllers();
   }
 }
 </script>

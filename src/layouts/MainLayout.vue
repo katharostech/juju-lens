@@ -55,7 +55,7 @@
           style="flex: 0.1 1 12em"
         />
         <!-- Alerts Button -->
-        <div class="on-right" style="position: relative;">
+        <!-- <div class="on-right" style="position: relative;">
           <q-btn
             flat
             dense
@@ -63,11 +63,11 @@
             icon="fas fa-bell"
             style="padding: 0.2rem"
           >
-            <!-- Alerts Menu -->
+            <!-/- Alerts Menu -/->
             <q-menu>
               <q-list class="alert-menu">
-                <!-- TODO: Maybe just my machine, but the ripple effect is only visible when
-                clicking on a route you are already on. -->
+                <!-/- TODO: Maybe just my machine, but the ripple effect is only visible when
+                clicking on a route you are already on. -/->
                 <q-item
                   clickable
                   v-ripple
@@ -108,7 +108,7 @@
           <badge v-if="unitWarningCount > 0" class="bg-warning text-black">
             {{ unitWarningCount }}
           </badge>
-        </div>
+        </div> -->
         <!-- Mobile menu button -->
         <q-btn
           flat
@@ -151,10 +151,10 @@
               clickable
               v-ripple
               @click="
-              toggleFloatingWindowVisible(window.id);
-              if (window.visible) {
-                focus
-              }
+                toggleFloatingWindowVisible(window.id);
+                if (window.visible) {
+                  focus;
+                }
               "
             >
               <!-- Taskbar icon close menu -->
@@ -167,7 +167,11 @@
                 transition-hide="jump-left"
               >
                 <q-list dense>
-                  <q-item clickable v-close-popup @click="removeFloatingWindow(window.id)">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="removeFloatingWindow(window.id)"
+                  >
                     <q-item-section side>
                       <q-icon color="negative" name="fas fa-window-close" />
                     </q-item-section>
@@ -341,12 +345,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 
 import { actionTypes as jujuActionTypes } from 'store/juju/actions';
-import {
-  Controller,
-  Unit,
-  Application,
-  UnitStatusSeverity
-} from 'store/juju/state';
+import { Controller, Unit, Application } from 'store/juju/state';
 const juju = namespace('juju');
 
 import {
@@ -385,7 +384,8 @@ export default class MainLayout extends Vue {
   get floatingTermWindows(): FloatingWindow[] {
     return this.floatingWindows.filter(
       window =>
-        (window.kind == FloatingWindowKind[
+        window.kind ==
+        (FloatingWindowKind[
           FloatingWindowKind.terminal
         ] as FloatingWindowKindString)
     );
@@ -393,32 +393,30 @@ export default class MainLayout extends Vue {
   get floatingLogWindows(): FloatingWindow[] {
     return this.floatingWindows.filter(
       window =>
-        (window.kind == FloatingWindowKind[
-          FloatingWindowKind.log
-        ] as FloatingWindowKindString)
+        window.kind ==
+        (FloatingWindowKind[FloatingWindowKind.log] as FloatingWindowKindString)
     );
   }
 
-  @juju.State('currentController') globalCurrentController!: Controller | 'All';
-  @juju.State controllers!: Controller[];
-  @juju.State units!: Unit[];
-  @juju.State applications!: Application[];
-  @juju.Getter controllerUnits!: Unit[];
+  @juju.State('currentController') globalCurrentController!: 'All' | string;
+  @juju.State controllers!: { [key: string]: Controller };
   @juju.Action(jujuActionTypes.setCurrentController) setCurrentController!: (
-    controller: Controller | 'All'
+    controller: 'All' | string
   ) => Promise<undefined>;
-  @juju.Action(jujuActionTypes.loadAllState) loadAllState!: () => Promise<
-    undefined
-  >;
 
-  get currentController(): Controller | 'All' {
+  get currentController(): 'All' | string {
     return this.globalCurrentController;
   }
-  set currentController(value: Controller | 'All') {
+
+  set currentController(value: 'All' | string) {
     this.setCurrentController(value);
   }
-  get controllerOptions(): (Controller | 'All')[] {
-    return ['All', ...this.controllers];
+  get controllerOptions(): ('All' | string)[] {
+    const controllerNames = [];
+    for (const name in this.controllers) {
+      controllerNames.push(name);
+    }
+    return ['All', ...controllerNames];
   }
 
   readonly taskbarBreakpoint = 599;
@@ -459,8 +457,8 @@ export default class MainLayout extends Vue {
     if (this.taskbarExpandChangeTimeout) {
       clearTimeout(this.taskbarExpandChangeTimeout);
     }
-    
-    this.taskbarMini = false; 
+
+    this.taskbarMini = false;
   }
 
   collapseTaskbar(): void {
@@ -474,39 +472,36 @@ export default class MainLayout extends Vue {
     // items in the menu that have labels that overflow and wrap.
     this.taskbarExpandChangeTimeout = setTimeout(() => {
       this.taskbarMini = true;
-    }, 300); 
-  }
-
-  created(): void {
-    this.loadAllState();
+    }, 300);
   }
 
   // Getter for the notifications list
   get unitNotifications(): UnitNotification[] {
-    const alerts: UnitNotification[] = [];
+    // const alerts: UnitNotification[] = [];
 
-    for (const unit of this.controllerUnits) {
-      const sev = UnitStatusSeverity[unit.status.severity];
-      // If the unit does not have a clean status
-      if (sev > UnitStatusSeverity.active) {
-        // Add a notification for it
-        const app = this.applications.filter(
-          app => app.id == unit.applicationId
-        )[0];
+    // for (const unit of this.controllerUnits) {
+    //   const sev = UnitStatusSeverity[unit.status.severity];
+    //   // If the unit does not have a clean status
+    //   if (sev > UnitStatusSeverity.active) {
+    //     // Add a notification for it
+    //     const app = this.applications.filter(
+    //       app => app.id == unit.applicationId
+    //     )[0];
 
-        alerts.push({
-          app,
-          unit,
-          isError: sev >= UnitStatusSeverity.blocked
-        });
-      }
-    }
+    //     alerts.push({
+    //       app,
+    //       unit,
+    //       isError: sev >= UnitStatusSeverity.blocked
+    //     });
+    //   }
+    // }
 
-    return alerts.sort(
-      (a, b) =>
-        UnitStatusSeverity[b.unit.status.severity] -
-        UnitStatusSeverity[a.unit.status.severity]
-    );
+    // return alerts.sort(
+    //   (a, b) =>
+    //     UnitStatusSeverity[b.unit.status.severity] -
+    //     UnitStatusSeverity[a.unit.status.severity]
+    // );
+    return [];
   }
 
   get unitErrorCount(): number {
@@ -523,15 +518,14 @@ export default class MainLayout extends Vue {
   }
 
   showFeedbackDialog(): void {
-     this.$q
-      .dialog({
-        title: 'Leave Feedback',
-        html: true,
-        message:
-          'We\'re so glad you want to leave feedback! Right now the best way to do that is to \
+    this.$q.dialog({
+      title: 'Leave Feedback',
+      html: true,
+      message:
+        'We\'re so glad you want to leave feedback! Right now the best way to do that is to \
           reply to the public <a target="_blank" href="https://discourse.juju.is/t/juju-lens-juju-gui-prototype-mock-up/3149?u=zicklag">\
-          forum topic</a> so that everyone can see and collaborate on it!',
-      })
+          forum topic</a> so that everyone can see and collaborate on it!'
+    });
   }
 }
 </script>

@@ -1,135 +1,154 @@
 import { MutationTree } from 'vuex';
 import {
   JujuStateInterface,
-  PartialJujuState,
   Controller,
-  CloudCredential,
-  Cloud
+  Charm,
+  Unit,
+  Application,
+  Model,
+  Machine
 } from './state';
-
-import defaultState from './state';
+import Vue from 'vue';
 
 export const mutationTypes = {
-  // Global ( maybe replace this later )
-  setAllState: 'setAllState',
-  clearAllState: 'clearAllState',
   // Controller
   setCurrentController: 'setCurrentController',
   setControllers: 'setControllers',
-  addController: 'addController',
   updateController: 'updateController',
   deleteController: 'deleteController',
-  // Cloud credentials
-  setCloudCredentials: 'setCloudCredentials',
-  addCloudCredential: 'addCloudCredential',
-  updateCloudCredential: 'updateCloudCredential',
-  deleteCloudCredential: 'deleteCloudCredential',
-  // Clouds
-  setClouds: 'setClouds'
+  updateControllerData: 'updateControllerData'
 };
 
 const mutation: MutationTree<JujuStateInterface> = {
-  //
-  // Global
-  //
-
-  /**
-   * Set the entire state, or any subset of correct. This may be kind of a stand
-   * in for doing this with more targeted mutations later. Put here to shortcut
-   * the effort required to implement to help release faster.
-   */
-  [mutationTypes.setAllState](state, newstate: PartialJujuState) {
-    // Transfer any set keys from the new state to the current state
-    for (const key of Object.keys(newstate)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (state as any)[key] = (newstate as any)[key];
-    }
-  },
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  [mutationTypes.clearAllState](state) {
-    state = defaultState;
-  },
-
   //
   // Controller
   //
 
   /** Set the current controller */
-  [mutationTypes.setCurrentController](state, controller: Controller | 'All') {
+  [mutationTypes.setCurrentController](state, controller: 'All' | string) {
     state.currentController = controller;
   },
 
   /** Set controllers */
-  [mutationTypes.setControllers](state, controllers: Controller[]) {
+  [mutationTypes.setControllers](
+    state,
+    controllers: { [key: string]: Controller }
+  ) {
     state.controllers = controllers;
   },
 
-  /** Add controller */
-  [mutationTypes.addController](state, controller: Controller) {
-    state.controllers.push(controller);
-  },
-
-  /** Update controller */
-  [mutationTypes.updateController](state, controller: Controller) {
-    state.controllers = state.controllers.map(x =>
-      x.id == controller.id ? controller : x
-    );
-
-    // Update the current controller info
-    if (
-      state.currentController != 'All' &&
-      state.currentController.id == controller.id
-    ) {
-      state.currentController = controller;
-    }
+  /** Update controller: also used to add a new controller */
+  [mutationTypes.updateController](
+    state,
+    { name, controller }: { name: string; controller: Controller }
+  ) {
+    Vue.set(state.controllers, name, controller);
   },
 
   /** Delete controller */
-  [mutationTypes.deleteController](state, controllerId: string) {
-    state.controllers = state.controllers.filter(x => x.id != controllerId);
-    if (state.currentController != 'All' && state.currentController.id == controllerId) {
+  [mutationTypes.deleteController](state, name: string) {
+    Vue.delete(state.controllers, name);
+
+    // If the deleted controller was the current controller, set the current controller
+    // to 'All'
+    if (state.currentController == name) {
       state.currentController = 'All';
     }
   },
 
-  //
-  // Cloud Credentials
-  //
-
-  /** Set cloud credentials */
-  [mutationTypes.setCloudCredentials](
+  /**
+   * Update's the controller's `data`, i.e. units, models, statuses, etc as given
+   * by the output of the `AllModelWatcher` Facade's `next()` function:
+   * https://github.com/juju/js-libjuju/blob/master/api/doc/all-model-watcher-v2.md
+   */
+  [mutationTypes.updateControllerData](
     state,
-    cloudCredentials: CloudCredential[]
+    {
+      name,
+      data: [dataType, mutationType, data]
+    }: {
+      name: string;
+      data: [
+        'model' | 'application' | 'machine' | 'unit' | 'charm',
+        'change' | 'remove',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any
+      ];
+    }
   ) {
-    state.cloudCredentials = cloudCredentials;
-  },
+    if (dataType == 'model') {
+      const model: Model = data;
 
-  /** Add cloudCredential */
-  [mutationTypes.addCloudCredential](state, cloudCredential: CloudCredential) {
-    state.cloudCredentials.push(cloudCredential);
-  },
+      if (mutationType == 'change') {
+        Vue.set(state.controllers[name].models, model.name, model);
+      } else if (mutationType == 'remove') {
+        Vue.delete(state.controllers[name].models, model.name);
+      }
+    } else if (dataType == 'application') {
+      const app: Application = data;
 
-  /** Update cloudCredential */
-  [mutationTypes.updateCloudCredential](
-    state,
-    cloudCredential: CloudCredential
-  ) {
-    state.cloudCredentials = state.cloudCredentials.map(x =>
-      x.id == cloudCredential.id ? cloudCredential : x
-    );
-  },
+      if (mutationType == 'change') {
+        Vue.set(
+          state.controllers[name].applications,
+          app['model-uuid'] + '-' + app.name,
+          app
+        );
+      } else if (mutationType == 'remove') {
+        Vue.delete(
+          state.controllers[name].applications,
+          app['model-uuid'] + '-' + app.name
+        );
+      }
+    } else if (dataType == 'unit') {
+      const unit: Unit = data;
 
-  /** Delete cloudCredential */
-  [mutationTypes.deleteCloudCredential](state, cloudCredentialId: string) {
-    state.cloudCredentials = state.cloudCredentials.filter(
-      x => x.id != cloudCredentialId
-    );
-  },
+      if (mutationType == 'change') {
+        Vue.set(
+          state.controllers[name].units,
+          unit['model-uuid'] + '-' + unit.name,
+          unit
+        );
+      } else if (mutationType == 'remove') {
+        Vue.delete(
+          state.controllers[name].units,
+          unit['model-uuid'] + '-' + unit.name
+        );
+      }
+    } else if (dataType == 'machine') {
+      const machine: Machine = data;
 
-  /** Set clouds */
-  [mutationTypes.setClouds](state, clouds: Cloud[]) {
-    state.clouds = clouds;
+      if (mutationType == 'change') {
+        Vue.set(
+          state.controllers[name].machines,
+          machine['model-uuid'] + '-' + machine['id'],
+          machine
+        );
+      } else if (mutationType == 'remove') {
+        Vue.delete(
+          state.controllers[name].machines,
+          machine['model-uuid'] + '-' + machine['id']
+        );
+      }
+    } else if (dataType == 'charm') {
+      const charm: Charm = data;
+
+      if (mutationType == 'change') {
+        Vue.set(
+          state.controllers[name].charms,
+          charm['charm-url'] + '-' + charm['charm-version'],
+          charm
+        );
+      } else if (mutationType == 'remove') {
+        Vue.delete(
+          state.controllers[name].charms,
+          charm['charm-url'] + '-' + charm['charm-version']
+        );
+      } else {
+        console.warn(
+          `Unidentified resource type from Juju controller changefeed: ${dataType}`
+        );
+      }
+    }
   }
 };
 

@@ -10,9 +10,12 @@
             {{ heading }}
           </div>
           <div class="text-subtitle2 row">
-            <!-- Controller cloud -->
+            <!-- Info items -->
             <div v-for="(infoItem, i) in infoItems" :key="i" class="q-mr-sm">
               <q-icon :name="infoItem.icon" size="1em" class="q-ma-xs" />
+              <q-tooltip v-if="infoItem.tooltip">{{
+                infoItem.tooltip
+              }}</q-tooltip>
               {{ infoItem.label }}
             </div>
           </div>

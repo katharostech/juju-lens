@@ -3,18 +3,21 @@
     <q-card class="q-dialog-plugin">
       <!-- Heading -->
       <q-card-section>
-        <div class="text-h5 q-mb-sm flex items-center">
+        <div class="text-h5 q-mb-sm flex items-center justify-center">
           <!-- Edit icon and text -->
           <q-icon v-if="editing" name="edit" class="on-left" />
           <span v-if="editing">Edit</span>
 
           <!-- Create icon and text -->
           <q-icon v-if="!editing" name="fas fa-plus" class="on-left" />
-          <span v-if="!editing">Create</span>
+          <span v-if="!editing">Add</span>
 
           <span>&nbsp;Controller</span>
         </div>
-        <p v-if="!editing">Deploy a new controller to a supported cloud.</p>
+        <p v-if="!editing" class="text-center">
+          Add an existing controller to Juju Lens
+        </p>
+        <p v-else class="text-center">Edit controller connection</p>
 
         <!-- Edit form-->
         <q-form class="q-gutter-md" @submit="onSubmit">
@@ -26,63 +29,46 @@
             lazy-rules
           />
           <div class="row">
-            <q-select
-              label="Cloud"
-              v-model="cloud"
-              option-label="name"
-              :options="clouds"
+            <q-input
+              class="col-8"
+              label="Host"
+              v-model="host"
               :color="inputColor"
-              :disable="editing"
               :rules="[val => !!val || 'Field is required']"
-              class="col q-pr-xs"
               lazy-rules
             />
-            <q-select
-              label="Region"
-              v-model="region"
-              option-label="name"
-              :disable="!cloud || editing"
-              :options="cloud ? cloud.availableRegions : []"
+            <q-input
+              class="col-4"
+              label="Port"
+              v-model.number="port"
+              type="number"
               :color="inputColor"
               :rules="[val => !!val || 'Field is required']"
-              class="col"
               lazy-rules
             />
           </div>
-          <div class="row items-center">
-            <q-select
-              label="Cloud Credential"
-              v-model="cloudCredential"
-              option-label="name"
-              :disable="!cloud || editing"
-              :options="
-                cloud ? cloudCredentials.filter(x => x.cloudId == cloud.id) : []
-              "
-              :color="inputColor"
-              :rules="[val => !!val || 'Field is required']"
-              lazy-rules
-              class="col-grow"
-            />
-            <q-btn
-              dense
-              color="positive"
-              class="col-auto q-ma-sm"
-              icon="fas fa-plus"
-              :disable="!cloud || editing"
-              @click="startCreateCredential()"
-            >
-              <q-tooltip anchor="top middle" self="bottom middle"
-                >Add Credential</q-tooltip
-              >
-            </q-btn>
-          </div>
+          <q-input
+            label="Username"
+            v-model="username"
+            :color="inputColor"
+            :rules="[val => !!val || 'Field is required']"
+            lazy-rules
+          />
+          <q-input
+            label="Password"
+            v-model="password"
+            :color="inputColor"
+            :rules="[val => !!val || 'Field is required']"
+            lazy-rules
+            type="password"
+          />
 
           <!-- buttons example -->
-          <q-card-actions align="right">
+          <q-card-actions align="center">
             <q-btn
               color="positive"
               type="submit"
-              :label="controller ? 'Update' : 'Create'"
+              :label="controller ? 'Update' : 'Add'"
               :icon="editing ? 'check' : 'fas fa-plus'"
               :loading="loading"
             />
@@ -101,13 +87,9 @@
 
 <script lang="ts">
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import CloudCredentialEdit from 'components/dialogs/CloudCredentialEdit.vue';
-
-import { Controller, CloudCredential, Cloud } from 'store/juju/state';
-import { mutationTypes } from 'store/juju/mutations';
+import { Controller } from 'store/juju/state';
 import { actionTypes } from 'store/juju/actions';
 
-import { uid } from 'quasar';
 import { Vue, Component, Prop } from 'vue-property-decorator';
 
 import { namespace } from 'vuex-class';
@@ -118,31 +100,35 @@ export default class ControllerEdit extends Vue {
   // The controller to edit. If null, we are creating a new controller
   @Prop({ type: Object, default: null })
   readonly controller!: Controller | null;
+  @Prop({ type: String, default: null })
+  readonly controllerName!: string | null;
 
   loading = false;
 
   // Vuex state
-  @juju.State clouds!: Cloud[];
-  @juju.State cloudCredentials!: CloudCredential[];
-  @juju.State currentController!: Controller | 'All';
+  @juju.State currentController!: 'All' | string;
 
-  // Vuex mutation
-  @juju.Mutation(mutationTypes.setCurrentController) setCurrentController!: (
-    ctrlr: Controller
+  // Vuex actions
+  @juju.Action(actionTypes.setCurrentController) setCurrentController!: (
+    name: string
+  ) => void;
+  @juju.Action(actionTypes.deleteController) deleteController!: (
+    name: string
   ) => void;
 
-  // Vuex action
-  @juju.Action(actionTypes.addController) addController!: (
-    ctrlr: Controller
-  ) => Promise<undefined>;
-  @juju.Action(actionTypes.updateController) updateController!: (
-    ctrlr: Controller
-  ) => Promise<undefined>;
+  @juju.Action(actionTypes.updateController) updateController!: ({
+    name,
+    controller
+  }: {
+    name: string;
+    controller: Controller;
+  }) => Promise<undefined>;
 
   name: string | null = null;
-  cloud: Cloud | null = null;
-  region: string | null = null;
-  cloudCredential: CloudCredential | null = null;
+  host: string | null = null;
+  port = 443;
+  username: string | null = null;
+  password: string | null = null;
 
   get inputColor(): string {
     return this.$q.dark.isActive ? 'secondary' : 'primary';
@@ -153,18 +139,6 @@ export default class ControllerEdit extends Vue {
     return this.controller != null;
   }
 
-  startCreateCredential(): void {
-    this.$q
-      .dialog({
-        component: CloudCredentialEdit,
-        parent: this,
-        forceCloud: this.cloud
-      })
-      .onOk((credential: CloudCredential) => {
-        this.cloudCredential = credential;
-      });
-  }
-
   // Skeleton example for Quasar Dialog plugin compatible dialog taken from
   // Quasar docs:
   // https://quasar.dev/quasar-plugins/dialog#Invoking-custom-component
@@ -173,12 +147,10 @@ export default class ControllerEdit extends Vue {
   // (don't change its name --> "show")
   show() {
     if (this.controller) {
-      this.name = this.controller.name;
-      this.cloud = this.clouds.filter(x => x.id == this.controller!.cloudId)[0];
-      this.region = this.controller.region;
-      this.cloudCredential = this.cloudCredentials.filter(
-        x => x.id == this.controller!.cloudCredentialId
-      )[0];
+      this.name = this.controllerName;
+      this.host = this.controller.host;
+      this.port = this.controller.port;
+      this.username = this.controller.username;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -199,76 +171,53 @@ export default class ControllerEdit extends Vue {
   }
 
   onSubmit() {
-    // If we are not updating an existing controller
-    if (!this.editing) {
-      const controller: Controller = {
-        name: this.name!,
-        id: uid(),
-        cloudId: this.cloud!.id,
-        accessLevel: 'admin',
-        region: this.region!,
-        cloudCredentialId: this.cloudCredential!.id
-      };
+    const controller: Controller = {
+      host: this.host!,
+      port: this.port,
+      username: this.username!,
+      password: this.password!,
+      models: {},
+      machines: {},
+      applications: {},
+      units: {},
+      charms: {}
+    };
 
-      // Create the controller
-      this.loading = true;
-      this.addController(controller).then(() => {
-        // on OK, it is REQUIRED to
-        // emit "ok" event (with optional payload)
-        // before hiding the QDialog
-        this.$emit('ok', controller);
+    // If the controller has been re-named, just delete the old one and
+    // create a new one
+    if (this.controllerName && this.controllerName != this.name) {
+      // If the controller is the current controller, set the current controller to
+      // the new name
+      if (this.currentController == this.controllerName) {
+        this.setCurrentController(this.name!);
+      }
 
-        // then hiding dialog
-        this.hide();
-
-        this.loading = false;
-
-        // Switch to the new controller if the current controller is not already
-        // 'All`.
-        if (this.currentController != 'All') {
-          this.setCurrentController(controller);
-        }
-
-        this.$q.notify({
-          type: 'positive',
-          message: `successfully created controller: ${controller.name}.`,
-          position: 'bottom-right',
-          timeout: 2000
-        });
-      });
-
-      // If we are editing an existing controller
-    } else {
-      const controller: Controller = {
-        name: this.name!,
-        id: this.controller!.id,
-        cloudId: this.cloud!.id,
-        accessLevel: this.controller!.accessLevel,
-        region: this.region!,
-        cloudCredentialId: this.cloudCredential!.id
-      };
-
-      // Update the controller
-      this.loading = true;
-      this.updateController(controller).then(() => {
-        // on OK, it is REQUIRED to
-        // emit "ok" event (with optional payload)
-        // before hiding the QDialog
-        this.$emit('ok', controller);
-
-        // then hiding dialog
-        this.hide();
-
-        this.loading = false;
-
-        this.$q.notify({
-          type: 'positive',
-          message: `successfully updated controller: ${controller.name}.`,
-          position: 'bottom-right',
-          timeout: 2000
-        });
-      });
+      // Delete the old controller
+      this.deleteController(this.controllerName);
     }
+
+    // Update the controller
+    this.loading = true;
+    this.updateController({ name: this.name!, controller }).then(() => {
+      // on OK, it is REQUIRED to
+      // emit "ok" event (with optional payload)
+      // before hiding the QDialog
+      this.$emit('ok', controller);
+
+      // then hiding dialog
+      this.hide();
+
+      this.loading = false;
+
+      this.$q.notify({
+        type: 'positive',
+        message: this.editing
+          ? `successfully updated controller: ${this.name!}.`
+          : `Successfully added controller: ${this.name!}`,
+        position: 'bottom-right',
+        timeout: 2000
+      });
+    });
   }
 
   onCancelClick() {

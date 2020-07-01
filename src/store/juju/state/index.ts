@@ -1,141 +1,120 @@
-export interface CloudCredential {
-  id: string;
-  name: string;
-  cloudId: string;
-  credentialData: { [key: string]: string };
-}
-
-export interface Controller {
-  id: string;
-  name: string;
-  cloudId: string;
-  region: string;
-  cloudCredentialId: string;
-  accessLevel: 'user' | 'admin';
-}
-
-export interface CredentialDataDef {
-  key: string;
-  label?: string;
-  description?: string;
-  isPasword?: boolean;
-}
-
-export interface Cloud {
-  id: string;
-  name: string;
-  availableRegions: string[];
-  requiredCredentials: CredentialDataDef[];
+export interface Status {
+  current: string;
+  message: string;
+  since: string; // TODO: This will be a timestamp, should it be a date?
+  version: string;
 }
 
 export interface Model {
-  id: string;
+  'model-uuid': string;
   name: string;
-  controllerId: string;
-}
-
-export interface Application {
-  id: string;
-  name: string;
-  modelId: string;
-  charmId: string;
-}
-
-export type Relation = [ApplicationEndpoint, ApplicationEndpoint];
-
-export interface ApplicationEndpoint {
-  applicationId: string;
-  endpointName: string;
-}
-
-export interface Unit {
-  id: string;
-  index: number;
-  applicationId: string;
-  machineId: string;
-  exposedPorts: number[];
-  status: UnitStatus;
-  // TODO: Create agent status enum similar to UnitStatusSeverity
-  agentStatus: 'active' | 'idle' | 'errored';
-}
-
-export enum UnitStatusSeverity {
-  active,
-  waiting,
-  maintenance,
-  unknown,
-  blocked,
-  errored
-}
-
-export type UnitStatusSeverityString = keyof typeof UnitStatusSeverity;
-
-export interface UnitStatus {
-  severity: UnitStatusSeverityString;
-  message?: string;
+  life: 'alive' | string; // TODO: other enums
+  owner: string;
+  'controller-uuid': string;
+  'is-controller': boolean;
+  config: { [key: string]: string };
+  status: Status;
+  // TODO: sla, constraints
 }
 
 export interface Machine {
+  'model-uuid': string;
   id: string;
-  index: number;
-  modelId: string;
-  publicIp: string;
-  status: 'waiting' | 'provisioning' | 'running' | 'offline';
+  'instance-id': string;
+  'agent-status': Status;
+  'instance-status': Status;
+  life: 'alive' | string; // TODO: other enums
+  series: string;
+  'container-type': string;
+  'supported-containers': string[];
+  'supported-containers-known': boolean;
+  'hardware-characteristics': {
+    arch: string;
+    mem: number;
+    'cpu-cores': number;
+  };
+  jobs: string[];
+  addresses: {
+    value: string;
+    type: 'ipv4' | 'ipv6';
+    scope: 'local-cloud' | 'local-machine' | string; // TODO: Other enums?
+  }[];
+  'has-vote': boolean;
+  'wants-vote': boolean;
 }
 
 export interface Charm {
-  id: string;
-  name: string;
-  imageUrl: string;
-  endpoints: CharmEndpoint[];
+  'model-uuid': string;
+  'charm-url': string;
+  'charm-version': string;
+  life: 'alive' | string; // TODO: other enums
+  profile?: unknown; // TODO
 }
 
-export interface CharmEndpoint {
+export interface Unit {
+  'model-uuid': string;
   name: string;
-  interface: string;
-  mode: 'provides' | 'requires' | 'peer';
+  application: string;
+  series: string;
+  'charm-url': string;
+  life: 'alive' | string; // TODO: other enums
+  'public-address': string;
+  'private-address': string;
+  'machine-id': string;
+  ports: number[];
+  'port-ranges': string[];
+  principal: string;
+  subordinate: boolean;
+  'workload-status': Status;
+  'agent-status': Status;
+}
+
+export interface Application {
+  'model-uuid': string;
+  name: string;
+  exposed: boolean;
+  'charm-url': string;
+  'owner-tag': string;
+  life: 'alive' | string; // TODO: other enums
+  'min-units': number;
+  subordinate: boolean;
+  status: Status;
+  'workload-version': string;
+  // TODO: constraints
+}
+
+// TODO: Implement a connection status indicator and corresponding GUI
+// elements.
+export interface Controller {
+  /** The URL to the controller */
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  models: { [key: string]: Model };
+  machines: { [key: string]: Machine };
+  charms: { [key: string]: Charm };
+  units: { [key: string]: Unit };
+  applications: { [key: string]: Application };
+
+  // TODO: static type
+  /** The controller API connection */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  conn?: any;
+  /** The handle to the wather that monitors the controller's models, units, etc. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  controllerWatchHandle?: any;
 }
 
 export interface JujuStateInterface {
-  currentController: Controller | 'All';
-  controllers: Controller[];
-  clouds: Cloud[];
-  cloudCredentials: CloudCredential[];
-  models: Model[];
-  applications: Application[];
-  relations: Relation[];
-  units: Unit[];
-  machines: Machine[];
-  store: Charm[];
-}
-
-/**
- * Any subset of the keys in the Juju state
- */
-export interface PartialJujuState {
-  currentConroller?: Controller | 'All';
-  controllers?: Controller[];
-  clouds?: Cloud[];
-  cloudCredentials?: CloudCredential[];
-  models?: Model[];
-  applications?: Application[];
-  relations?: Relation[];
-  units?: Unit[];
-  machines?: Machine[];
-  store?: Charm[];
+  currentController: 'All' | string;
+  /** Controllers indexed by unique name as provided by user */
+  controllers: { [key: string]: Controller };
 }
 
 const state: JujuStateInterface = {
   currentController: 'All',
-  controllers: [],
-  clouds: [],
-  cloudCredentials: [],
-  models: [],
-  applications: [],
-  relations: [],
-  units: [],
-  machines: [],
-  store: []
+  controllers: {}
 };
 
 export default state;
