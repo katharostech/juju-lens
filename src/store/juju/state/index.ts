@@ -1,11 +1,29 @@
+export enum UnitStatusSeverity {
+  // "Green" states
+  active,
+  started,
+  // "Yellow" states
+  maintenance,
+  unknown, // TODO: Should unknown be a "yellow" state?
+  waiting,
+  // "Red" states
+  blocked,
+  error,
+  terminated
+}
+
+export type UnitStatusSeverityString = keyof typeof UnitStatusSeverity;
+
 export interface Status {
-  current: string;
+  current: UnitStatusSeverityString;
   message: string;
   since: string; // TODO: This will be a timestamp, should it be a date?
   version: string;
 }
 
 export interface Model {
+  /** Id used internally by Juju lens to uniquely identify the resource */
+  lensId: string;
   'model-uuid': string;
   name: string;
   life: 'alive' | string; // TODO: other enums
@@ -18,6 +36,8 @@ export interface Model {
 }
 
 export interface Machine {
+  /** Id used internally by Juju lens to uniquely identify the resource */
+  lensId: string;
   'model-uuid': string;
   id: string;
   'instance-id': string;
@@ -44,6 +64,8 @@ export interface Machine {
 }
 
 export interface Charm {
+  /** Id used internally by Juju lens to uniquely identify the resource */
+  lensId: string;
   'model-uuid': string;
   'charm-url': string;
   'charm-version': string;
@@ -52,6 +74,8 @@ export interface Charm {
 }
 
 export interface Unit {
+  /** Id used internally by Juju lens to uniquely identify the resource */
+  lensId: string;
   'model-uuid': string;
   name: string;
   application: string;
@@ -70,6 +94,8 @@ export interface Unit {
 }
 
 export interface Application {
+  /** Id used internally by Juju lens to uniquely identify the resource */
+  lensId: string;
   'model-uuid': string;
   name: string;
   exposed: boolean;
@@ -85,17 +111,21 @@ export interface Application {
 
 // TODO: Implement a connection status indicator and corresponding GUI
 // elements.
-export interface Controller {
-  /** The URL to the controller */
-  host: string;
-  port: number;
-  username: string;
-  password: string;
+
+export interface ControllerData {
   models: { [key: string]: Model };
   machines: { [key: string]: Machine };
   charms: { [key: string]: Charm };
   units: { [key: string]: Unit };
   applications: { [key: string]: Application };
+}
+
+export interface Controller extends ControllerData {
+  /** The URL to the controller */
+  host: string;
+  port: number;
+  username: string;
+  password: string;
 
   // TODO: static type
   /** The controller API connection */

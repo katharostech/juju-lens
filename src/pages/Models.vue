@@ -44,136 +44,140 @@
         <!-- Content area resize observer -->
         <q-resize-observer @resize="onResizeContent" />
 
-          <!-- Content scroll area -->
-          <q-scroll-area
-            ref="modelScrollArea"
-            :style="{
-              height: footerVisible ? `${100 - footerHeight}%` : '100%',
-              transition: footerTransitioning
+        <!-- Content scroll area -->
+        <q-scroll-area
+          ref="modelScrollArea"
+          :style="{
+            height: footerVisible ? `${100 - footerHeight}%` : '100%',
+            transition: footerTransitioning
               ? `all ${footerTransitionDuration / 1000}s`
               : `unset`
-            }"
-            :thumb-style="{ width: '5px' }"
-          >
-            <div class="q-pa-sm">
-              <div class="row">
-                <!-- Mobile heading for tab panel -->
-                <div class="col-grow text-h5 q-mb-md xs">
-                  {{ tab == 'applications' ? 'Applications' : 'Machines' }}
-                </div>
-
-                <!-- Mobile sort selection -->
-                <div
-                  style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
-                  id="sort-models-select-mobile"
-                >
-                  <q-select
-                    dense
-                    v-model="sortModelsBy"
-                    label="Sort By"
-                    :options="sortModelsByOptions"
-                    :color="$q.dark.isActive ? 'secondary' : 'primary'"
-                    filled
-                    class="on-left"
-                  />
-                </div>
+          }"
+          :thumb-style="{ width: '5px' }"
+        >
+          <div class="q-pa-sm">
+            <div class="row">
+              <!-- Mobile heading for tab panel -->
+              <div class="col-grow text-h5 q-mb-md xs">
+                {{ tab == 'applications' ? 'Applications' : 'Machines' }}
               </div>
 
-              <!-- Model -->
-              <transition-group name="model-group-trans" tag="div">
-                <div
-                  class="q-mb-md full-width"
-                  v-for="model in models"
-                  :key="model.id"
+              <!-- Mobile sort selection -->
+              <div
+                style="flex: 0.1 0.5 10em; position: relative; top: -0.5em;"
+                id="sort-models-select-mobile"
+              >
+                <q-select
+                  dense
+                  v-model="sortModelsBy"
+                  label="Sort By"
+                  :options="sortModelsByOptions"
+                  :color="$q.dark.isActive ? 'secondary' : 'primary'"
+                  filled
+                  class="on-left"
+                />
+              </div>
+            </div>
+
+            <!-- Model -->
+            <transition-group name="model-group-trans" tag="div">
+              <div
+                class="q-mb-md full-width"
+                v-for="model in models"
+                :key="model['model-uuid']"
+              >
+                <!-- Model toolbar -->
+                <q-toolbar
+                  v-ripple
+                  class="bg-primary text-white full-width"
+                  @click="
+                    $set(
+                      modelsExpanded,
+                      model['model-uuid'],
+                      !modelsExpanded[model['model-uuid']]
+                    )
+                  "
                 >
-                  <!-- Model toolbar -->
-                  <q-toolbar
-                    v-ripple
-                    class="bg-primary text-white full-width"
-                    @click="
-                      $set(modelsExpanded, model.id, !modelsExpanded[model.id])
-                    "
-                  >
-                    <!-- Model Status -->
-                    <q-icon
-                      :name="model.statusIcon.icon"
-                      :style="{
-                        color: model.statusIcon.color
-                      }"
-                      size="1.7em"
-                    />
+                  <!-- Model Status -->
+                  <q-icon
+                    :name="model.statusIcon.icon"
+                    :style="{
+                      color: model.statusIcon.color
+                    }"
+                    size="1.7em"
+                  />
 
-                    <q-separator vertical class="on-right" color="grey-6" />
+                  <q-separator vertical class="on-right" color="grey-6" />
 
-                    <q-toolbar-title style="flex: 1 1 0%">
-                      <span>
+                  <q-toolbar-title style="flex: 1 1 0%">
+                    <span>
+                      {{ model.name }}
+                      <q-tooltip anchor="top middle" self="bottom middle">
                         {{ model.name }}
-                        <q-tooltip anchor="top middle" self="bottom middle">
-                          {{ model.name }}
-                        </q-tooltip>
-                      </span>
-                    </q-toolbar-title>
-                    <div class="avatar-stack">
-                      <q-avatar
-                        v-for="application in model.applications"
-                        :key="application.id"
-                        size="2em"
+                      </q-tooltip>
+                    </span>
+                  </q-toolbar-title>
+                  <div class="avatar-stack">
+                    <q-avatar
+                      v-for="application in model.applications"
+                      :key="application.id"
+                      size="2em"
+                    >
+                      <q-img :src="application.charmIconUrl" />
+                      <q-tooltip
+                        anchor="top middle"
+                        self="bottom middle"
+                        content-style="font-size: 0.8em;"
                       >
-                        <q-img :src="application.charm.imageUrl" />
-                        <q-tooltip
-                          anchor="top middle"
-                          self="bottom middle"
-                          content-style="font-size: 0.8em;"
-                        >
-                          {{ application.name }}
-                        </q-tooltip>
-                      </q-avatar>
-                    </div>
-                    <q-btn
-                      round
-                      dense
-                      flat
-                      icon="arrow_downward"
-                      style="transition: transform 0.2s;"
-                      :style="{
-                        transform: modelsExpanded[model.id]
-                          ? 'rotateZ(180deg)'
-                          : 'none'
-                      }"
-                    />
-                    <q-btn
-                      round
-                      dense
-                      flat
-                      icon="more_vert"
-                      @click.stop="() => undefined"
-                    />
-                  </q-toolbar>
-                  <q-slide-transition>
-                    <div v-if="modelsExpanded[model.id]">
-                      <q-tab-panels
-                        animated
-                        v-model="tab"
-                        style="background-color: hsla(0, 0%, 0%, 0);"
+                        {{ application.name }}
+                      </q-tooltip>
+                    </q-avatar>
+                  </div>
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    icon="arrow_downward"
+                    style="transition: transform 0.2s;"
+                    :style="{
+                      transform: modelsExpanded[model['model-uuid']]
+                        ? 'rotateZ(180deg)'
+                        : 'none'
+                    }"
+                  />
+                  <q-btn
+                    round
+                    dense
+                    flat
+                    icon="more_vert"
+                    @click.stop="() => undefined"
+                  />
+                </q-toolbar>
+                <q-slide-transition>
+                  <div v-if="modelsExpanded[model['model-uuid']]">
+                    <q-tab-panels
+                      animated
+                      v-model="tab"
+                      style="background-color: hsla(0, 0%, 0%, 0);"
+                    >
+                      <q-tab-panel
+                        :id="`model-${model['model-uuid']}`"
+                        name="applications"
+                        class="q-pa-none"
+                        style="overflow: hidden;"
                       >
-                        <!-- Model list -->
-                        <q-tab-panel
-                          :id="`model-${model.id}`"
-                          name="applications"
-                          class="q-pa-none"
-                          style="overflow: hidden;"
-                        >
-                          <!-- Application Row -->
-                          <q-list bordered separator>
+                        <!-- Application Row -->
+                        <q-list bordered separator>
+                          <transition-group name="model-group-trans" tag="div">
                             <q-item
                               v-for="application in model.applications"
-                              :key="application.id"
+                              :key="application.lensId"
                               clickable
                               v-ripple
-                              :id="`application-${application.id}`"
+                              :id="`application-${application.lensId}`"
                               class="row"
                               @click="
-                                activeApplication = application;
+                                activeApplicationId = application.lensId;
                                 showFooter();
                               "
                             >
@@ -191,7 +195,7 @@
                               <!-- App Logo -->
                               <q-item-section avatar>
                                 <q-img
-                                  :src="application.charm.imageUrl"
+                                  :src="application.charmIconUrl"
                                   style="width: 2.5em"
                                 />
                               </q-item-section>
@@ -221,8 +225,8 @@
                                       content-style="font-size: 0.8rem;"
                                     >
                                       {{
-                                        unit.status.message ||
-                                          `status: ${unit.status.severity}`
+                                        unit['workload-status'].message ||
+                                          `status: ${unit['workload-status'].current}`
                                       }}
                                     </q-tooltip>
                                     <!-- Unit dot context menu -->
@@ -269,20 +273,27 @@
                                 />
                               </q-item-section>
                             </q-item>
-                          </q-list>
-                        </q-tab-panel>
+                          </transition-group>
+                          <div
+                            v-if="model.applications.length < 1"
+                            class="text-center q-pa-sm text-body1"
+                          >
+                            This model has no applications.
+                          </div>
+                        </q-list>
+                      </q-tab-panel>
 
-                        <!-- Machines List -->
-                        <q-tab-panel name="machines">
-                          <div class="text-h5">Machine List Comming Soon!</div>
-                        </q-tab-panel>
-                      </q-tab-panels>
-                    </div>
-                  </q-slide-transition>
-                </div>
-              </transition-group>
-            </div>
-          </q-scroll-area>
+                      <!-- Machines List -->
+                      <q-tab-panel name="machines">
+                        <div class="text-h5">Machine List Comming Soon!</div>
+                      </q-tab-panel>
+                    </q-tab-panels>
+                  </div>
+                </q-slide-transition>
+              </div>
+            </transition-group>
+          </div>
+        </q-scroll-area>
 
         <!-- Application info Footer -->
         <div
@@ -308,7 +319,7 @@
             <!-- Footer Top Bar -->
             <q-bar dense class="col-auto bg-primary text-white top-border">
               <img
-                :src="activeApplication.charm.imageUrl"
+                :src="activeApplication.charmIconUrl"
                 style="height: 1em;"
                 :ratio="1"
               />
@@ -339,7 +350,10 @@
               </q-btn>
             </q-bar>
             <div class="col-grow relative-position">
-              <q-scroll-area :thumb-style="{ width: '5px' }" class="absolute fit">
+              <q-scroll-area
+                :thumb-style="{ width: '5px' }"
+                class="absolute fit"
+              >
                 <q-table
                   dense
                   hide-bottom
@@ -358,8 +372,10 @@
                     <q-td :props="props">
                       <div>
                         <q-badge
-                          :color="unitAgentStatusBadgeColor(props.value)"
-                          :label="props.value"
+                          :color="
+                            unitAgentStatusBadgeColor(props.value.current)
+                          "
+                          :label="props.value.current"
                         />
                       </div>
                     </q-td>
@@ -459,7 +475,9 @@
                                     size="1em"
                                     icon="fas fa-file-alt"
                                     class="q-ma-xs"
-                                    @click="openLogs(col.value, activeApplication)"
+                                    @click="
+                                      openLogs(col.value, activeApplication)
+                                    "
                                   >
                                     <q-tooltip>Open Logs</q-tooltip>
                                   </q-btn>
@@ -469,7 +487,9 @@
                                     size="1em"
                                     icon="fas fa-terminal"
                                     class="q-ma-xs"
-                                    @click="openTerminal(col.value, activeApplication)"
+                                    @click="
+                                      openTerminal(col.value, activeApplication)
+                                    "
                                   >
                                     <q-tooltip>Open Terminal</q-tooltip>
                                   </q-btn>
@@ -499,22 +519,13 @@ import JujuLoading from 'components/JujuLoading.vue';
 import { Component, Watch, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 import {
-  Model,
   Application,
-  Charm,
   Unit,
   Controller,
-  Machine,
   UnitStatusSeverity,
   UnitStatusSeverityString
 } from 'store/juju/state';
-import {
-  FilledApplication,
-  FilledModel,
-  fillApp
-} from 'store/juju/state/utils';
-import { unitStatusSeverityIcon } from 'store/juju/state/utils';
-import { actionTypes as jujuActionTypes } from 'store/juju/actions';
+import { FilledModel, FilledApplication } from 'store/juju/state/utils';
 const juju = namespace('juju');
 
 import { FloatingWindowKind } from 'store/app/state';
@@ -533,12 +544,10 @@ const SORT_MODELS_LOCAL_STORAGE_KEY = 'sortModelsBy';
   }
 })
 export default class Index extends Vue {
-  @juju.State currentController!: Controller | 'All';
-  @juju.Getter controllerModels!: Model[];
-  @juju.State('store') charmStore!: Charm[];
-  @juju.State applications!: Application[];
-  @juju.State machines!: Machine[];
-  @juju.State units!: Unit[];
+  @juju.State currentController!: 'All' | string;
+  @juju.State controllers!: { [key: string]: Controller };
+  @juju.Getter('currentControllerModelsFilled')
+  controllerModels!: FilledModel[];
 
   @app.Action(appActionTypes.addFloatingWindow) addFloatingWindow!: ({
     unit,
@@ -549,9 +558,6 @@ export default class Index extends Vue {
     app: Application;
     kind: FloatingWindowKind;
   }) => string;
-  @juju.Action(jujuActionTypes.loadAllState) loadAllState!: () => Promise<
-    undefined
-  >;
 
   loading = false;
 
@@ -560,7 +566,22 @@ export default class Index extends Vue {
 
   tab = 'applications';
   modelsExpanded: { [key: string]: boolean } = {};
-  activeApplication: FilledApplication | null = null;
+  activeApplicationId: string | null = null;
+  // The active application
+  get activeApplication(): FilledApplication | null {
+    if (this.activeApplicationId) {
+      for (const model of this.controllerModels) {
+        for (const app of model.applications) {
+          if (app.lensId == this.activeApplicationId) {
+            return app;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   // The total height for both the footer and the content list area
   pageHeight = 0; // This is updated by onResizeContent
   footerVisible = false;
@@ -570,24 +591,25 @@ export default class Index extends Vue {
   footerTransitioning = false;
   readonly footerTransitionDuration = 300;
 
-  async created(): Promise<void> {
+  get models(): FilledModel[] {
+    return this.sortModelsBy == 'Status'
+      ? this.controllerModels.sort(
+          (a, b) =>
+            UnitStatusSeverity[b.statusSeverity] -
+            UnitStatusSeverity[a.statusSeverity]
+        )
+      : this.controllerModels.sort((a, b) => (b.name < a.name ? 1 : -1));
+  }
+
+  created(): void {
     // Load the sort models preference
     const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
     if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
       this.sortModelsBy = sortModelsBy;
     }
 
-    await this.fetchData();
-
     // Scroll to the app for a unit specified by route if necessary
-    this.scrollToApp();
-  }
-
-  async fetchData(): Promise<void> {
-    this.loading = true;
-
-    await this.loadAllState();
-    this.loading = false;
+    // this.scrollToApp();
   }
 
   get activeApplicationUnitsColumns() {
@@ -595,10 +617,8 @@ export default class Index extends Vue {
       {
         name: 'name',
         label: 'Unit',
-        field: 'index',
+        field: 'name',
         align: 'left',
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        format: (index: number) => `${this.activeApplication!.name}/${index}`,
         sortable: true
       },
       // This is sort of a dummy column that we stick the log and terminal buttons
@@ -612,14 +632,14 @@ export default class Index extends Vue {
       {
         name: 'agent-status',
         label: 'Workload',
-        field: 'agentStatus',
+        field: 'agent-status',
         align: 'left',
         sortable: true
       },
       {
         name: 'status',
         label: 'Status',
-        field: (row: Unit) => row.status.severity,
+        field: (row: Unit) => row['workload-status'].current,
         sort: (a: UnitStatusSeverityString, b: UnitStatusSeverityString) =>
           UnitStatusSeverity[b] - UnitStatusSeverity[a],
         align: 'left',
@@ -629,36 +649,37 @@ export default class Index extends Vue {
         name: 'message',
         label: 'Message',
         align: 'left',
-        field: (row: Unit) => row.status.message
-      },
-      {
-        name: 'machine',
-        label: 'Machine',
-        field: 'machineId',
-        // FIXME: Make this more efficient by including machine data in FilledUnit
-        format: (machineId: string) =>
-          this.machines.filter(machine => machine.id == machineId)[0].index,
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'public-ip',
-        label: 'Public IP',
-        field: 'machineId',
-        // FIXME: Make this more efficient by including machine data in FilledUnit
-        format: (machineId: string) =>
-          this.machines.filter(machine => machine.id == machineId)[0].publicIp,
-        align: 'left',
-        sortable: true
-      },
-      {
-        name: 'exposed-ports',
-        label: 'Exposed Ports',
-        field: 'exposedPorts',
-        align: 'left',
-        format: (ports: number[]) => ports.join(', '),
-        sortable: true
+        field: (row: Unit) => row['workload-status'].message
       }
+      // TODO: Add machine data
+      // {
+      //   name: 'machine',
+      //   label: 'Machine',
+      //   field: 'machineId',
+      //   // FIXME: Make this more efficient by including machine data in FilledUnit
+      //   format: (machineId: string) =>
+      //     this.machines.filter(machine => machine.id == machineId)[0].index,
+      //   align: 'left',
+      //   sortable: true
+      // },
+      // {
+      //   name: 'public-ip',
+      //   label: 'Public IP',
+      //   field: 'machineId',
+      //   // FIXME: Make this more efficient by including machine data in FilledUnit
+      //   format: (machineId: string) =>
+      //     this.machines.filter(machine => machine.id == machineId)[0].publicIp,
+      //   align: 'left',
+      //   sortable: true
+      // },
+      // {
+      //   name: 'exposed-ports',
+      //   label: 'Exposed Ports',
+      //   field: 'exposedPorts',
+      //   align: 'left',
+      //   format: (ports: number[]) => ports.join(', '),
+      //   sortable: true
+      // }
     ];
   }
 
@@ -749,43 +770,6 @@ export default class Index extends Vue {
     );
   }
 
-  // Get a model list with additional fiels that prevent having to lookup related components by
-  // id every time they must be accessed.
-  get models(): FilledModel[] {
-    const filledModels: FilledModel[] = [];
-
-    for (const model of this.controllerModels) {
-      // Fill extra application information for the model
-      const filledApplications: FilledApplication[] = this.applications
-        .filter(app => app.modelId == model.id)
-        .map(app =>
-          fillApp({ units: this.units, store: this.charmStore }, app)
-        );
-
-      const statusSeverity = filledApplications
-        .map(x => x.statusSeverity)
-        .sort((a, b) => UnitStatusSeverity[b] - UnitStatusSeverity[a])[0];
-
-      filledModels.push({
-        applications: filledApplications,
-        statusIcon: unitStatusSeverityIcon(statusSeverity),
-        statusSeverity,
-        ...model
-      });
-    }
-
-    return filledModels.sort((a, b) => {
-      if (this.sortModelsBy == 'Status') {
-        return (
-          UnitStatusSeverity[b.statusSeverity] -
-          UnitStatusSeverity[a.statusSeverity]
-        );
-      } else {
-        return a.name > b.name ? 1 : -1;
-      }
-    });
-  }
-
   // Scroll to the unit specified by the route
   @Watch('$route')
   scrollToApp(): void {
@@ -796,17 +780,38 @@ export default class Index extends Vue {
     }
 
     // Make sure the unit's model has been expanded
-    const unit = this.units.filter(unit => unit.id == unitId)[0];
-    const app = this.applications.filter(
-      app => app.id == unit.applicationId
-    )[0];
-    this.$set(this.modelsExpanded, app.modelId, true);
+
+    // Find the unit
+    // let unit;
+    let app: FilledApplication | null = null;
+    let found = false;
+    for (const model of this.models) {
+      if (found == true) break;
+      for (const candidateApp of model.applications) {
+        if (found == true) break;
+        for (const candidateUnit of candidateApp.units) {
+          if (candidateUnit.lensId == unitId) {
+            // unit = candidateUnit;
+            app = candidateApp;
+
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!app) return;
+
+    // Expand the app
+    this.$set(this.modelsExpanded, app['model-uuid'], true);
 
     // Scroll to application after waiting for it's dom element to exist
     setTimeout(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function check(this: any) {
-        const el = document.getElementById(`application-${app.id}`);
+        if (!app) return;
+        const el = document.getElementById(`application-${app.lensId}`);
         if (el) {
           this.scrollToElement(el);
         } else {
@@ -823,10 +828,7 @@ export default class Index extends Vue {
 
     // Show the app details
     this.footerVisible = true;
-    this.activeApplication = fillApp(
-      { units: this.units, store: this.charmStore },
-      app
-    );
+    this.activeApplicationId = app.lensId;
 
     // TODO: Hightlight individual unit?
   }

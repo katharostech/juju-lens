@@ -4,7 +4,7 @@
     `floating-window` instead of `floating-window-component` -->
     <floating-window-component
       class="floating-terminal-window"
-      :title="`${floatingWindow.app.name}/${floatingWindow.unit.index}`"
+      :title="floatingWindow.unit.name"
       :visible="floatingWindow.visible"
       :maximized="floatingWindow.maximized"
       v-on:maximize="toggleFloatingWindowMaximized(floatingWindowId)"

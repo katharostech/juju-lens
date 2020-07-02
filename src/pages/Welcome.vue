@@ -10,34 +10,33 @@
           <q-img src="/juju-lens/statics/katharostech-banner.svg" />
         </a>
         <p class="q-ma-md text-body1">
-          Welcome to Juju Lens, a GUI prototype developed by
-          <a href="https://katharostech.com">Katharos Technology</a>. This
-          prototype has been developed as a concept of our "dream" Juju UI. We
-          are hoping that this can serve as a reference of what works well and
-          what does not as well a test-bed for experimentation and feedback for
-          the Juju GUI.
+          Welcome to Juju Lens, a Juju GUI developed by
+          <a href="https://katharostech.com">Katharos Technology</a>. Juju Lens
+          is currently under heavy development and many features are not
+          finished yet, but you are free to try it out!
         </p>
         <p class="q-ma-md text-body1">
-          This GUI is not connected to any real Juju controllers or models. All
-          ineraction is mocked in the browser window without actually making any
-          real requests. Request delay times and unit statuses and logs have
-          been simulated to give a more real feel. Any changes you make will be
-          persisted in the browser window, but can be cleared with the clear
-          button below.
+          Juju Lens allows you to connect to any number of different Juju
+          controllers and it will give you a live view into the state of your
+          Juju cluster. You can use this instance of Juju Lens without even
+          having to deploy anything! Everything runs locally in your browser.
         </p>
         <p class="q-ma-md text-body1">
-          Many components of this demo aren't fully complete yet, and we still
-          have a lot of ideas that we have yet to throw in here, but we are
-          moving quickly. Check back here or subscribe to the
-          <a
-            href="https://discourse.juju.is/t/juju-lens-highly-experimental-juju-gui-prototype-mock-up/3149"
-            >forum topic</a
-          >
-          to stay tuned for updates!
+          You can add controllers to Juju lens in the
+          <router-link :to="{ name: 'controllers' }">Controllers</router-link>
+          tab by specifying the host and port of the server to connect to along
+          with your user credentials. Once you add your controller, Juju Lens
+          will connect and start displaying the models, applications, and units
+          in the
+          <router-link :to="{ name: 'models' }">Models</router-link> tab.
         </p>
         <p class="q-ma-md text-body1">
-          You can get back to this screen at any time by clicking the info icon
-          in the bottom left menu.
+          Currently, controller connection information, including user
+          credentials, are stored in your browser window and persisted across
+          restarts. Eventually there will be a convenient way to login and
+          logout, but for now you must delete the controller from the
+          <router-link :to="{ name: 'controllers' }">Controllers</router-link>
+          tab if you want to "logout" of a controller.
         </p>
         <div class="flex justify-center q-gutter-md">
           <q-btn
@@ -54,12 +53,6 @@
             icon="fab fa-github"
             label="GitHub Repo"
           />
-          <q-btn
-            color="negative"
-            label="Clear Data"
-            icon="cancel"
-            @click="clearData"
-          />
         </div>
       </q-card>
     </div>
@@ -71,16 +64,8 @@ import { Location } from 'vue-router';
 
 import { Component, Vue } from 'vue-property-decorator';
 
-import { actionTypes } from 'store/juju/actions';
-import { namespace } from 'vuex-class';
-const juju = namespace('juju');
-
 @Component
 export default class Welcome extends Vue {
-  @juju.Action(actionTypes.clearAllState) clearAllState!: () => Promise<
-    undefined
-  >;
-
   get getStartedLink(): Location {
     const query = this.$route.query;
     const routeTo = query.welcomePageTo;
@@ -92,33 +77,8 @@ export default class Welcome extends Vue {
         query
       };
     } else {
-      return { name: 'home' };
+      return { name: 'controllers' };
     }
-  }
-
-  clearData(): void {
-    this.$q
-      .dialog({
-        title: 'Are you sure?',
-        message:
-          'Are you sure you want to clear all GUI data? This will reset everything to the initial demo data.',
-        persistent: true,
-        cancel: true,
-        ok: {
-          label: 'delete',
-          color: 'negative'
-        }
-      })
-      .onOk(() => {
-        this.clearAllState().then(() => {
-          this.$q.notify({
-            type: 'positive',
-            message: 'successfully cleared persisted state.',
-            position: 'bottom-right',
-            timeout: 2000
-          });
-        });
-      });
   }
 }
 </script>

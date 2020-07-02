@@ -1,4 +1,6 @@
 import { MutationTree } from 'vuex';
+import Vue from 'vue';
+
 import {
   JujuStateInterface,
   Controller,
@@ -8,7 +10,7 @@ import {
   Model,
   Machine
 } from './state';
-import Vue from 'vue';
+import { getItemId } from './state/utils';
 
 export const mutationTypes = {
   // Controller
@@ -77,77 +79,75 @@ const mutation: MutationTree<JujuStateInterface> = {
     }
   ) {
     if (dataType == 'model') {
+      // Model resource delta
       const model: Model = data;
+      const id = getItemId(name, model['model-uuid'], model.name);
 
       if (mutationType == 'change') {
-        Vue.set(state.controllers[name].models, model.name, model);
+        Vue.set(state.controllers[name].models, id, {
+          lensId: id,
+          ...model
+        });
       } else if (mutationType == 'remove') {
-        Vue.delete(state.controllers[name].models, model.name);
+        Vue.delete(state.controllers[name].models, id);
       }
     } else if (dataType == 'application') {
+      // Application resource delta
       const app: Application = data;
+      const id = getItemId(name, app['model-uuid'], app.name);
 
       if (mutationType == 'change') {
-        Vue.set(
-          state.controllers[name].applications,
-          app['model-uuid'] + '-' + app.name,
-          app
-        );
+        Vue.set(state.controllers[name].applications, id, {
+          lensId: id,
+          ...app
+        });
       } else if (mutationType == 'remove') {
-        Vue.delete(
-          state.controllers[name].applications,
-          app['model-uuid'] + '-' + app.name
-        );
+        Vue.delete(state.controllers[name].applications, id);
       }
     } else if (dataType == 'unit') {
+      // Unit resource delta
       const unit: Unit = data;
+      const id = getItemId(name, unit['model-uuid'], unit.name);
 
       if (mutationType == 'change') {
-        Vue.set(
-          state.controllers[name].units,
-          unit['model-uuid'] + '-' + unit.name,
-          unit
-        );
+        Vue.set(state.controllers[name].units, id, {
+          lensId: id,
+          ...unit
+        });
       } else if (mutationType == 'remove') {
-        Vue.delete(
-          state.controllers[name].units,
-          unit['model-uuid'] + '-' + unit.name
-        );
+        Vue.delete(state.controllers[name].units, id);
       }
     } else if (dataType == 'machine') {
+      // Machine resource delta
       const machine: Machine = data;
+      const id = getItemId(name, machine['model-uuid'], machine.id);
 
       if (mutationType == 'change') {
-        Vue.set(
-          state.controllers[name].machines,
-          machine['model-uuid'] + '-' + machine['id'],
-          machine
-        );
+        Vue.set(state.controllers[name].machines, id, {
+          lensId: id,
+          ...machine
+        });
       } else if (mutationType == 'remove') {
-        Vue.delete(
-          state.controllers[name].machines,
-          machine['model-uuid'] + '-' + machine['id']
-        );
+        Vue.delete(state.controllers[name].machines, id);
       }
     } else if (dataType == 'charm') {
+      // Charm resource delta
       const charm: Charm = data;
+      const id = getItemId(name, charm['model-uuid'], charm['charm-url']);
 
       if (mutationType == 'change') {
-        Vue.set(
-          state.controllers[name].charms,
-          charm['charm-url'] + '-' + charm['charm-version'],
-          charm
-        );
+        Vue.set(state.controllers[name].charms, id, {
+          lensId: id,
+          ...charm
+        });
       } else if (mutationType == 'remove') {
-        Vue.delete(
-          state.controllers[name].charms,
-          charm['charm-url'] + '-' + charm['charm-version']
-        );
-      } else {
-        console.warn(
-          `Unidentified resource type from Juju controller changefeed: ${dataType}`
-        );
+        Vue.delete(state.controllers[name].charms, id);
       }
+    } else {
+      // Unidentified resource delta
+      console.warn(
+        `Unidentified resource type from Juju controller changefeed: ${dataType}`
+      );
     }
   }
 };
