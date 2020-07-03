@@ -4,6 +4,8 @@ import { JujuStateInterface, Controller } from './state';
 import { mutationTypes } from './mutations';
 import { LocalStorage } from 'quasar';
 import Jujulib from '@canonical/jujulib';
+import allModelWatcherFacade from '@canonical/jujulib/api/facades/all-model-watcher-v2.js';
+import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
 
 export const actionTypes = {
   // Controllers
@@ -123,10 +125,8 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
 
     // Establish Juju controller connection and start listening for changes to the
     // controller models.
-    const facades = [
-      require('@canonical/jujulib/api/facades/all-model-watcher-v2.js'),
-      require('@canonical/jujulib/api/facades/controller-v5.js')
-    ];
+    const facades = [allModelWatcherFacade, controllerFacade];
+    console.log(facades);
     const options = { debug: false, facades: facades, wsclass: WebSocket };
     Jujulib.connectAndLogin(
       `wss://${controller.host}:${controller.port}/api`,
@@ -150,6 +150,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
           return;
         }
         const controllerConn = result.conn.facades.controller;
+        console.log(result);
 
         // Subscribe to the change-feed
         const handle = controllerConn.watch(

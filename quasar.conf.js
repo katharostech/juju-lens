@@ -10,6 +10,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 const { configure } = require('quasar/wrappers');
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = configure(function(ctx) {
   return {
@@ -113,6 +114,18 @@ module.exports = configure(function(ctx) {
           test: /\.y(a)?ml$/,
           use: path.resolve('loaders/yaml.js')
         });
+
+        // Use UglifyJS instead of the built-in Terser minifier because Terser caused
+        // issues when minifying the js-libjuju library.
+        cfg.optimization.minimizer = [
+          new TerserPlugin({
+            terserOptions: {
+              // This fixes issues that occurr when minimizing the js-libjuju library
+              // Praise the Lord I found this one! :)
+              keep_classnames: true
+            }
+          })
+        ];
       }
     },
 
