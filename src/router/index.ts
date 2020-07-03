@@ -9,6 +9,8 @@ import { LocalStorage } from 'quasar';
  * directly export the Router instantiation
  */
 
+export const SEEN_JUJU_GUI_LOCAL_STORAGE_KEY = 'seen-juju-lens-before';
+
 export default route<StoreInterface>(function({ Vue }) {
   Vue.use(VueRouter);
 
@@ -24,16 +26,20 @@ export default route<StoreInterface>(function({ Vue }) {
   });
 
   Router.beforeEach((to, _from, next) => {
-    const seenJujuGui = 'seen-juju-lens-before';
-
     // If this is the first time the user has visited the site
-    if (!LocalStorage.getItem(seenJujuGui) && to.name != 'welcome') {
+    if (
+      !LocalStorage.getItem(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY) &&
+      to.name != 'welcome'
+    ) {
       // Go to the welcome page
-      next({ name: 'welcome', query: { welcomePageTo: to.fullPath, ...to.query } });
+      next({
+        name: 'welcome',
+        query: { welcomePageTo: to.fullPath, ...to.query }
+      });
 
       try {
         // Set the cookie indicating that they have been here before
-        LocalStorage.set(seenJujuGui, 'true');
+        LocalStorage.set(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY, 'true');
       } catch (e) {
         console.error(e);
       }

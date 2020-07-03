@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: Put This somewhere -->
   <q-scroll-area class="absolute fit" :thumb-style="{ width: '5px' }">
     <div class="row justify-center">
       <q-card

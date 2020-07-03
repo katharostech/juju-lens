@@ -1,3 +1,4 @@
+import { Dialog, Notify } from 'quasar';
 import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
 import { JujuStateInterface, Controller } from './state';
@@ -13,9 +14,13 @@ export const actionTypes = {
   setCurrentController: 'setCurrentController',
   updateController: 'updateController',
   deleteController: 'deleteController',
-  establishControllerConn: 'establishControllerConn'
+  establishControllerConn: 'establishControllerConn',
+  // App
+  logout: 'logout'
 };
-const JUJU_LOCAL_STORE_NAME = 'jujuState';
+
+// TODO: Not sure if this is a good place for this export, but it's better than nothing
+export const JUJU_LOCAL_STORE_NAME = 'jujuState';
 
 function persistControllerState(state: JujuStateInterface) {
   const controllers: { [key: string]: Controller } = {};
@@ -200,6 +205,31 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
 
     // Persist state
     persistControllerState(ctx.state);
+  },
+
+  /** Logout of all controllers and clear the persited Juju state */
+  [actionTypes.logout](ctx) {
+    Dialog.create({
+      title: 'Logout',
+      message:
+        'Are you sure you want to logout of all controllers? You will have to add them manually again to re-connect.',
+      cancel: true,
+      ok: {
+        color: 'negative',
+        label: 'Logout'
+      }
+    }).onOk(() => {
+      ctx.commit(mutationTypes.clearState);
+      persistControllerState(ctx.state);
+
+      Notify.create({
+        type: 'positive',
+        message: 'Succesfully logged you out',
+        icon: 'logout',
+        position: 'bottom-right',
+        timeout: 2000
+      });
+    });
   }
 };
 

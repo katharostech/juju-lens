@@ -94,7 +94,10 @@
                         </div>
                       </div>
                     </q-item-label>
-                    <q-item-label v-if="alert.unit['workload-status'].message" caption>
+                    <q-item-label
+                      v-if="alert.unit['workload-status'].message"
+                      caption
+                    >
                       {{ alert.unit['workload-status'].message }}
                     </q-item-label>
                   </q-item-section>
@@ -225,13 +228,13 @@
           <!-- Dark mode button -->
           <dark-mode-toggle />
 
-          <!-- My Account -->
-          <q-item clickable v-ripple :to="{ name: 'my-account' }">
+          <!-- Logout -->
+          <q-item clickable v-ripple @click="logout">
             <q-item-section avatar>
-              <q-icon name="person" />
+              <q-icon name="logout" />
             </q-item-section>
             <q-item-section>
-              My Account
+              Logout
             </q-item-section>
           </q-item>
 
@@ -409,6 +412,8 @@ export default class MainLayout extends Vue {
   @juju.Action(jujuActionTypes.setCurrentController) setCurrentController!: (
     controller: 'All' | string
   ) => Promise<undefined>;
+  @juju.Action(jujuActionTypes.logout)
+  logout!: () => void;
 
   get currentController(): 'All' | string {
     return this.globalCurrentController;

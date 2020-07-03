@@ -38,7 +38,16 @@
           <router-link :to="{ name: 'controllers' }">Controllers</router-link>
           tab if you want to "logout" of a controller.
         </p>
-        <div class="flex justify-center q-gutter-md">
+        <q-banner inline-actions rounded class="q-ma-md bg-orange text-black">
+          <strong>Note:</strong> If you have previously used the Juju Lens
+          prototype, from before it could actually connect to live controllers,
+          you must clear your data before the new changes will work.
+
+          <template v-slot:action>
+            <q-btn flat label="Clear Data" :to="{ name: 'clear-data' }" />
+          </template>
+        </q-banner>
+        <div class="flex justify-center q-gutter-md q-mt-md">
           <q-btn
             color="positive"
             icon="fas fa-location-arrow"
@@ -62,10 +71,16 @@
 <script lang="ts">
 import { Location } from 'vue-router';
 
+import { actionTypes as jujuActionTypes } from 'store/juju/actions';
+import { namespace } from 'vuex-class';
+const juju = namespace('juju');
+
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component
 export default class Welcome extends Vue {
+  @juju.Action(jujuActionTypes.logout) logout!: () => void;
+
   get getStartedLink(): Location {
     const query = this.$route.query;
     const routeTo = query.welcomePageTo;

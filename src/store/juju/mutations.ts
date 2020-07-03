@@ -18,7 +18,9 @@ export const mutationTypes = {
   setControllers: 'setControllers',
   updateController: 'updateController',
   deleteController: 'deleteController',
-  updateControllerData: 'updateControllerData'
+  updateControllerData: 'updateControllerData',
+  // Clear state
+  clearState: 'clearState'
 };
 
 const mutation: MutationTree<JujuStateInterface> = {
@@ -149,6 +151,12 @@ const mutation: MutationTree<JujuStateInterface> = {
         `Unidentified resource type from Juju controller changefeed: ${dataType}`
       );
     }
+  },
+
+  /** Reset state ( usually to logout ) */
+  [mutationTypes.clearState](state) {
+    state.controllers = {};
+    state.currentController = 'All';
   }
 };
 

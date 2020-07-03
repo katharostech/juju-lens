@@ -2,6 +2,11 @@ import { RouteConfig } from 'vue-router';
 
 const routes: RouteConfig[] = [
   {
+    name: 'clear-data',
+    path: '/clear-data',
+    component: () => import('pages/ClearData.vue')
+  },
+  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
