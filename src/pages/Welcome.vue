@@ -5,7 +5,7 @@
         class="column items-center col q-mx-md q-my-lg q-pa-lg shadow-10"
         style="max-width: 60em"
       >
-        <div class="text-center text-h3 q-mb-md">Juju Lens GUI Prototype</div>
+        <div class="text-center text-h3 q-mb-md">Juju Lens</div>
         <a href="https://katharostech.com" class="logo-banner">
           <q-img src="/juju-lens/statics/katharostech-banner.svg" />
         </a>
