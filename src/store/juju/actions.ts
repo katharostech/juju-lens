@@ -126,7 +126,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     // Establish Juju controller connection and start listening for changes to the
     // controller models.
     const facades = [allModelWatcherFacade, controllerFacade];
-    console.log(facades);
     const options = { debug: false, facades: facades, wsclass: WebSocket };
     Jujulib.connectAndLogin(
       `wss://${controller.host}:${controller.port}/api`,
@@ -150,7 +149,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
           return;
         }
         const controllerConn = result.conn.facades.controller;
-        console.log(result);
 
         // Subscribe to the change-feed
         const handle = controllerConn.watch(
