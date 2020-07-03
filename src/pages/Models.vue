@@ -464,7 +464,10 @@
                             </q-item-section>
                             <q-item-section v-if="col.name != 'message'" side>
                               <q-item-label caption>
-                                <span v-if="col.name != 'actions'">
+                                <span v-if="col.name == 'agent-status'">
+                                  {{ col.value.current }}
+                                </span>
+                                <span v-else-if="col.name != 'actions'">
                                   {{ col.value }}
                                 </span>
                                 <!-- Action buttons -->
