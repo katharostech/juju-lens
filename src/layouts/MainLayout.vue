@@ -55,7 +55,7 @@
           style="flex: 0.1 1 12em"
         />
         <!-- Alerts Button -->
-        <!-- <div class="on-right" style="position: relative;">
+        <div class="on-right" style="position: relative;">
           <q-btn
             flat
             dense
@@ -63,24 +63,24 @@
             icon="fas fa-bell"
             style="padding: 0.2rem"
           >
-            <!-/- Alerts Menu -/->
+            <!-- Alerts Menu -->
             <q-menu>
               <q-list class="alert-menu">
-                <!-/- TODO: Maybe just my machine, but the ripple effect is only visible when
-                clicking on a route you are already on. -/->
+                <!-- TODO: Maybe just my machine, but the ripple effect is only visible when
+                clicking on a route you are already on. -->
                 <q-item
                   clickable
                   v-ripple
                   v-for="alert in unitNotifications"
-                  :key="alert.unit.id"
-                  :to="{ name: 'models', query: { unitId: alert.unit.id } }"
+                  :key="alert.unit.lensId"
+                  :to="{ name: 'models', query: { unitId: alert.unit.lensId } }"
                 >
                   <q-item-section>
                     <q-item-label>
                       <div class="row items-center">
                         <div clas="col on-left">
                           <span class="on-left">
-                            {{ alert.app.name }}/{{ alert.unit.index }}
+                            {{ alert.unit.name }}
                           </span>
                         </div>
                         <div class="col row reverse">
@@ -89,13 +89,13 @@
                             :class="{ 'text-black': !alert.isError }"
                             :color="alert.isError ? 'negative' : 'warning'"
                           >
-                            {{ alert.unit.status.severity }}
+                            {{ alert.unit['workload-status'].current }}
                           </q-badge>
                         </div>
                       </div>
                     </q-item-label>
-                    <q-item-label v-if="alert.unit.status.message" caption>
-                      {{ alert.unit.status.message }}
+                    <q-item-label v-if="alert.unit['workload-status'].message" caption>
+                      {{ alert.unit['workload-status'].message }}
                     </q-item-label>
                   </q-item-section>
                 </q-item>
@@ -108,7 +108,7 @@
           <badge v-if="unitWarningCount > 0" class="bg-warning text-black">
             {{ unitWarningCount }}
           </badge>
-        </div> -->
+        </div>
         <!-- Mobile menu button -->
         <q-btn
           flat
@@ -345,7 +345,12 @@ import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 
 import { actionTypes as jujuActionTypes } from 'store/juju/actions';
-import { Controller, Unit, Application } from 'store/juju/state';
+import {
+  Controller,
+  Unit,
+  Application,
+  UnitStatusSeverity
+} from 'store/juju/state';
 const juju = namespace('juju');
 
 import {
@@ -354,6 +359,7 @@ import {
   FloatingWindowKindString
 } from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
+import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
 
 interface UnitNotification {
@@ -475,33 +481,35 @@ export default class MainLayout extends Vue {
     }, 300);
   }
 
+  // Filled models for the current controller
+  @juju.Getter('currentControllerModelsFilled')
+  models!: FilledModel[];
+
   // Getter for the notifications list
   get unitNotifications(): UnitNotification[] {
-    // const alerts: UnitNotification[] = [];
+    const alerts: UnitNotification[] = [];
 
-    // for (const unit of this.controllerUnits) {
-    //   const sev = UnitStatusSeverity[unit.status.severity];
-    //   // If the unit does not have a clean status
-    //   if (sev > UnitStatusSeverity.active) {
-    //     // Add a notification for it
-    //     const app = this.applications.filter(
-    //       app => app.id == unit.applicationId
-    //     )[0];
+    for (const model of this.models) {
+      for (const app of model.applications) {
+        for (const unit of app.units) {
+          const sev = UnitStatusSeverity[unit['workload-status'].current];
+          // If the unit does not have a clean status
+          if (sev > UnitStatusSeverity.active) {
+            alerts.push({
+              app,
+              unit,
+              isError: sev >= UnitStatusSeverity.blocked
+            });
+          }
+        }
+      }
+    }
 
-    //     alerts.push({
-    //       app,
-    //       unit,
-    //       isError: sev >= UnitStatusSeverity.blocked
-    //     });
-    //   }
-    // }
-
-    // return alerts.sort(
-    //   (a, b) =>
-    //     UnitStatusSeverity[b.unit.status.severity] -
-    //     UnitStatusSeverity[a.unit.status.severity]
-    // );
-    return [];
+    return alerts.sort(
+      (a, b) =>
+        UnitStatusSeverity[b.unit['workload-status'].current] -
+        UnitStatusSeverity[a.unit['workload-status'].current]
+    );
   }
 
   get unitErrorCount(): number {

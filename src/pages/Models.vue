@@ -609,7 +609,7 @@ export default class Index extends Vue {
     }
 
     // Scroll to the app for a unit specified by route if necessary
-    // this.scrollToApp();
+    this.scrollToApp();
   }
 
   get activeApplicationUnitsColumns() {
@@ -779,8 +779,6 @@ export default class Index extends Vue {
       return;
     }
 
-    // Make sure the unit's model has been expanded
-
     // Find the unit
     // let unit;
     let app: FilledApplication | null = null;
@@ -806,24 +804,31 @@ export default class Index extends Vue {
     // Expand the app
     this.$set(this.modelsExpanded, app['model-uuid'], true);
 
+    console.log('Get ready for it');
+
     // Scroll to application after waiting for it's dom element to exist
     setTimeout(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function check(this: any) {
         if (!app) return;
+        console.log('looking');
         const el = document.getElementById(`application-${app.lensId}`);
         if (el) {
+          console.log('Scrolling');
           this.scrollToElement(el);
         } else {
+          console.log('Wait...');
           setTimeout(check, 100);
         }
-        // This 200 milisecond wait is here to wait for the expansion of the
+        // This 1200 milisecond wait is here to wait for the expansion of the
         // model animation if necessary.
         // TODO: Make this smarter by tracking the animation status of the
         // model expansion items and forgoeing the delay if it is allready
         // expanded?
+        // Or maybe we use the some visibility/screen offset tracker of some sort?
+        // Either way we need to fix this for sure.
       }.bind(this),
-      200
+      1200
     );
 
     // Show the app details
