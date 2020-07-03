@@ -124,7 +124,10 @@ export function fillApp(
   for (const unitName in controller.units) {
     const unit = controller.units[unitName];
 
-    if (unit.name.startsWith(app.name)) {
+    if (
+      unit.name.startsWith(app.name) &&
+      unit['model-uuid'] == app['model-uuid']
+    ) {
       units.push(fillUnit(unit));
     }
 
