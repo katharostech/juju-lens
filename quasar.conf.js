@@ -79,9 +79,6 @@ module.exports = configure(function(ctx) {
     build: {
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
-      publicPath: 'juju-lens',
-      forceDevPublicPath: true,
-
       // rtl: false, // https://quasar.dev/options/rtl-support
       // preloadChunks: true,
       // showProgress: false,
