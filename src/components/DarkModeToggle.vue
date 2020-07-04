@@ -42,22 +42,18 @@ export default class DarkModeToggle extends Vue {
   }
 
   updateDarkMode(): void {
-    const mode = this.$q.dark.mode;
+    const dark = this.$q.dark.isActive;
 
-    if (mode === 'auto') {
-      this.setDarkMode(true);
-    } else if (mode === false) {
-      this.setDarkMode('auto');
-    } else {
+    if (dark === true) {
       this.setDarkMode(false);
+    } else {
+      this.setDarkMode(true);
     }
   }
 
   get btnIcon(): string {
-    const mode = this.$q.dark.mode;
-    if (mode === 'auto') {
-      return 'brightness_4';
-    } else if (mode === false) {
+    const dark = this.$q.dark.isActive;
+    if (dark === true) {
       return 'fas fa-sun';
     } else {
       return 'fas fa-moon';
@@ -65,10 +61,8 @@ export default class DarkModeToggle extends Vue {
   }
 
   get btnLabel(): string {
-    const mode = this.$q.dark.mode;
-    if (mode === 'auto') {
-      return 'Auto Dark Mode';
-    } else if (mode === false) {
+    const dark = this.$q.dark.isActive;
+    if (dark === true) {
       return 'Light Mode';
     } else {
       return 'Dark Mode';
