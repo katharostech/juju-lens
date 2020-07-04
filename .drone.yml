@@ -8,7 +8,7 @@ steps:
     image: node:10-alpine
     commands:
       - yarn install --frozen-lockfile
-      - npx quasar build
+      - npx quasar build --modern
   # Release to GitHub pages
   - name: publish
     image: plugins/gh-pages
