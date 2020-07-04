@@ -38,15 +38,6 @@
           <router-link :to="{ name: 'controllers' }">Controllers</router-link>
           tab if you want to "logout" of a controller.
         </p>
-        <q-banner inline-actions rounded class="q-ma-md bg-orange text-black">
-          <strong>Note:</strong> If you have previously used the Juju Lens
-          prototype, from before it could actually connect to live controllers,
-          you must clear your data before the new changes will work.
-
-          <template v-slot:action>
-            <q-btn flat label="Clear Data" :to="{ name: 'clear-data' }" />
-          </template>
-        </q-banner>
         <div class="flex justify-center q-gutter-md q-mt-md">
           <q-btn
             color="positive"
