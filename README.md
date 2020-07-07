@@ -1,4 +1,4 @@
-# Juju Lens
+# Juju Lens [![Build Status](https://cloud.drone.io/api/badges/katharostech/juju-lens/status.svg)](https://cloud.drone.io/katharostech/juju-lens)
 
 Juju Lens is a new web GUI for the [Juju] orchestration tool with a beautiful interface and support for multiple controllers. Juju Lens is under heavy development, but is usable right now ( see the Getting Started section below ). If you have any ideas or feedback let us know on the [Juju Forum][jf] by creating a topic in the [UX & Design category][jf]. You can also open a GitHub issue.
 
