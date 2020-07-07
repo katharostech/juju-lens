@@ -5,12 +5,13 @@ Juju Lens is a new web GUI for the [Juju] orchestration tool with a beautiful in
 ![screenshot 1](./doc/screenshots/screenshot-1.png)
 
 [juju]: https://jaas.ai/
-[juju_lens]: https://juju-lens.katharostech.com
 [jf]: https://discourse.juju.is/c/devel/ux-and-design
 
 ## Getting Started
 
-To get started, you don’t need to install anything! ( assuming you already have a Juju controller to connect to. ) Just open the link to Juju Lens 1, add one or more controllers, and you’re all set. All data is stored locally in your browser, so if you access the Lens from a different browser you will have to re-add your controllers.
+To get started, you don’t need to install anything! ( assuming you already have a Juju controller to connect to. ) Just go to the [Juju Lens App][juju_lens], add one or more controllers, and you’re all set. All data is stored locally in your browser, so if you access the Lens from a different browser you will have to re-add your controllers.
+
+[juju_lens]: https://juju-lens.katharostech.com
 
 ### Adding a controller
 
