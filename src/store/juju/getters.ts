@@ -62,7 +62,20 @@ const getters: GetterTree<JujuStateInterface, StoreInterface> = {
     const filledModels: FilledModel[] = [];
 
     for (const modelId in currentCtrlrData.models) {
-      filledModels.push(fillModel(currentCtrlrData, modelId));
+      // Figure out the name of the controller the model is in
+      let controllerName = '';
+      for (const name in state.controllers) {
+        const controller = state.controllers[name];
+        console.log(modelId);
+        console.log(Object.keys(controller.models));
+        if (
+          Object.keys(controller.models).filter(x => x == modelId).length != 0
+        ) {
+          controllerName = name;
+        }
+      }
+
+      filledModels.push(fillModel(controllerName, currentCtrlrData, modelId));
     }
 
     return filledModels;

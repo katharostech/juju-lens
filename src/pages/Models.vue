@@ -116,6 +116,11 @@
                         {{ model.name }}
                       </q-tooltip>
                     </span>
+                    &nbsp;
+                    <span class="text-weight-light" style="font-size: 1rem;">
+                      {{ model.controller }}
+                      <q-tooltip>Controller</q-tooltip>
+                    </span>
                   </q-toolbar-title>
                   <div class="avatar-stack">
                     <q-avatar

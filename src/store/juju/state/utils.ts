@@ -29,6 +29,7 @@ export function getItemId(
 // "join" on the data, reducing it to a nested structure.
 
 export interface FilledModel extends Model {
+  controller: string;
   applications: FilledApplication[];
   statusIcon: StatusIcon;
   statusSeverity: UnitStatusSeverityString;
@@ -153,6 +154,7 @@ export function fillApp(
 }
 
 export function fillModel(
+  controllerName: string,
   controller: ControllerData,
   modelId: string
 ): FilledModel {
@@ -179,6 +181,7 @@ export function fillModel(
     statusSeverity: statusSeverity || 'active',
     statusIcon: unitStatusSeverityIcon(statusSeverity),
     applications: apps,
+    controller: controllerName,
     ...model
   };
 }
