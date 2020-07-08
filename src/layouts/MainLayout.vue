@@ -453,11 +453,6 @@ export default class MainLayout extends Vue {
       label: 'Controllers',
       icon: 'gamepad',
       to: { name: 'controllers' }
-    },
-    {
-      label: 'Admin',
-      icon: 'person',
-      to: { name: 'admin' }
     }
   ];
 

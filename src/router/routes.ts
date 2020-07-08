@@ -39,16 +39,6 @@ const routes: RouteConfig[] = [
         ]
       },
       {
-        path: '/my-account',
-        name: 'my-account',
-        component: () => import('pages/Account.vue')
-      },
-      {
-        path: '/admin',
-        name: 'admin',
-        component: () => import('pages/Admin.vue')
-      },
-      {
         path: '/welcome',
         name: 'welcome',
         component: () => import('pages/Welcome.vue')
