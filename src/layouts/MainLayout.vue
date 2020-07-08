@@ -237,25 +237,6 @@
               Logout
             </q-item-section>
           </q-item>
-
-          <!-- Termminal Window -->
-          <q-item
-            clickable
-            v-ripple
-            @click="
-              showTerminal = !showTerminal;
-              if (windowWidth() <= taskbarBreakpoint) {
-                showTaskbar = false;
-              }
-            "
-          >
-            <q-item-section avatar>
-              <q-icon name="fas fa-terminal" />
-            </q-item-section>
-            <q-item-section>
-              Juju Terminal
-            </q-item-section>
-          </q-item>
         </q-list>
       </div>
     </q-drawer>
@@ -322,16 +303,6 @@
         />
       </q-page>
     </q-page-container>
-
-    <q-footer>
-      <embedded-terminal
-        :visible="showTerminal"
-        :maximized="terminalMaximized"
-        @minimize="showTerminal = false"
-        @maximize="terminalMaximized = true"
-        @restore="terminalMaximized = false"
-      />
-    </q-footer>
   </q-layout>
 </template>
 
@@ -341,7 +312,6 @@ import Badge from 'components/Badge.vue';
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
 import FloatingTerminalWindow from 'components/FloatingTerminalWindow.vue';
 import FloatingLogWindow from 'components/FloatingLogWindow.vue';
-import EmbeddedTerminal from 'components/EmbeddedTerminal.vue';
 import DebugWindow from 'components/DebugWindow.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
@@ -378,7 +348,6 @@ interface UnitNotification {
     FloatingTerminalWindow,
     FloatingLogWindow,
     DebugWindow,
-    EmbeddedTerminal,
     Badge
   }
 })
@@ -436,9 +405,6 @@ export default class MainLayout extends Vue {
 
   showMenuDrawer = false;
   routerTransitionInProgress = false;
-
-  showTerminal = false;
-  terminalMaximized = false;
 
   showTitle = true;
 
