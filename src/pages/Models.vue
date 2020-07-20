@@ -961,7 +961,7 @@ export default class Index extends Vue {
         min-height 1.5em !important
 
       .q-field__native
-        margin-top -0.2em
+        margin-top -0.3em
         min-height 1.5em
 
   // Small screen use only icons without labels
