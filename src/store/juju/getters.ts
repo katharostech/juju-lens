@@ -66,8 +66,6 @@ const getters: GetterTree<JujuStateInterface, StoreInterface> = {
       let controllerName = '';
       for (const name in state.controllers) {
         const controller = state.controllers[name];
-        console.log(modelId);
-        console.log(Object.keys(controller.models));
         if (
           Object.keys(controller.models).filter(x => x == modelId).length != 0
         ) {

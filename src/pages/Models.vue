@@ -335,6 +335,34 @@
 
               <q-space />
 
+              <q-select
+                class="app-details-footer__column-select on-left"
+                dark
+                :options-dark="$q.dark.isActive"
+                filled
+                dense
+                multiple
+                options-dense
+                v-model="unitVisibleColumns"
+                :options="unitVisibleColumnsOptions"
+                display-value="Columns"
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps" v-on="scope.itemEvents">
+                    <q-item-section side>
+                      <q-checkbox
+                        color="secondary"
+                        v-model="unitVisibleColumns"
+                        :val="scope.opt"
+                      />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label v-html="scope.opt"></q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+
               <!-- Minimize button -->
               <q-btn
                 v-ripple
@@ -364,6 +392,7 @@
                   hide-bottom
                   :data="activeApplication.units"
                   :columns="activeApplicationUnitsColumns"
+                  :visible-columns="unitVisibleColumns"
                   :pagination="{ rowsPerPage: 0 }"
                   :grid="$q.screen.xs"
                   row-key="index"
@@ -422,28 +451,44 @@
                   <!-- Moble card view for unit list table -->
                   <template v-slot:item="props">
                     <div class="column col-6">
-                      <q-card class="q-ma-xs">
+                      <q-card class="q-ma-xs q-pb-xs">
                         <q-card-section>
+                          <!-- Unit name -->
                           <div class="row">
-                            <div class="col">
+                            <div
+                              v-if="
+                                props.cols.filter(col => col.name == 'name')
+                                  .length > 0
+                              "
+                              class="col"
+                            >
                               {{
                                 props.cols.filter(col => col.name == 'name')[0]
                                   .value
                               }}
                             </div>
                             <div class="col" style="text-align: right;">
-                              <!-- Here we use v-for just to bind the status to a variable name -->
-                              <q-badge
-                                :color="unitStatusSeverityBadgeColor(status)"
-                                v-for="status in [
-                                  props.cols.filter(
-                                    col => col.name == 'status'
-                                  )[0].value
-                                ]"
-                                :key="status"
+                              <div
+                                v-if="
+                                  props.cols.filter(col => col.name == 'status')
+                                    .length > 0
+                                "
                               >
-                                {{ status }}
-                              </q-badge>
+                                <!-- Here we use v-for just to bind the status to a variable name -->
+                                <q-badge
+                                  :color="
+                                    unitStatusSeverityBadgeColor(status.value)
+                                  "
+                                  v-for="status in [
+                                    props.cols.filter(
+                                      col => col.name == 'status'
+                                    )[0].value
+                                  ]"
+                                  :key="status"
+                                >
+                                  {{ status }}
+                                </q-badge>
+                              </div>
                             </div>
                           </div>
                         </q-card-section>
@@ -464,13 +509,21 @@
                                 v-if="col.name == 'message'"
                                 caption
                               >
-                                {{ col.value }}
+                                <div class="q-ml-xs">{{ col.value }}</div>
                               </q-item-label>
                             </q-item-section>
                             <q-item-section v-if="col.name != 'message'" side>
                               <q-item-label caption>
                                 <span v-if="col.name == 'agent-status'">
-                                  {{ col.value.current }}
+                                  <q-badge
+                                    :color="
+                                      unitAgentStatusBadgeColor(
+                                        col.value.current
+                                      )
+                                    "
+                                  >
+                                    {{ col.value.current }}
+                                  </q-badge>
                                 </span>
                                 <span v-else-if="col.name != 'actions'">
                                   {{ col.value }}
@@ -620,12 +673,23 @@ export default class Index extends Vue {
     this.scrollToApp();
   }
 
+  // The columsn that are visible for the application's unit table
+  unitVisibleColumnsOptions = [
+    'name',
+    'actions',
+    'agent-status',
+    'status',
+    'message'
+  ];
+  unitVisibleColumns = ['name', 'actions', 'agent-status', 'status', 'message'];
+
   get activeApplicationUnitsColumns() {
     return [
       {
         name: 'name',
         label: 'Unit',
         field: 'name',
+        headerStyle: 'width: auto',
         align: 'left',
         sortable: true
       },
@@ -639,8 +703,9 @@ export default class Index extends Vue {
       },
       {
         name: 'agent-status',
-        label: 'Workload',
+        label: 'Agent',
         field: 'agent-status',
+        headerStyle: 'width: 5em',
         align: 'left',
         sortable: true
       },
@@ -650,6 +715,7 @@ export default class Index extends Vue {
         field: (row: Unit) => row['workload-status'].current,
         sort: (a: UnitStatusSeverityString, b: UnitStatusSeverityString) =>
           UnitStatusSeverity[b] - UnitStatusSeverity[a],
+        headerStyle: 'width: 5em',
         align: 'left',
         sortable: true
       },
@@ -657,6 +723,7 @@ export default class Index extends Vue {
         name: 'message',
         label: 'Message',
         align: 'left',
+        headerStyle: 'width: 100%',
         field: (row: Unit) => row['workload-status'].message
       }
       // TODO: Add machine data
@@ -691,13 +758,22 @@ export default class Index extends Vue {
     ];
   }
 
-  // TODO: Create agent status enum similar to UnitStatusSeverity
+  // TODO: Create agent status enum similar to UnitStatusSeverity ( maybe that is
+  // unnecessary )
   unitAgentStatusBadgeColor(agentStatus: string): string {
-    return agentStatus == 'idle'
-      ? 'positive'
-      : agentStatus == 'active'
-      ? 'warning'
-      : 'negative';
+    if (agentStatus == 'idle') {
+      return 'positive';
+    } else if (
+      agentStatus == 'active' ||
+      agentStatus == 'executing' ||
+      agentStatus == 'allocating'
+    ) {
+      return 'warning';
+    } else if (agentStatus == 'error') {
+      return 'negative';
+    } else {
+      return 'grey';
+    }
   }
 
   unitStatusSeverityBadgeColor(severity: UnitStatusSeverityString): string {
@@ -812,20 +888,15 @@ export default class Index extends Vue {
     // Expand the app
     this.$set(this.modelsExpanded, app['model-uuid'], true);
 
-    console.log('Get ready for it');
-
     // Scroll to application after waiting for it's dom element to exist
     setTimeout(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function check(this: any) {
         if (!app) return;
-        console.log('looking');
         const el = document.getElementById(`application-${app.lensId}`);
         if (el) {
-          console.log('Scrolling');
           this.scrollToElement(el);
         } else {
-          console.log('Wait...');
           setTimeout(check, 100);
         }
         // This 1200 milisecond wait is here to wait for the expansion of the
@@ -878,6 +949,20 @@ export default class Index extends Vue {
     &:hover
       .q-avatar:not(:first-child)
         margin-left inherit
+
+  .app-details-footer__column-select
+      height: 1em;
+
+      .q-field__marginal
+        height 1em !important
+
+      .q-field__control
+        height 1em
+        min-height 1.5em !important
+
+      .q-field__native
+        margin-top -0.2em
+        min-height 1.5em
 
   // Small screen use only icons without labels
   @media(max-width: $model-machine-tabs-breakpoint)
