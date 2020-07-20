@@ -1,6 +1,52 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
   <div class="models absolute fit flex items-stretch" style="overflow: hidden;">
+    <!-- The application info dialog box -->
+    <q-dialog v-if="activeApplication" v-model="showAppInfo">
+      <q-card style="width: 30em; max-width: 80vw;">
+        <q-toolbar class="row q-my-sm">
+          <!-- App icon -->
+          <q-avatar>
+            <q-img :src="activeApplication.charmIconUrl" />
+          </q-avatar>
+          <!-- App Name -->
+          <q-toolbar-title>{{ activeApplication.name }}</q-toolbar-title>
+        </q-toolbar>
+
+        <q-card-section class="q-pt-none text-body1">
+          <!-- Charm version -->
+          <div class="row">
+            <div class="col-auto text-weight-bold">
+              Charm Version:&nbsp;
+            </div>
+            <div class="col-auto">
+              <a
+                target="_blank"
+                :href="activeApplication.charmStoreUrl"
+                style="text-decoration: none;"
+              >
+                {{ activeApplication['charm-url'] }}
+                <q-icon name="open_in_new" />
+              </a>
+            </div>
+          </div>
+          <!-- App scale -->
+          <div class="row">
+            <div class="col-auto text-weight-bold">
+              Scale:&nbsp;
+            </div>
+            <div class="col-auto">
+              {{ activeApplication.units.length }}
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Close" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <div class="fit column">
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row items-center">
@@ -185,6 +231,11 @@
                                 activeApplicationId = application.lensId;
                                 showFooter();
                               "
+                              :class="{
+                                'active-application-row':
+                                  activeApplication &&
+                                  activeApplication.lensId == application.lensId
+                              }"
                             >
                               <!-- App Status -->
                               <q-item-section avatar>
@@ -323,18 +374,61 @@
 
             <!-- Footer Top Bar -->
             <q-bar dense class="col-auto bg-primary text-white top-border">
+              <!-- Status Icon -->
+              <q-icon
+                name="circle"
+                :style="{
+                  color: activeApplication.statusIcon.color
+                }"
+                size="1em"
+                class="q-mr-xs"
+              />
+
+              <!-- App icon -->
               <img
                 :src="activeApplication.charmIconUrl"
                 style="height: 1em;"
                 :ratio="1"
               />
 
-              <div class="text-weight-bold ellipsis">
+              <!-- App name -->
+              <div class="text-weight-bold ellipsis on-right">
                 {{ activeApplication.name }}
               </div>
 
+              <!-- App info button ( for mobile ) -->
+              <q-btn
+                icon="info"
+                round
+                flat
+                class="on-right lt-md"
+                @click="showAppInfo = !showAppInfo"
+              >
+                <q-tooltip>Application Info</q-tooltip>
+              </q-btn>
+
               <q-space />
 
+              <!-- App info ( for desktop )-->
+              <div class="gt-sm">
+                <span class="on-left">
+                  <span class="text-weight-bold">Charm version:</span>
+                  <a
+                    target="_blank"
+                    :href="activeApplication.charmStoreUrl"
+                    style="text-decoration: none;"
+                  >
+                    {{ activeApplication['charm-url'] }}
+                    <q-icon name="open_in_new" />
+                  </a>
+                </span>
+                <span class="on-left">
+                  <span class="text-weight-bold">Scale:</span>
+                  {{ activeApplication.units.length }}
+                </span>
+              </div>
+
+              <!-- Unit details column select -->
               <q-select
                 class="app-details-footer__column-select on-left"
                 dark
@@ -476,9 +570,7 @@
                               >
                                 <!-- Here we use v-for just to bind the status to a variable name -->
                                 <q-badge
-                                  :color="
-                                    unitStatusSeverityBadgeColor(status.value)
-                                  "
+                                  :color="unitStatusSeverityBadgeColor(status)"
                                   v-for="status in [
                                     props.cols.filter(
                                       col => col.name == 'status'
@@ -642,6 +734,8 @@ export default class Index extends Vue {
 
     return null;
   }
+  // Whether or not to show the application info dialog box
+  showAppInfo = false;
 
   // The total height for both the footer and the content list area
   pageHeight = 0; // This is updated by onResizeContent
@@ -809,6 +903,7 @@ export default class Index extends Vue {
       // If footer gets tiny, collapse it completely and reset size
       this.footerVisible = false;
       this.footerHeight = 50;
+      this.activeApplicationId = null;
     } else {
       this.footerHeight = height;
     }
@@ -958,11 +1053,17 @@ export default class Index extends Vue {
 
       .q-field__control
         height 1em
-        min-height 1.5em !important
+        min-height 1.7em !important
 
       .q-field__native
         margin-top -0.3em
         min-height 1.5em
+
+  .active-application-row
+    .body--light &
+      background-color $grey-4
+    .body--dark &
+      background-color $grey-10
 
   // Small screen use only icons without labels
   @media(max-width: $model-machine-tabs-breakpoint)

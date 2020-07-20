@@ -99,6 +99,10 @@ export interface Application {
   'model-uuid': string;
   name: string;
   exposed: boolean;
+  /**
+   * Not actually a charm store URL, but an id in the format of
+   * `cs:~org/charm-version` or `cs:charm-version`
+   * */
   'charm-url': string;
   'owner-tag': string;
   life: 'alive' | string; // TODO: other enums

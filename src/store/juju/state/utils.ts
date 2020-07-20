@@ -36,8 +36,9 @@ export interface FilledModel extends Model {
 }
 
 export interface FilledApplication extends Application {
-  // TODO: This should be the whole charm info, but for now I just want the icon
   charmIconUrl: string;
+  /** An actual HTTP link to the web charm store */
+  charmStoreUrl: string;
   units: FilledUnit[];
   statusIcon: StatusIcon;
   /** The "worst" status of its units */
@@ -144,8 +145,14 @@ export function fillApp(
   // the list.
   const statusSeverity = units.map(x => x['workload-status'].current)[0];
 
+  // Convert the "charm-url" to a linke to the charm store
+  let charmStoreUrl = app['charm-url'].replace('cs:', 'https://jaas.ai/');
+  charmStoreUrl = charmStoreUrl.replace('~', 'u/');
+  charmStoreUrl = charmStoreUrl.replace('-', '/');
+
   return {
     charmIconUrl: getCharmIcon(app['charm-url']),
+    charmStoreUrl,
     units: units,
     statusIcon: unitStatusSeverityIcon(statusSeverity),
     statusSeverity: statusSeverity || 'active',
