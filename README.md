@@ -44,6 +44,8 @@ Juju Lens will show you all your models and units!
 - Pleasant animations and UI components
 - Beautiful dark and light themes
 - Ridiculously mobile optimized
+- Never have to deploy it, ever!
+  - No need to find servers, setup a domain, or pick a Juju controller to deploy it to, just use it right from the [official deployment][juju_lens] or the desktop application ( comming soon! ) and monitor any number of controllers!
 - ( WIP ) Floating, dragable log and temrinal windows that can minimize to a taskbar
 - ( WIP ) Ability to add and edit models, applications, units, etc. from the GUI
 
