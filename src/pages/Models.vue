@@ -690,6 +690,7 @@ const { offset } = dom;
 const { setScrollPosition } = scroll;
 
 const SORT_MODELS_LOCAL_STORAGE_KEY = 'sortModelsBy';
+const UNIT_VISIBLE_COLUMNS_STORAGE_KEY = 'unitVisibleColumns';
 
 @Component({
   components: {
@@ -763,6 +764,13 @@ export default class Index extends Vue {
       this.sortModelsBy = sortModelsBy;
     }
 
+    // Load the unitVisibleColuns preference
+    const unitVisibleColumns = LocalStorage.getItem(UNIT_VISIBLE_COLUMNS_STORAGE_KEY);
+    if (unitVisibleColumns) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.unitVisibleColumns = (unitVisibleColumns as any);
+    }
+
     // Scroll to the app for a unit specified by route if necessary
     this.scrollToApp();
   }
@@ -776,6 +784,11 @@ export default class Index extends Vue {
     'message'
   ];
   unitVisibleColumns = ['name', 'actions', 'agent-status', 'status', 'message'];
+
+  @Watch('unitVisibleColumns')
+  onUnitVisibleColumnsChange(): void {
+    LocalStorage.set(UNIT_VISIBLE_COLUMNS_STORAGE_KEY, this.unitVisibleColumns);
+  }
 
   get activeApplicationUnitsColumns() {
     return [
