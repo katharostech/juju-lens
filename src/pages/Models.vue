@@ -174,6 +174,13 @@
                       v-for="application in model.applications"
                       :key="application.id"
                       size="2em"
+                      @click.stop="
+                        () => {
+                          $set(modelsExpanded, model['model-uuid'], true);
+                          activeApplicationId = application.lensId;
+                          showFooter();
+                        }
+                      "
                     >
                       <q-img :src="application.charmIconUrl" />
                       <q-tooltip
@@ -341,7 +348,9 @@
                                         clickable
                                         v-close-popup
                                         class="bg-primary text-white"
-                                        @click="() => showAppConfigDialog(application)"
+                                        @click="
+                                          () => showAppConfigDialog(application)
+                                        "
                                       >
                                         <q-item-section avatar>
                                           <q-icon name="edit" />
