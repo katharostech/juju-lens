@@ -85,8 +85,12 @@ export interface Unit {
   'public-address': string;
   'private-address': string;
   'machine-id': string;
-  ports: number[];
-  'port-ranges': string[];
+  ports: { number: number; protocol: string }[];
+  'port-ranges'?: {
+    'from-port': number;
+    'to-port': number;
+    protocol: string;
+  }[];
   principal: string;
   subordinate: boolean;
   'workload-status': Status;

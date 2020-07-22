@@ -83,12 +83,12 @@ const mutation: MutationTree<JujuStateInterface> = {
     if (dataType == 'model') {
       // Model resource delta
       const model: Model = data;
-      const id = getItemId(name, model['model-uuid'], model.name);
+      const id = getItemId(name, model['model-uuid']);
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].models, id, {
-          lensId: id,
-          ...model
+          ...model,
+          lensId: id
         });
       } else if (mutationType == 'remove') {
         Vue.delete(state.controllers[name].models, id);
@@ -100,8 +100,8 @@ const mutation: MutationTree<JujuStateInterface> = {
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].applications, id, {
-          lensId: id,
-          ...app
+          ...app,
+          lensId: id
         });
       } else if (mutationType == 'remove') {
         Vue.delete(state.controllers[name].applications, id);
@@ -113,8 +113,8 @@ const mutation: MutationTree<JujuStateInterface> = {
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].units, id, {
-          lensId: id,
-          ...unit
+          ...unit,
+          lensId: id
         });
       } else if (mutationType == 'remove') {
         Vue.delete(state.controllers[name].units, id);
@@ -126,8 +126,8 @@ const mutation: MutationTree<JujuStateInterface> = {
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].machines, id, {
-          lensId: id,
-          ...machine
+          ...machine,
+          lensId: id
         });
       } else if (mutationType == 'remove') {
         Vue.delete(state.controllers[name].machines, id);
@@ -139,8 +139,8 @@ const mutation: MutationTree<JujuStateInterface> = {
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].charms, id, {
-          lensId: id,
-          ...charm
+          ...charm,
+          lensId: id
         });
       } else if (mutationType == 'remove') {
         Vue.delete(state.controllers[name].charms, id);

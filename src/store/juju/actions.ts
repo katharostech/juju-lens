@@ -121,6 +121,10 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     }
   },
 
+  /**
+   * Establish Juju controller connection and start listening for changes to the
+   * controller models.
+   */
   [actionTypes.establishControllerConn](ctx, name: string) {
     const controller = ctx.state.controllers[name];
     // If the controller doesn't exist, just ignore the request
@@ -128,8 +132,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       return;
     }
 
-    // Establish Juju controller connection and start listening for changes to the
-    // controller models.
     const facades = [allModelWatcherFacade, controllerFacade];
     const options = { debug: false, facades: facades, wsclass: WebSocket };
     Jujulib.connectAndLogin(

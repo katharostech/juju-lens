@@ -83,7 +83,8 @@
             class="on-left"
           />
         </div>
-        <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" />
+        <!-- Add model button ( not used for now ) -->
+        <!-- <q-btn color="positive" icon="fas fa-plus" @click="startCreate()" /> -->
       </q-toolbar>
 
       <div class="col relative-position">
@@ -196,13 +197,14 @@
                         : 'none'
                     }"
                   />
-                  <q-btn
+                  <!-- Model Action Button ( Not used yet ) -->
+                  <!-- <q-btn
                     round
                     dense
                     flat
                     icon="more_vert"
                     @click.stop="() => undefined"
-                  />
+                  /> -->
                 </q-toolbar>
                 <q-slide-transition>
                   <div v-if="modelsExpanded[model['model-uuid']]">
@@ -320,13 +322,35 @@
                                 </div>
                               </q-item-section>
                               <q-item-section side>
+                                <!-- App Action Button -->
                                 <q-btn
                                   round
                                   dense
                                   flat
                                   icon="more_vert"
                                   @click.stop="() => undefined"
-                                />
+                                >
+                                  <q-menu
+                                    anchor="center right"
+                                    self="center left"
+                                    :offset="[10, 0]"
+                                    style="font-size: 1em"
+                                  >
+                                    <q-list>
+                                      <q-item
+                                        clickable
+                                        v-close-popup
+                                        class="bg-primary text-white"
+                                        @click="() => showAppConfigDialog(application)"
+                                      >
+                                        <q-item-section avatar>
+                                          <q-icon name="edit" />
+                                        </q-item-section>
+                                        <q-item-section>Config</q-item-section>
+                                      </q-item>
+                                    </q-list>
+                                  </q-menu>
+                                </q-btn>
                               </q-item-section>
                             </q-item>
                           </transition-group>
@@ -669,6 +693,7 @@
 
 <script lang="ts">
 import JujuLoading from 'components/JujuLoading.vue';
+import AppConfigDialog from 'components/dialogs/AppConfigDialog.vue';
 
 import { Component, Watch, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
@@ -1063,6 +1088,14 @@ export default class Index extends Vue {
 
   openTerminal(unit: Unit, app: Application): void {
     this.addFloatingWindow({ unit, app, kind: FloatingWindowKind.terminal });
+  }
+
+  showAppConfigDialog(app: Application): void {
+    this.$q.dialog({
+      component: AppConfigDialog,
+      parent: this,
+      app
+    });
   }
 }
 </script>

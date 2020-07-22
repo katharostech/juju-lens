@@ -16,9 +16,9 @@ import {
 export function getItemId(
   controller: string,
   modelUuid: string,
-  itemId: string
+  itemId?: string // ItemId would be null for models, which just use their UUID alone
 ): string {
-  return controller + '/' + modelUuid + '/' + itemId;
+  return controller + '/' + modelUuid + (itemId ? '/' + itemId : '');
 }
 
 //
