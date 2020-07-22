@@ -416,6 +416,7 @@
                   <a
                     target="_blank"
                     :href="activeApplication.charmStoreUrl"
+                    class="text-white"
                     style="text-decoration: none;"
                   >
                     {{ activeApplication['charm-url'] }}
