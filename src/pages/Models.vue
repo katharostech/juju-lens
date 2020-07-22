@@ -765,10 +765,12 @@ export default class Index extends Vue {
     }
 
     // Load the unitVisibleColuns preference
-    const unitVisibleColumns = LocalStorage.getItem(UNIT_VISIBLE_COLUMNS_STORAGE_KEY);
+    const unitVisibleColumns = LocalStorage.getItem(
+      UNIT_VISIBLE_COLUMNS_STORAGE_KEY
+    );
     if (unitVisibleColumns) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.unitVisibleColumns = (unitVisibleColumns as any);
+      this.unitVisibleColumns = unitVisibleColumns as any;
     }
 
     // Scroll to the app for a unit specified by route if necessary
@@ -781,9 +783,23 @@ export default class Index extends Vue {
     'actions',
     'agent-status',
     'status',
+    'machine',
+    'public-ip',
+    'exposed-ports',
+    'series',
     'message'
   ];
-  unitVisibleColumns = ['name', 'actions', 'agent-status', 'status', 'message'];
+  unitVisibleColumns = [
+    'name',
+    'actions',
+    'agent-status',
+    'status',
+    'machine',
+    'public-ip',
+    'series',
+    'exposed-ports',
+    'message'
+  ];
 
   @Watch('unitVisibleColumns')
   onUnitVisibleColumnsChange(): void {
@@ -827,41 +843,56 @@ export default class Index extends Vue {
         sortable: true
       },
       {
+        name: 'machine',
+        label: 'Machine',
+        field: 'machine-id',
+        align: 'left',
+        headerStyle: 'width: 5em',
+        sortable: true
+      },
+      {
+        name: 'public-ip',
+        label: 'Public IP',
+        field: 'public-address',
+        align: 'left',
+        headerStyle: 'width: 10em',
+        sortable: true
+      },
+      {
+        name: 'exposed-ports',
+        label: 'Exposed Ports',
+        field: (unit: Unit): string => {
+          const ports = [
+            unit.ports.map(x => `${x.number}/${x.protocol}`).join(', '),
+            (unit['port-ranges'] || [])
+              .filter(x => x['from-port'] != x['to-port'])
+              .map(x => `${x['from-port']}-${x['to-port']}/${x.protocol}`)
+              .join(', ')
+          ];
+          if (ports[1] != '') {
+            return ports.join(', ');
+          } else {
+            return ports[0];
+          }
+        },
+        align: 'left',
+        headerStyle: 'width: auto',
+        sortable: true
+      },
+      {
+        name: 'series',
+        label: 'Series',
+        align: 'left',
+        headerStyle: 'width: auto',
+        field: 'series'
+      },
+      {
         name: 'message',
         label: 'Message',
         align: 'left',
         headerStyle: 'width: 100%',
         field: (row: Unit) => row['workload-status'].message
       }
-      // TODO: Add machine data
-      // {
-      //   name: 'machine',
-      //   label: 'Machine',
-      //   field: 'machineId',
-      //   // FIXME: Make this more efficient by including machine data in FilledUnit
-      //   format: (machineId: string) =>
-      //     this.machines.filter(machine => machine.id == machineId)[0].index,
-      //   align: 'left',
-      //   sortable: true
-      // },
-      // {
-      //   name: 'public-ip',
-      //   label: 'Public IP',
-      //   field: 'machineId',
-      //   // FIXME: Make this more efficient by including machine data in FilledUnit
-      //   format: (machineId: string) =>
-      //     this.machines.filter(machine => machine.id == machineId)[0].publicIp,
-      //   align: 'left',
-      //   sortable: true
-      // },
-      // {
-      //   name: 'exposed-ports',
-      //   label: 'Exposed Ports',
-      //   field: 'exposedPorts',
-      //   align: 'left',
-      //   format: (ports: number[]) => ports.join(', '),
-      //   sortable: true
-      // }
     ];
   }
 
