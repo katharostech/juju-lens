@@ -7,7 +7,7 @@
         <q-toolbar class="row q-my-sm">
           <!-- App icon -->
           <q-avatar>
-            <q-img :src="activeApplication.charmIconUrl" />
+            <charm-icon :src="activeApplication.charmIconUrl" />
           </q-avatar>
           <!-- App Name -->
           <q-toolbar-title>{{ activeApplication.name }}</q-toolbar-title>
@@ -182,7 +182,7 @@
                         }
                       "
                     >
-                      <q-img :src="application.charmIconUrl" />
+                      <charm-icon :src="application.charmIconUrl" />
                       <q-tooltip
                         anchor="top middle"
                         self="bottom middle"
@@ -258,10 +258,13 @@
                               </q-item-section>
 
                               <!-- App Logo -->
-                              <q-item-section avatar>
-                                <q-img
+                              <q-item-section
+                                avatar
+                                style="width: 2.5em; height: 2.5em"
+                              >
+                                <charm-icon
                                   :src="application.charmIconUrl"
-                                  style="width: 2.5em"
+                                  class="fit"
                                 />
                               </q-item-section>
 
@@ -418,10 +421,9 @@
               />
 
               <!-- App icon -->
-              <img
+              <charm-icon
                 :src="activeApplication.charmIconUrl"
-                style="height: 1em;"
-                :ratio="1"
+                style="width: 1em; height: 1em;"
               />
 
               <!-- App name -->
@@ -702,6 +704,7 @@
 
 <script lang="ts">
 import JujuLoading from 'components/JujuLoading.vue';
+import CharmIcon from 'components/CharmIcon.vue';
 import AppConfigDialog from 'components/dialogs/AppConfigDialog.vue';
 
 import { Component, Watch, Vue } from 'vue-property-decorator';
@@ -729,7 +732,8 @@ const UNIT_VISIBLE_COLUMNS_STORAGE_KEY = 'unitVisibleColumns';
 
 @Component({
   components: {
-    JujuLoading
+    JujuLoading,
+    CharmIcon
   }
 })
 export default class Index extends Vue {
