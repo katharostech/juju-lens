@@ -418,6 +418,7 @@
                 }"
                 size="1em"
                 class="q-mr-xs"
+                style="transition: color 0.3s"
               />
 
               <!-- App icon -->
