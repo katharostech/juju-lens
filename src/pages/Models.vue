@@ -182,7 +182,10 @@
                         }
                       "
                     >
-                      <charm-icon :src="application.charmIconUrl" />
+                      <charm-icon
+                        :src="application.charmIconUrl"
+                        style="width: 2em; height: 2em;"
+                      />
                       <q-tooltip
                         anchor="top middle"
                         self="bottom middle"
@@ -264,7 +267,7 @@
                               >
                                 <charm-icon
                                   :src="application.charmIconUrl"
-                                  class="fit"
+                                  style="width: 2.5em; height: 2.5em"
                                 />
                               </q-item-section>
 
