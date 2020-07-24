@@ -33,7 +33,6 @@ export interface Model {
   config: { [key: string]: string };
   status: Status;
   /** The Juju API connection to the model */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conn: any;
   // TODO: sla, constraints
 }
@@ -140,10 +139,8 @@ export interface Controller extends ControllerData {
 
   // TODO: static type
   /** The controller API connection */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conn?: any;
   /** The handle to the wather that monitors the controller's models, units, etc. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   controllerWatchHandle?: any;
 }
 

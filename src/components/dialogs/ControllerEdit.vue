@@ -153,14 +153,12 @@ export default class ControllerEdit extends Vue {
       this.username = this.controller.username;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.$refs.dialog as any).show();
   }
 
   // following method is REQUIRED
   // (don't change its name --> "hide")
   hide() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.$refs.dialog as any).hide();
   }
 

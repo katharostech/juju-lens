@@ -310,7 +310,6 @@ export default class FloatingWindow extends Vue {
     ];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   moveWindow(event: any): void {
     if (!this.maximized) {
       this.left += (event.delta.x / this.parentSize[0]) * 100;
@@ -369,7 +368,6 @@ export default class FloatingWindow extends Vue {
   // Resize handlers
   //
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowTop(event: any): void {
     if (!this.maximized) {
       const top = this.top + (event.delta.y / this.parentSize[1]) * 100;
@@ -377,21 +375,18 @@ export default class FloatingWindow extends Vue {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowBottom(event: any): void {
     if (!this.maximized) {
       this.bottom = this.bottom - (event.delta.y / this.parentSize[1]) * 100;
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowRight(event: any): void {
     if (!this.maximized) {
       this.right = this.right - (event.delta.x / this.parentSize[0]) * 100;
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowLeft(event: any): void {
     if (!this.maximized) {
       const left = this.left + (event.delta.x / this.parentSize[0]) * 100;
@@ -399,25 +394,21 @@ export default class FloatingWindow extends Vue {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowTopLeft(event: any): void {
     this.resizeWindowTop(event);
     this.resizeWindowLeft(event);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowTopRight(event: any): void {
     this.resizeWindowRight(event);
     this.resizeWindowTop(event);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowBottomLeft(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowLeft(event);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeWindowBottomRight(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowRight(event);

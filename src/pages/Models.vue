@@ -812,7 +812,6 @@ export default class Index extends Vue {
       UNIT_VISIBLE_COLUMNS_STORAGE_KEY
     );
     if (unitVisibleColumns) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.unitVisibleColumns = unitVisibleColumns as any;
     }
 
@@ -978,7 +977,6 @@ export default class Index extends Vue {
   }
 
   // Resizes the footer
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resizeFooter(event: any): void {
     const delta = event.delta.y;
     const deltaPercent = (delta / this.pageHeight) * 100;
@@ -1028,12 +1026,7 @@ export default class Index extends Vue {
 
     const duration = 100;
 
-    setScrollPosition(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      target as any,
-      newScroll,
-      duration
-    );
+    setScrollPosition(target as any, newScroll, duration);
   }
 
   // Scroll to the unit specified by the route
@@ -1072,7 +1065,6 @@ export default class Index extends Vue {
 
     // Scroll to application after waiting for it's dom element to exist
     setTimeout(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function check(this: any) {
         if (!app) return;
         const el = document.getElementById(`application-${app.lensId}`);

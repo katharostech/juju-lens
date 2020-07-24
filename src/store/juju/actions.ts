@@ -102,7 +102,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     // TODO: only do this if the URL/username/password has changed
     // If this controller has an open connection
     if (prevController && prevController.controllerWatchHandle) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prevController.controllerWatchHandle.stop((err: any) => {
         if (err) {
           console.error(err);
@@ -144,7 +143,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         password: controller.password
       },
       options,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (err: any, result: any) => {
         if (err) {
           console.error(err);
@@ -158,24 +156,21 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         const controllerConn = result.conn.facades.controller;
 
         // Subscribe to the change-feed
-        const handle = controllerConn.watch(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (err: any, result: any) => {
-            if (err) {
-              console.error(err);
-              return;
-            }
-
-            // Update controller data from change feed
-            for (const delta of result.deltas) {
-              ctx.dispatch(actionTypes.commitControllerDelta, {
-                name,
-                controllerName: name,
-                data: delta
-              });
-            }
+        const handle = controllerConn.watch((err: any, result: any) => {
+          if (err) {
+            console.error(err);
+            return;
           }
-        );
+
+          // Update controller data from change feed
+          for (const delta of result.deltas) {
+            ctx.dispatch(actionTypes.commitControllerDelta, {
+              name,
+              controllerName: name,
+              data: delta
+            });
+          }
+        });
 
         // Update the controller with the connection and listen handle
         controller.conn = controllerConn;
@@ -200,7 +195,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       data: [
         'model' | 'application' | 'machine' | 'unit' | 'charm',
         'change' | 'remove',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         any
       ];
     }
@@ -226,7 +220,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
             password: controller.password
           },
           options,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (err: any, result: any) => {
             if (err) {
               console.error(err);
@@ -269,7 +262,6 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     const controller = ctx.state.controllers[name];
     // Close controller connection if it is open
     if (controller && controller.conn && controller.controllerWatchHandle) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       controller.controllerWatchHandle.stop((err: any) => {
         if (err) {
           console.error(err);

@@ -75,7 +75,6 @@ const mutation: MutationTree<JujuStateInterface> = {
       data: [
         'model' | 'application' | 'machine' | 'unit' | 'charm',
         'change' | 'remove',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         any
       ];
     }
