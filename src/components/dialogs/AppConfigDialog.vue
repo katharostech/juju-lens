@@ -27,9 +27,9 @@
                     <q-item-label caption>
                       {{
                         `${configData.description} — Default: ${
-                          configData.default.length > 25
+                          configData.default && configData.default.length > 25
                             ? configData.default.substr(0, 100) + '...'
-                            : configData.default
+                            : configData.default || '[empty]'
                         }`
                       }}
                     </q-item-label>
@@ -46,13 +46,11 @@
                 <!-- Text or number field -->
                 <q-item tag="label" :key="configName">
                   <q-item-section>
-                    <q-item-label
-                      >{{ configName }} ( {{ configData.type }} )</q-item-label
-                    >
+                    <q-item-label>{{ configName }}</q-item-label>
                     <q-item-label caption>
                       {{
-                        `${configData.description} — Default: Default: ${
-                          configData.default.length > 25
+                        `${configData.description} — Default: ${
+                          configData.default && configData.default.length > 25
                             ? configData.default.substr(0, 100) + '...'
                             : configData.default || '[empty]'
                         }`
@@ -154,7 +152,7 @@ export default class AppConfigDialog extends Vue {
   // The application config
   config: {
     [key: string]: {
-      default: any;
+      default?: any;
       type: string;
       value: any;
       description: string;
