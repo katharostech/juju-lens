@@ -231,7 +231,11 @@ export default class AppConfigDialog extends Vue {
     // Create KV mapping of config values
     const configKv: { [key: string]: any } = {};
     for (const key of Object.keys(this.config)) {
-      configKv[key] = (this.config[key].value || '').toString();
+      if (this.config[key].type != 'boolean') {
+        configKv[key] = (this.config[key].value || '').toString();
+      } else {
+        configKv[key] = this.config[key].value;
+      }
     }
 
     this.saveLoading = true;
