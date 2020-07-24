@@ -1,12 +1,14 @@
 import { Dialog, Notify } from 'quasar';
 import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
-import { JujuStateInterface, Controller } from './state';
+import { JujuStateInterface, Controller, Model } from './state';
 import { mutationTypes } from './mutations';
 import { LocalStorage } from 'quasar';
 import Jujulib from '@canonical/jujulib';
 import allModelWatcherFacade from '@canonical/jujulib/api/facades/all-model-watcher-v2.js';
 import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
+import applicationFacade from '@canonical/jujulib/api/facades/application-v8.js';
+import { getItemId } from './state/utils';
 
 export const actionTypes = {
   // Controllers
@@ -15,6 +17,7 @@ export const actionTypes = {
   updateController: 'updateController',
   deleteController: 'deleteController',
   establishControllerConn: 'establishControllerConn',
+  commitControllerDelta: 'commitControllerDelta',
   // App
   logout: 'logout'
 };
@@ -137,10 +140,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     Jujulib.connectAndLogin(
       `wss://${controller.host}:${controller.port}/api`,
       {
-        user:
-          // There's a nuance with libjuju where you have to put the username as `user-admin`
-          // to log in as `admin`.
-          controller.username == 'admin' ? 'user-admin' : controller.username,
+        user: `user-${controller.username}`,
         password: controller.password
       },
       options,
@@ -162,14 +162,15 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (err: any, result: any) => {
             if (err) {
-              console.log(err);
+              console.error(err);
               return;
             }
 
             // Update controller data from change feed
             for (const delta of result.deltas) {
-              ctx.commit(mutationTypes.updateControllerData, {
+              ctx.dispatch(actionTypes.commitControllerDelta, {
                 name,
+                controllerName: name,
                 data: delta
               });
             }
@@ -185,11 +186,87 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   },
 
   /**
+   * Commit's a delta from the controller all model watcher. There is a corresponding mutation that handles most of the work, but this function must be an action because for models it must open up a websocket connection for the model.
+   */
+  [actionTypes.commitControllerDelta](
+    ctx,
+    {
+      name,
+      controllerName,
+      data: [dataType, mutationType, data]
+    }: {
+      name: string;
+      controllerName: string;
+      data: [
+        'model' | 'application' | 'machine' | 'unit' | 'charm',
+        'change' | 'remove',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        any
+      ];
+    }
+  ) {
+    // If this is a model
+    if (dataType == 'model') {
+      const model = data as Model;
+      const modelId = getItemId(controllerName, model['model-uuid']);
+      const controller = ctx.state.controllers[controllerName];
+
+      // If the model doesn't exist yet
+      if (
+        !controller.models[modelId] ||
+        (controller.models[modelId] && !controller.models[modelId].conn)
+      ) {
+        // Create a Juju API connection
+        const facades = [applicationFacade];
+        const options = { debug: false, facades: facades, wsclass: WebSocket };
+        Jujulib.connectAndLogin(
+          `wss://${controller.host}:${controller.port}/model/${model['model-uuid']}/api`,
+          {
+            user: `user-${controller.username}`,
+            password: controller.password
+          },
+          options,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (err: any, result: any) => {
+            if (err) {
+              console.error(err);
+
+              // Try again in a second
+              setTimeout(() => {
+                ctx.dispatch(actionTypes.commitControllerDelta, {
+                  name,
+                  controllerName,
+                  data: [dataType, mutationType, data]
+                });
+              }, 1000);
+              return;
+            }
+
+            // Add the connection to the model data
+            model.conn = result;
+
+            // Apply the mutation to the state
+            ctx.commit(mutationTypes.commitControllerDelta, {
+              name,
+              data: [dataType, mutationType, data]
+            });
+          }
+        );
+      }
+    }
+
+    // Apply the mutation to the state
+    ctx.commit(mutationTypes.commitControllerDelta, {
+      name,
+      data: [dataType, mutationType, data]
+    });
+  },
+
+  /**
    * Delete a controller
    */
   [actionTypes.deleteController](ctx, name: string) {
     const controller = ctx.state.controllers[name];
-    console.log;
     // Close controller connection if it is open
     if (controller && controller.conn && controller.controllerWatchHandle) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

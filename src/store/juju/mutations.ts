@@ -18,7 +18,7 @@ export const mutationTypes = {
   setControllers: 'setControllers',
   updateController: 'updateController',
   deleteController: 'deleteController',
-  updateControllerData: 'updateControllerData',
+  commitControllerDelta: 'commitControllerDelta',
   // Clear state
   clearState: 'clearState'
 };
@@ -65,7 +65,7 @@ const mutation: MutationTree<JujuStateInterface> = {
    * by the output of the `AllModelWatcher` Facade's `next()` function:
    * https://github.com/juju/js-libjuju/blob/master/api/doc/all-model-watcher-v2.md
    */
-  [mutationTypes.updateControllerData](
+  [mutationTypes.commitControllerDelta](
     state,
     {
       name,

@@ -32,6 +32,9 @@ export interface Model {
   'is-controller': boolean;
   config: { [key: string]: string };
   status: Status;
+  /** The Juju API connection to the model */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  conn: any;
   // TODO: sla, constraints
 }
 
