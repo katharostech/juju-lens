@@ -234,7 +234,7 @@ export default class AppConfigDialog extends Vue {
       if (this.config[key].type != 'boolean') {
         configKv[key] = (this.config[key].value || '').toString();
       } else {
-        configKv[key] = this.config[key].value;
+        configKv[key] = this.config[key].value ? 'true' : 'false';
       }
     }
 
