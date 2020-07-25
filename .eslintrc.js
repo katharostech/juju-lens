@@ -78,6 +78,7 @@ module.exports = {
 
     // TypeScript
     'quotes': ['warn', 'single'],
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
 
     // allow debugger during development only
