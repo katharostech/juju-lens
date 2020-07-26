@@ -1,0 +1,58 @@
+{
+  "build": {
+    "distDir": "../dist/spa",
+    "devPath": "http://127.0.0.1:8080",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "withGlobalTauri": false
+  },
+  "ctx": {},
+  "tauri": {
+    "embeddedServer": {
+      "active": true
+    },
+    "bundle": {
+      "active": true,
+      "targets": ["msi", "osx", "appimage"],
+      "identifier": "com.katharostech.juju.JujuLens",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": [],
+      "externalBin": [],
+      "copyright": "© Katharos Technology & Contributors",
+      "category": "DeveloperTool",
+      "shortDescription": "The Juju Lens Juju administration tool",
+      "longDescription": "The Juju Lens Juju administration tool",
+      "osx": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "useBootstrapper": false
+      },
+      "exceptionDomain": ""
+    },
+    "allowlist": {
+      "all": true
+    },
+    "window": {
+      "title": "Juju Lens",
+      "width": 800,
+      "height": 600,
+      "resizable": true,
+      "fullscreen": false
+    },
+    "edge": {
+      "active": true
+    },
+    "security": {
+      "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
+    },
+    "inliner": {
+      "active": true
+    }
+  }
+}

@@ -16,6 +16,7 @@
     "@quasar/extras": "^1.0.0",
     "axios": "^0.18.1",
     "quasar": "^1.9.5",
+    "tauri": "^0.10.0",
     "vue-class-component": "^7.2.2",
     "vue-property-decorator": "^8.3.0"
   },
