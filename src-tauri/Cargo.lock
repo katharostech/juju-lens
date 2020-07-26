@@ -1143,9 +1143,9 @@ dependencies = [
 
 [[package]]
 name = "tauri"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f72daab05746b62b1301359299c04c073d0301ddbdf694c8df1d9a8099b71289"
+checksum = "61e67bf642da5e545bbf16a4c8a7b614fda3aa71d7d5bf095d1ce0a2b0202527"
 dependencies = [
  "anyhow",
  "base64 0.12.3",
@@ -1485,9 +1485,9 @@ dependencies = [
 
 [[package]]
 name = "webview_official"
-version = "0.0.1"
+version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6572132855073d999a06a56f7e8b9d26959923d74c4f30503507b698f556fe1"
+checksum = "de1c583624ad3f9b0ae07567cf1629d169bdda3ec84cc336027d5694e643c6e8"
 dependencies = [
  "cc",
  "pkg-config",
