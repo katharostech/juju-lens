@@ -36,7 +36,16 @@
       "exceptionDomain": ""
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "event": true,
+      "execute": false,
+      "listFiles": false,
+      "open": false,
+      "readBinaryFile": false,
+      "readTextFile": false,
+      "setTitle": false,
+      "writeFile": false,
+      "notification": true
     },
     "window": {
       "title": "Juju Lens",
@@ -46,7 +55,7 @@
       "fullscreen": false
     },
     "security": {
-      "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
+      "csp": "default-src data: localhost:* 127.0.0.1:*"
     },
     "inliner": {
       "active": true
