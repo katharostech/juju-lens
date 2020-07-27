@@ -1,12 +1,18 @@
 {
   "extends": "@quasar/app/tsconfig-preset",
-  "exclude": ["src/statics"],
+  "exclude": [
+    "src/statics",
+    "*gitignore*",
+    "src-tauri"
+  ],
   "compilerOptions": {
     "experimentalDecorators": true,
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "store*": ["src/store*"]
+      "store*": [
+        "src/store*"
+      ]
     }
   }
 }
