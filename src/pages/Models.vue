@@ -408,7 +408,7 @@
                                     `box-shadow: 0 0 4px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%; width: 2.5em;`
                                   "
                                   class="hover-grow"
-                                  @click="
+                                  @click.native="
                                     activeApplicationId = model.applications.filter(
                                       app => unit.name.startsWith(app.name)
                                     )[0].lensId;
