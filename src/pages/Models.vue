@@ -295,9 +295,10 @@
                                       self="bottom middle"
                                       content-style="font-size: 0.8rem;"
                                     >
+                                      {{ unit.name }}:
                                       {{
                                         unit['workload-status'].message ||
-                                          `status: ${unit['workload-status'].current}`
+                                          unit['workload-status'].current
                                       }}
                                     </q-tooltip>
                                     <!-- Unit dot context menu -->
@@ -404,7 +405,7 @@
                                   :key="unit.name"
                                   :src="unit.charmIconUrl"
                                   :style="
-                                    `box-shadow: 0 0 8px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%;`
+                                    `box-shadow: 0 0 4px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%;`
                                   "
                                   width="2.5em"
                                   class="hover-grow"
@@ -420,6 +421,7 @@
                                     self="bottom middle"
                                     content-style="font-size: 0.8em"
                                   >
+                                    {{ unit.name }}:
                                     {{
                                       unit['workload-status'].message ||
                                         unit['workload-status'].current
