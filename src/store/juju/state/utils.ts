@@ -4,7 +4,8 @@ import {
   UnitStatusSeverity,
   UnitStatusSeverityString,
   Unit,
-  ControllerData
+  ControllerData,
+  Machine
 } from '.';
 
 /**
@@ -33,6 +34,7 @@ export interface FilledModel extends Model {
   applications: FilledApplication[];
   statusIcon: StatusIcon;
   statusSeverity: UnitStatusSeverityString;
+  machines: FilledMachine[];
 }
 
 export interface FilledApplication extends Application {
@@ -47,6 +49,11 @@ export interface FilledApplication extends Application {
 
 export interface FilledUnit extends Unit {
   statusIcon: StatusIcon;
+  charmIconUrl: string;
+}
+
+export interface FilledMachine extends Machine {
+  units: FilledUnit[];
 }
 
 export interface StatusIcon {
@@ -101,9 +108,10 @@ export function unitStatusSeverityIcon(
 }
 
 /** Fill in unit data such as status icon and  */
-export function fillUnit(unit: Unit): FilledUnit {
+export function fillUnit(unit: Unit, charmIconUrl: string): FilledUnit {
   return {
     statusIcon: unitStatusSeverityIcon(unit['workload-status'].current, true),
+    charmIconUrl,
     ...unit
   };
 }
@@ -123,6 +131,12 @@ export function fillApp(
   const app = controller.applications[appId];
   let units: FilledUnit[] = [];
 
+  // Convert the "charm-url" to a linke to the charm store
+  let charmStoreUrl = app['charm-url'].replace('cs:', 'https://jaas.ai/');
+  charmStoreUrl = charmStoreUrl.replace('~', 'u/');
+  charmStoreUrl = charmStoreUrl.replace('-', '/');
+  const charmIconUrl = getCharmIcon(app['charm-url']);
+
   for (const unitName in controller.units) {
     const unit = controller.units[unitName];
 
@@ -130,7 +144,7 @@ export function fillApp(
       unit.name.startsWith(app.name) &&
       unit['model-uuid'] == app['model-uuid']
     ) {
-      units.push(fillUnit(unit));
+      units.push(fillUnit(unit, charmIconUrl));
     }
 
     units = units.sort(
@@ -145,13 +159,8 @@ export function fillApp(
   // the list.
   const statusSeverity = units.map(x => x['workload-status'].current)[0];
 
-  // Convert the "charm-url" to a linke to the charm store
-  let charmStoreUrl = app['charm-url'].replace('cs:', 'https://jaas.ai/');
-  charmStoreUrl = charmStoreUrl.replace('~', 'u/');
-  charmStoreUrl = charmStoreUrl.replace('-', '/');
-
   return {
-    charmIconUrl: getCharmIcon(app['charm-url']),
+    charmIconUrl,
     charmStoreUrl,
     units: units,
     statusIcon: unitStatusSeverityIcon(statusSeverity),
@@ -184,11 +193,29 @@ export function fillModel(
 
   const statusSeverity = apps.map(x => x.statusSeverity)[0];
 
+  // Collect the filled units out of the apps
+  const filledUnits = apps
+    .map(app => app.units)
+    .reduce((acc, x) => acc.concat(x), []);
+
+  const machines: FilledMachine[] = [];
+  for (const machineName in controller.machines) {
+    const machine = controller.machines[machineName];
+
+    if (machine['model-uuid'] == model['model-uuid']) {
+      machines.push({
+        units: filledUnits.filter(x => x['machine-id'] == machine.id),
+        ...machine
+      });
+    }
+  }
+
   return {
     statusSeverity: statusSeverity || 'active',
     statusIcon: unitStatusSeverityIcon(statusSeverity),
     applications: apps,
     controller: controllerName,
+    machines,
     ...model
   };
 }

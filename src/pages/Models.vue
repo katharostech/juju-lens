@@ -380,7 +380,56 @@
 
                       <!-- Machines List -->
                       <q-tab-panel name="machines">
-                        <div class="text-h5">Machine List Comming Soon!</div>
+                        <div class="row items-start q-col-gutter-md">
+                          <div
+                            class="col-12 col-sm-6 col-md-4 col-lg-3"
+                            v-for="machine in model.machines"
+                            :key="machine.id"
+                          >
+                            <q-card>
+                              <q-card-section>
+                                <!-- FIXME: Determine the proper addresses to select for the public address -->
+                                <div class="text-body1">
+                                  <div class="text-weight-bold">
+                                    Machine: {{ machine.id }}
+                                  </div>
+                                  {{ machine.addresses[0].value }}
+                                </div>
+                              </q-card-section>
+                              <q-card-section
+                                class="row q-pa-sm q-pb-md q-gutter-sm"
+                              >
+                                <q-img
+                                  v-for="unit in machine.units"
+                                  :key="unit.name"
+                                  :src="unit.charmIconUrl"
+                                  :style="
+                                    `box-shadow: 0 0 8px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%;`
+                                  "
+                                  width="2.5em"
+                                  class="hover-grow"
+                                  @click="
+                                    activeApplicationId = model.applications.filter(
+                                      app => unit.name.startsWith(app.name)
+                                    )[0].lensId;
+                                    showFooter();
+                                  "
+                                >
+                                  <q-tooltip
+                                    anchor="top middle"
+                                    self="bottom middle"
+                                    content-style="font-size: 0.8em"
+                                  >
+                                    {{
+                                      unit['workload-status'].message ||
+                                        unit['workload-status'].current
+                                    }}
+                                  </q-tooltip>
+                                </q-img>
+                              </q-card-section>
+                            </q-card>
+                          </div>
+                        </div>
                       </q-tab-panel>
                     </q-tab-panels>
                   </div>
@@ -392,7 +441,6 @@
 
         <!-- Application info Footer -->
         <div
-          v-if="tab == 'applications'"
           :style="{
             height: footerVisible ? `${footerHeight}%` : '0%',
             transition: footerTransitioning
@@ -1120,6 +1168,12 @@ export default class Index extends Vue {
       display none !important
 
   $model-machine-tabs-breakpoint=515px
+
+  .hover-grow
+    transition all 0.2s
+
+    &:hover
+      transform scale(1.1)
 
   .avatar-stack
     .q-avatar
