@@ -7,6 +7,7 @@ steps:
   - name: build
     image: node:10-alpine
     commands:
+      - apk add --no-cache g++ make zlib-dev
       - yarn install --frozen-lockfile
       - npx quasar build --modern
   # Release to GitHub pages
