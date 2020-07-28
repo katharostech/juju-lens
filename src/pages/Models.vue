@@ -899,6 +899,7 @@ export default class Index extends Vue {
   }
 
   get activeApplicationUnitsColumns() {
+    // TODO: Column widths are not taken into account for some reason 
     return [
       {
         name: 'name',
@@ -930,7 +931,7 @@ export default class Index extends Vue {
         field: (row: Unit) => row['workload-status'].current,
         sort: (a: UnitStatusSeverityString, b: UnitStatusSeverityString) =>
           UnitStatusSeverity[b] - UnitStatusSeverity[a],
-        headerStyle: 'width: 5em',
+        headerStyle: 'width: 5em', 
         align: 'left',
         sortable: true
       },
