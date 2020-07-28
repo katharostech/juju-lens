@@ -400,14 +400,13 @@
                               <q-card-section
                                 class="row q-pa-sm q-pb-md q-gutter-sm"
                               >
-                                <q-img
+                                <charm-icon
                                   v-for="unit in machine.units"
                                   :key="unit.name"
                                   :src="unit.charmIconUrl"
                                   :style="
-                                    `box-shadow: 0 0 4px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%;`
+                                    `box-shadow: 0 0 4px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%; width: 2.5em;`
                                   "
-                                  width="2.5em"
                                   class="hover-grow"
                                   @click="
                                     activeApplicationId = model.applications.filter(
@@ -427,7 +426,7 @@
                                         unit['workload-status'].current
                                     }}
                                   </q-tooltip>
-                                </q-img>
+                                </charm-icon>
                               </q-card-section>
                             </q-card>
                           </div>
@@ -899,7 +898,7 @@ export default class Index extends Vue {
   }
 
   get activeApplicationUnitsColumns() {
-    // TODO: Column widths are not taken into account for some reason 
+    // TODO: Column widths are not taken into account for some reason
     return [
       {
         name: 'name',
@@ -931,7 +930,7 @@ export default class Index extends Vue {
         field: (row: Unit) => row['workload-status'].current,
         sort: (a: UnitStatusSeverityString, b: UnitStatusSeverityString) =>
           UnitStatusSeverity[b] - UnitStatusSeverity[a],
-        headerStyle: 'width: 5em', 
+        headerStyle: 'width: 5em',
         align: 'left',
         sortable: true
       },
