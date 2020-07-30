@@ -19,7 +19,7 @@ export default class App extends Vue {
 
   async created(): Promise<void> {
     // Set the dark theme from the local storage
-    const darkMode = this.$q.localStorage.getItem('darkMode');
+    const darkMode = window.appLocalStorage.getItem('darkMode');
     if (
       darkMode != null &&
       (typeof darkMode == 'boolean' || darkMode == 'auto')

@@ -3,7 +3,6 @@ import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
 import { JujuStateInterface, Controller, Model } from './state';
 import { mutationTypes } from './mutations';
-import { LocalStorage } from 'quasar';
 import Jujulib from '@canonical/jujulib';
 import allModelWatcherFacade from '@canonical/jujulib/api/facades/all-model-watcher-v2.js';
 import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
@@ -47,7 +46,7 @@ function persistControllerState(state: JujuStateInterface) {
     controllers
   };
 
-  LocalStorage.set(JUJU_LOCAL_STORE_NAME, data);
+  window.appLocalStorage.setItem(JUJU_LOCAL_STORE_NAME, data);
 }
 
 const actions: ActionTree<JujuStateInterface, StoreInterface> = {
@@ -70,7 +69,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    * Load controller data
    */
   [actionTypes.loadControllers](ctx) {
-    const localStore: JujuStateInterface = LocalStorage.getItem(
+    const localStore: JujuStateInterface = window.appLocalStorage.getItem(
       JUJU_LOCAL_STORE_NAME
     ) as JujuStateInterface;
 

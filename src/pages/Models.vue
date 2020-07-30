@@ -776,7 +776,7 @@ import { FloatingWindowKind } from 'store/app/state';
 import { actionTypes as appActionTypes } from 'store/app/actions';
 const app = namespace('app');
 
-import { scroll, dom, QScrollArea, LocalStorage } from 'quasar';
+import { scroll, dom, QScrollArea } from 'quasar';
 const { offset } = dom;
 const { setScrollPosition } = scroll;
 
@@ -851,17 +851,17 @@ export default class Index extends Vue {
 
   created(): void {
     // Load the sort models preference
-    const sortModelsBy = LocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
+    const sortModelsBy = window.appLocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
     if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
       this.sortModelsBy = sortModelsBy;
     }
 
     // Load the unitVisibleColuns preference
-    const unitVisibleColumns = LocalStorage.getItem(
+    const unitVisibleColumns = window.appLocalStorage.getItem(
       UNIT_VISIBLE_COLUMNS_STORAGE_KEY
     );
     if (unitVisibleColumns) {
-      this.unitVisibleColumns = unitVisibleColumns as any;
+      this.unitVisibleColumns = unitVisibleColumns;
     }
 
     // Scroll to the app for a unit specified by route if necessary
@@ -894,7 +894,7 @@ export default class Index extends Vue {
 
   @Watch('unitVisibleColumns')
   onUnitVisibleColumnsChange(): void {
-    LocalStorage.set(UNIT_VISIBLE_COLUMNS_STORAGE_KEY, this.unitVisibleColumns);
+    window.appLocalStorage.setItem(UNIT_VISIBLE_COLUMNS_STORAGE_KEY, this.unitVisibleColumns);
   }
 
   get activeApplicationUnitsColumns() {
@@ -1064,7 +1064,7 @@ export default class Index extends Vue {
 
   @Watch('sortModelsBy')
   onSortModelsByChange(value: string): void {
-    LocalStorage.set(SORT_MODELS_LOCAL_STORAGE_KEY, value);
+    window.appLocalStorage.setItem(SORT_MODELS_LOCAL_STORAGE_KEY, value);
   }
 
   scrollToElement(el: HTMLElement) {

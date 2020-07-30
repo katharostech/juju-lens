@@ -4,7 +4,7 @@
     "devPath": "http://127.0.0.1:8080",
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "withGlobalTauri": false
+    "withGlobalTauri": true
   },
   "ctx": {},
   "tauri": {
@@ -55,7 +55,7 @@
       "fullscreen": false
     },
     "security": {
-      "csp": "default-src data: localhost:* 127.0.0.1:*"
+      "csp": "default-src data: localhost:* 127.0.0.1:* 'unsafe-inline' 'unsafe-eval'"
     },
     "inliner": {
       "active": true

@@ -35,7 +35,7 @@ export default class DarkModeToggle extends Vue {
   setDarkMode(mode: boolean | 'auto'): void {
     this.$q.dark.set(mode);
     try {
-      this.$q.localStorage.set('darkMode', mode);
+      window.appLocalStorage.setItem('darkMode', mode);
     } catch (e) {
       console.error(e);
     }

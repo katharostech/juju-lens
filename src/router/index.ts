@@ -2,7 +2,6 @@ import { route } from 'quasar/wrappers';
 import VueRouter from 'vue-router';
 import { StoreInterface } from '../store';
 import routes from './routes';
-import { LocalStorage } from 'quasar';
 
 /*
  * If not building with SSR mode, you can
@@ -28,7 +27,7 @@ export default route<StoreInterface>(function({ Vue }) {
   Router.beforeEach((to, _from, next) => {
     // If this is the first time the user has visited the site
     if (
-      !LocalStorage.getItem(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY) &&
+      !window.appLocalStorage.getItem(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY) &&
       to.name != 'welcome'
     ) {
       // Go to the welcome page
@@ -39,7 +38,7 @@ export default route<StoreInterface>(function({ Vue }) {
 
       try {
         // Set the cookie indicating that they have been here before
-        LocalStorage.set(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY, 'true');
+        window.appLocalStorage.setItem(SEEN_JUJU_GUI_LOCAL_STORAGE_KEY, true);
       } catch (e) {
         console.error(e);
       }

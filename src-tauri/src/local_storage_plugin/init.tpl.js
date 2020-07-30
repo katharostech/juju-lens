@@ -1,21 +1,46 @@
-// Local storage init script template
-//
-// this whole file will be evaluated as a rust format string which means that
-// curly braces are escaped by doubling them.
+// Local storage init script
 
-// Get the data ( substituted from Rust )
-const localData = {data};
+const tauriLocalStorageInit = () => {
+  /**
+   * Create the fake local storage object. This is designed to act essentially
+   * the same as the browsers localStorage object, but it's not perfect, just
+   * good enough.
+   */
+  window.tauriLocalStorage = {
+    get length() {
+      return Object.keys(this._data).length;
+    },
+    key(n) {
+      return Object.keys(this._data)[n];
+    },
+    getItem(key) {
+      return this._data[key];
+    },
+    setItem(key, value) {
+      __TAURI__.tauri.invoke({
+        cmd: 'tauriLocalStorageSetItem',
+        key,
+        value: value.toString()
+      });
+      this._data[key] = value.toString();
+    },
+    removeItem(key) {
+      delete this._data[key];
+      __TAURI__.tauri.invoke({
+        cmd: 'tauriLocalStorageRemove',
+        key
+      });
+    },
+    clear() {
+      this._data = {};
+      __TAURI__.tauri.invoke({
+        cmd: 'tauriLocalStorageClear'
+      });
+    },
+    // Get the data ( substituted from Rust )
+    _data: '{{data}}'
+  };
+};
 
-// Clear any previous data ( prevents picking up data from other apps )
-window.localStorage.clear();
-
-// Add the data to the local storage
-for (const key in Object.keys(localData)) {{
-  window.localStorage.setItem(key, localData[key]);
-}}
-
-// Add event listener to persit localStorage on exit
-window.addEventListener(
-  'unload',
-  () => window.__TAURI_INVOKE_HANDLER__({{cmd: 'localStoreSetAll', data: window.localStorage}})
-);
+tauriLocalStorageInit();
+delete tauriLocalStorageInit;

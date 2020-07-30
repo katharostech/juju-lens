@@ -17,7 +17,7 @@ module.exports = configure(function(ctx) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli/cli-documentation/boot-files
-    boot: ['axios'],
+    boot: ['axios', 'localStorage'],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
     css: ['app.styl'],
@@ -54,7 +54,7 @@ module.exports = configure(function(ctx) {
       directives: [],
 
       // Quasar plugins
-      plugins: ['Dialog', 'LocalStorage', 'Notify'],
+      plugins: ['Dialog', 'Notify'],
 
       config: {
         dark: 'auto',
