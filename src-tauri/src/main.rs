@@ -3,8 +3,8 @@
   windows_subsystem = "windows"
 )]
 
-mod cmd;
 mod local_storage_plugin;
+mod websocket_plugin;
 
 fn main() {
   tauri::AppBuilder::new()
