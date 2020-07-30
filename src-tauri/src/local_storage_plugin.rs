@@ -67,6 +67,7 @@ impl Plugin for LocalStorage {
     match serde_json::from_str(payload) {
       Err(_) => Ok(false),
       Ok(command) => {
+        // TODO: Make these commands asynchronous?
         match command {
           // Persist local storage
           TauriLocalStorageSetItem { key, value } => run_with_config_file(|mut config_file| {
