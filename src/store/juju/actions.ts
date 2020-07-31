@@ -134,7 +134,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     }
 
     const facades = [allModelWatcherFacade, controllerFacade];
-    const options = { debug: false, facades: facades, wsclass: WebSocket };
+    const options = { debug: false, facades: facades };
     Jujulib.connectAndLogin(
       `wss://${controller.host}:${controller.port}/api`,
       {
@@ -211,7 +211,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       ) {
         // Create a Juju API connection
         const facades = [applicationFacade];
-        const options = { debug: false, facades: facades, wsclass: WebSocket };
+        const options = { debug: false, facades: facades };
         Jujulib.connectAndLogin(
           `wss://${controller.host}:${controller.port}/model/${model['model-uuid']}/api`,
           {

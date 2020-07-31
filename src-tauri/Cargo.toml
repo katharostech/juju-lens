@@ -15,6 +15,17 @@ serde = { version = "1.0", features = [ "derive" ] }
 tauri = { version = "0.9", features = [ "all-api" ] }
 tauri-api = "0.7.3"
 anyhow = "1.0.32"
+async-native-tls = "0.3.3"
+tungstenite = "0.11.0"
+url = "2.1.1"
+async-tungstenite = "0.8.0"
+native-tls = "0.2.4"
+futures = "0.3.5"
+async-channel = "1.2.0"
+async-executor = "0.1.2"
+tracing = "0.1.17"
+tracing-subscriber = "0.2.9"
+smol = "0.3.3"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"

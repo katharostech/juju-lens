@@ -1,7 +1,7 @@
 //! A Tauri plugin that provides a `window.localStorage`-like interface to an
 //! app-specific file in the users config dir.
 
-use anyhow::Context;
+use anyhow::Context as _;
 use tauri::plugin::Plugin;
 use tauri::Webview;
 use tauri_api::config::get as get_config;
@@ -82,7 +82,7 @@ impl Plugin for LocalStorage {
   fn extend_api(&self, _webview: &mut Webview<'_>, payload: &str) -> Result<bool, String> {
     use Command::*;
     // Parse the incomming payload as a command
-    match serde_json::from_str(payload) {
+    match serde_json::from_str::<Command>(payload) {
       Err(_) => Ok(false),
       Ok(command) => {
         // TODO: Make these commands asynchronous?
