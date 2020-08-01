@@ -22,6 +22,11 @@ a
 body.body--light
   background-color $grey-1
 
+// Hide the +/- buttons on number text fields in Tauri on WebKit
+// input[type=number]::-webkit-inner-spin-button,
+input[type=number]
+  -webkit-appearance none
+
 // This isn't that valuable and caused problems on chrome so taking it out for now
 // Make dark theme switch smooth
 //*
