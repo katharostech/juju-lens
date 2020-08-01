@@ -851,7 +851,9 @@ export default class Index extends Vue {
 
   created(): void {
     // Load the sort models preference
-    const sortModelsBy = window.appLocalStorage.getItem(SORT_MODELS_LOCAL_STORAGE_KEY);
+    const sortModelsBy = window.appLocalStorage.getItem(
+      SORT_MODELS_LOCAL_STORAGE_KEY
+    );
     if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
       this.sortModelsBy = sortModelsBy;
     }
@@ -894,7 +896,10 @@ export default class Index extends Vue {
 
   @Watch('unitVisibleColumns')
   onUnitVisibleColumnsChange(): void {
-    window.appLocalStorage.setItem(UNIT_VISIBLE_COLUMNS_STORAGE_KEY, this.unitVisibleColumns);
+    window.appLocalStorage.setItem(
+      UNIT_VISIBLE_COLUMNS_STORAGE_KEY,
+      this.unitVisibleColumns
+    );
   }
 
   get activeApplicationUnitsColumns() {
@@ -1188,19 +1193,29 @@ export default class Index extends Vue {
       .q-avatar:not(:first-child)
         margin-left inherit
 
+  // This is slightly tricky, and unfortunately may not be stable across Quasar updates,
+  // but these styles make sure that the q-select looks fine at a height of only 1.7em
   .app-details-footer__column-select
-      height: 1em;
-
-      .q-field__marginal
-        height 1em !important
+      height 1.7em
 
       .q-field__control
-        height 1em
+        height 1.7em
         min-height 1.7em !important
 
+      .q-field__control-container
+        margin 0
+
       .q-field__native
-        margin-top -0.3em
-        min-height 1.5em
+        min-height 1.7em !important
+        height 1.7em !important
+        padding-top 0
+        padding-bottom 0
+
+      .q-field__append
+        min-height 1em !important
+        height 1em !important
+        padding-top 0
+        padding-bottom 0
 
   .active-application-row
     .body--light &
