@@ -1,7 +1,7 @@
 <template>
   <!-- This is 'absolute fit' so that the loading overlow covers the whole page -->
   <div class="controllers absolute fit flex items-stretch">
-    <div class="q-pa-xs fit column">
+    <div class="q-pa-xs fit column no-wrap">
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row q-mt-sm">
         <q-toolbar-title style="font-size: 1.5rem">Controllers</q-toolbar-title>

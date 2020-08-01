@@ -137,7 +137,7 @@
       @mouseover="expandTaskbar"
       @mouseout="collapseTaskbar"
     >
-      <div class="column fit">
+      <div class="column fit no-wrap">
         <q-scroll-area
           class="col"
           :thumb-style="{
