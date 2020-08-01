@@ -136,6 +136,10 @@ export interface Controller extends ControllerData {
   port: number;
   username: string;
   password: string;
+  /** Whether to skip validation of the controller's HTTPS certificate. Only has
+   * an effect when running in Tauri, where we have direct control over the
+   * certificate trust. */
+  insecure: boolean;
 
   // TODO: static type
   /** The controller API connection */

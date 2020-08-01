@@ -55,7 +55,7 @@
       "fullscreen": false
     },
     "security": {
-      "csp": "default-src data: localhost:* 127.0.0.1:* 'unsafe-inline' 'unsafe-eval'; img-src localhost:* 127.0.0.1:* data: api.jujucharms.com"
+      "csp": "default-src data: ws: localhost:* 127.0.0.1:* 'unsafe-inline' 'unsafe-eval'; img-src localhost:* 127.0.0.1:* data: api.jujucharms.com"
     },
     "inliner": {
       "active": true

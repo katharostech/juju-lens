@@ -9,4 +9,5 @@ interface Window {
   tauriLocalStorage: any;
   appLocalStorage: any;
   TauriWebSocketInsecure: any;
+  TauriWebSocket: any;
 }

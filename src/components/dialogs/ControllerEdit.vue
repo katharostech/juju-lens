@@ -47,6 +47,19 @@
               lazy-rules
             />
           </div>
+          <q-item v-if="isTauriApp">
+            <q-item-section avatar top>
+              <q-checkbox v-model="insecure" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Insecure</q-item-label>
+              <q-item-label caption
+                >Insecure mode allows you to connect to development controllers
+                with self-signed certificates. Do not use this for production
+                controllers!
+              </q-item-label>
+            </q-item-section>
+          </q-item>
           <q-input
             label="Username"
             v-model="username"
@@ -129,6 +142,11 @@ export default class ControllerEdit extends Vue {
   port = 443;
   username: string | null = null;
   password: string | null = null;
+  insecure = false;
+
+  get isTauriApp(): boolean {
+    return !!window.__TAURI__;
+  }
 
   get inputColor(): string {
     return this.$q.dark.isActive ? 'secondary' : 'primary';
@@ -151,6 +169,7 @@ export default class ControllerEdit extends Vue {
       this.host = this.controller.host;
       this.port = this.controller.port;
       this.username = this.controller.username;
+      this.insecure = this.controller.insecure;
     }
 
     (this.$refs.dialog as any).show();
@@ -174,6 +193,8 @@ export default class ControllerEdit extends Vue {
       port: this.port,
       username: this.username!,
       password: this.password!,
+      // Set insecure to the selected value, or false if not in a Tauri app
+      insecure: window.__TAURI__ ? this.insecure : false,
       models: {},
       machines: {},
       applications: {},

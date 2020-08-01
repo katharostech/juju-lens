@@ -37,7 +37,8 @@ function persistControllerState(state: JujuStateInterface) {
       username: state.controllers[controller].username,
       password: state.controllers[controller].password,
       host: state.controllers[controller].host,
-      port: state.controllers[controller].port
+      port: state.controllers[controller].port,
+      insecure: state.controllers[controller].insecure
     };
   }
 
@@ -138,7 +139,9 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       debug: false,
       facades: facades,
       wsclass: window.__TAURI__
-        ? window.TauriWebSocketInsecure
+        ? controller.insecure
+          ? window.TauriWebSocketInsecure
+          : window.TauriWebSocket
         : window.WebSocket
     };
     Jujulib.connectAndLogin(
