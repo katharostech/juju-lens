@@ -148,11 +148,11 @@ impl Plugin for WebsocketPlugin {
 
                 // Try to connect to the websocket endpoint
                 match connect(&url, tls).await {
-                  Ok((mut stream, resp)) => {
+                  Ok((mut stream, _resp)) => {
                     debug!("Connected to websocket: {}", url);
 
                     // Run the JS open callback
-                    run_js_callback(webview.clone(), open_callback, format!("'{:?}'", resp));
+                    run_js_callback(webview.clone(), open_callback, format!("{}", Value::Null));
 
                     // Loop through incomming messages
                     loop {
@@ -261,10 +261,7 @@ fn websocket_message_handler(
       // Handle received message
       Ok(message) => run_js_callback(webview.clone(), message_callback, {
         match message {
-          Message::Text(m) => format!(
-            "{{ data: {} }}",
-            serde_json::to_string(&m).expect("Failed to serialize a plain string!")
-          ),
+          Message::Text(m) => format!("{{ data: {} }}", Value::String(m)),
           _ => {
             // TODO: Implement other message types
             log_error("Message type not implemented", webview.clone());
@@ -337,8 +334,8 @@ fn run_js_callback(mut webview: WebviewMut, callback: String, payloadjs: String)
   webview
     .dispatch(move |webview| {
       let code = format!(
-        "window['{callback}']({payloadjs})",
-        callback = callback,
+        "window[{callback}]({payloadjs})",
+        callback = Value::String(callback),
         payloadjs = payloadjs,
       );
       trace!("Running JS: {}", code);
