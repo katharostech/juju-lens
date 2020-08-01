@@ -262,7 +262,7 @@ fn websocket_message_handler(
       Ok(message) => run_js_callback(webview.clone(), message_callback, {
         match message {
           Message::Text(m) => format!(
-            "{}",
+            "{{ data: {} }}",
             serde_json::to_string(&m).expect("Failed to serialize a plain string!")
           ),
           _ => {
