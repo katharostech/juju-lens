@@ -380,8 +380,19 @@
                       </q-tab-panel>
 
                       <!-- Machines List -->
-                      <q-tab-panel name="machines">
-                        <div class="row items-start q-col-gutter-md">
+                      <q-tab-panel
+                        name="machines"
+                        :style="{
+                          // Remove padding for empty machine list
+                          padding: model.machines.length < 1 ? '0' : undefined
+                        }"
+                      >
+                        <div
+                          class="row items-start"
+                          :class="{
+                            'q-col-gutter-md': model.machines.length > 1
+                          }"
+                        >
                           <div
                             class="col-12 col-sm-6 col-md-4 col-lg-3"
                             v-for="machine in model.machines"
@@ -430,6 +441,13 @@
                               </q-card-section>
                             </q-card>
                           </div>
+                          <q-list
+                            bordered
+                            v-if="model.machines.length < 1"
+                            class="text-center q-pa-sm text-body1 full-width"
+                          >
+                            This model has no machines.
+                          </q-list>
                         </div>
                       </q-tab-panel>
                     </q-tab-panels>
