@@ -7,7 +7,10 @@
           <!-- Controller name -->
           <div class="text-h6">
             <q-icon :name="headingIcon" class="on-left" />
-            {{ heading }}
+            <router-link v-if="headingLink" :to="headingLink" style="text-decoration: none">
+              {{ heading }}
+            </router-link>
+            <span v-else>{{ heading }}</span>
           </div>
           <div class="text-subtitle2 row">
             <!-- Info items -->
@@ -76,6 +79,7 @@ import { Vue, Component, Prop } from 'vue-property-decorator';
 })
 export default class ResourceCard extends Vue {
   @Prop({ type: String, default: '' }) readonly heading!: string;
+  @Prop({ default: null }) readonly headingLink!: string | object | null;
   @Prop({ type: String, default: null }) readonly headingIcon!: string | null;
   @Prop({ type: Array, default: [] }) readonly infoItems!: {
     icon: string;

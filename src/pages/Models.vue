@@ -771,6 +771,7 @@ import {
 } from 'store/juju/state';
 import { FilledModel, FilledApplication } from 'store/juju/state/utils';
 const juju = namespace('juju');
+import { actionTypes as jujuActionTypes } from 'store/juju/actions';
 
 import { FloatingWindowKind } from 'store/app/state';
 import { actionTypes as appActionTypes } from 'store/app/actions';
@@ -791,6 +792,9 @@ const UNIT_VISIBLE_COLUMNS_STORAGE_KEY = 'unitVisibleColumns';
 })
 export default class Index extends Vue {
   @juju.State currentController!: 'All' | string;
+  @juju.Action(jujuActionTypes.setCurrentController) setCurrentController!: (
+    controller: 'All' | string
+  ) => Promise<undefined>;
   @juju.State controllers!: { [key: string]: Controller };
   @juju.Getter('currentControllerModelsFilled')
   controllerModels!: FilledModel[];
@@ -850,10 +854,16 @@ export default class Index extends Vue {
   }
 
   created(): void {
+    // Filter by specific controller if the route has the `controller` query
+    if (this.$route.query['controller']) {
+      this.setCurrentController(this.$route.query['controller'] as string);
+    }
+
     // Load the sort models preference
     const sortModelsBy = window.appLocalStorage.getItem(
       SORT_MODELS_LOCAL_STORAGE_KEY
     );
+
     if (sortModelsBy && (sortModelsBy == 'Status' || sortModelsBy == 'Name')) {
       this.sortModelsBy = sortModelsBy;
     }

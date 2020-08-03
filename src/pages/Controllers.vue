@@ -22,6 +22,7 @@
         >
           <resource-card
             :heading="name"
+            :heading-link="{ name: 'models', query: { controller: name } }"
             headingIcon="gamepad"
             :infoItems="[
               {
