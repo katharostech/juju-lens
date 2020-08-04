@@ -31,11 +31,16 @@ fn run_with_config_file<F: FnOnce(File) -> anyhow::Result<T>, T>(f: F) -> anyhow
     .identifier;
 
   // Open the config file
+  let config_file_path = config_dir.join(format!("{}.localStorage.json", app_identifier));
   let config_file = OpenOptions::new()
     .create(true)
     .write(true)
     .read(true)
-    .open(config_dir.join(format!("{}.localStorage.json", app_identifier)))?;
+    .open(&config_file_path)
+    .context(format!(
+      "Could not open config file: {:?}",
+      &config_file_path
+    ))?;
 
   // Run the passed in closure, giving it our opened config file
   Ok(f(config_file).context("Error updating config")?)
