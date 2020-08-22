@@ -73,7 +73,7 @@ const mutation: MutationTree<JujuStateInterface> = {
     }: {
       name: string;
       data: [
-        'model' | 'application' | 'machine' | 'unit' | 'charm',
+        'model' | 'application' | 'machine' | 'unit' | 'charm' | string,
         'change' | 'remove',
         any
       ];

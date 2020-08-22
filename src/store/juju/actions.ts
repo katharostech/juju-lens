@@ -82,7 +82,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       );
 
       for (const controller in localStore.controllers) {
-        ctx.dispatch(actionTypes.updateController, {
+        void ctx.dispatch(actionTypes.updateController, {
           name: controller,
           controller: localStore.controllers[controller]
         });
@@ -119,7 +119,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
     // If the controller connection has not been established
     if (!controller.conn && !controller.controllerWatchHandle) {
       // Establish controller connection
-      ctx.dispatch(actionTypes.establishControllerConn, name);
+      void ctx.dispatch(actionTypes.establishControllerConn, name);
     }
   },
 
@@ -157,7 +157,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
 
           // Try again in a second
           setTimeout(() => {
-            ctx.dispatch(actionTypes.establishControllerConn, name);
+            void ctx.dispatch(actionTypes.establishControllerConn, name);
           }, 1000);
           return;
         }
@@ -172,7 +172,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
 
           // Update controller data from change feed
           for (const delta of result.deltas) {
-            ctx.dispatch(actionTypes.commitControllerDelta, {
+            void ctx.dispatch(actionTypes.commitControllerDelta, {
               name,
               controllerName: name,
               data: delta
@@ -240,7 +240,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
 
               // Try again in a second
               setTimeout(() => {
-                ctx.dispatch(actionTypes.commitControllerDelta, {
+                void ctx.dispatch(actionTypes.commitControllerDelta, {
                   name,
                   controllerName,
                   data: [dataType, mutationType, data]

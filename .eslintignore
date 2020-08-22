@@ -1,3 +1,2 @@
-/dist
-/src-bex/www
-/src-tauri
+/dist/*
+/src-tauri/*

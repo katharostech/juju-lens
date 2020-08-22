@@ -25,7 +25,7 @@ export default class JujuLoading extends Vue {
   showLoading = false;
   showLoadingTimeoutHandle: null | NodeJS.Timeout = null;
 
-  created() {
+  created(): void {
     this.onLoadingChange(this.loading);
   }
 

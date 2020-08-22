@@ -174,12 +174,12 @@ export default class AppConfigDialog extends Vue {
   }
 
   /** Stricter int parse function that won't allow letters in the input */
-  strictCheckInt(value: string) {
+  strictCheckInt(value: string): boolean {
     return /^[-+]?(\d+)$/.test(value);
   }
 
   /** Stricter float parse function that won't allow letters in the input */
-  strictCheckFloat(value: string) {
+  strictCheckFloat(value: string): boolean {
     return /^[-+]?(\d+(\.\d+)?)$/.test(value);
   }
 
@@ -189,7 +189,7 @@ export default class AppConfigDialog extends Vue {
 
   // following method is REQUIRED
   // (don't change its name --> "show")
-  async show() {
+  async show(): void {
     // postgresql charm config.
     (this.$refs.dialog as any).show();
 
@@ -217,17 +217,17 @@ export default class AppConfigDialog extends Vue {
 
   // following method is REQUIRED
   // (don't change its name --> "hide")
-  hide() {
+  hide(): void {
     (this.$refs.dialog as any).hide();
   }
 
-  onDialogHide() {
+  onDialogHide(): void {
     // required to be emitted
     // when QDialog emits "hide" event
     this.$emit('hide');
   }
 
-  onSubmit() {
+  onSubmit(): void {
     // Create KV mapping of config values
     const configKv: { [key: string]: any } = {};
     for (const key of Object.keys(this.config)) {
@@ -257,6 +257,7 @@ export default class AppConfigDialog extends Vue {
 
           this.$q.notify({
             type: 'negative',
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             message: `Error updating app config: ${result.results[0].error.message}`,
             position: 'bottom-right',
             timeout: 2000
@@ -282,6 +283,7 @@ export default class AppConfigDialog extends Vue {
         console.error(err);
         this.$q.notify({
           type: 'negative',
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           message: `Error updating app config: ${err}`,
           position: 'bottom-right',
           timeout: 2000
@@ -292,7 +294,7 @@ export default class AppConfigDialog extends Vue {
       });
   }
 
-  onCancelClick() {
+  onCancelClick(): void {
     // we just need to hide dialog
     this.hide();
   }

@@ -89,7 +89,7 @@ export default class FloatingTerminalWindow extends Vue {
       field: 'timestamp',
       sortable: true,
       align: 'left',
-      format: (stamp: number) => date.formatDate(stamp, 'YY-MM-DD:HH-MM-ss:SS')
+      format: (stamp: number): string => date.formatDate(stamp, 'YY-MM-DD:HH-MM-ss:SS')
     },
     {
       name: 'message',
@@ -100,7 +100,7 @@ export default class FloatingTerminalWindow extends Vue {
     }
   ];
 
-  created() {
+  created(): void {
     // Start streaming fake logs
     setTimeout(
       function log(this: FloatingTerminalWindow) {

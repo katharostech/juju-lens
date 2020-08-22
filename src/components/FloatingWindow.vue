@@ -310,6 +310,7 @@ export default class FloatingWindow extends Vue {
     ];
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   moveWindow(event: any): void {
     if (!this.maximized) {
       this.left += (event.delta.x / this.parentSize[0]) * 100;
@@ -368,6 +369,7 @@ export default class FloatingWindow extends Vue {
   // Resize handlers
   //
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowTop(event: any): void {
     if (!this.maximized) {
       const top = this.top + (event.delta.y / this.parentSize[1]) * 100;
@@ -375,18 +377,21 @@ export default class FloatingWindow extends Vue {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowBottom(event: any): void {
     if (!this.maximized) {
       this.bottom = this.bottom - (event.delta.y / this.parentSize[1]) * 100;
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowRight(event: any): void {
     if (!this.maximized) {
       this.right = this.right - (event.delta.x / this.parentSize[0]) * 100;
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowLeft(event: any): void {
     if (!this.maximized) {
       const left = this.left + (event.delta.x / this.parentSize[0]) * 100;
@@ -394,21 +399,25 @@ export default class FloatingWindow extends Vue {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowTopLeft(event: any): void {
     this.resizeWindowTop(event);
     this.resizeWindowLeft(event);
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowTopRight(event: any): void {
     this.resizeWindowRight(event);
     this.resizeWindowTop(event);
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowBottomLeft(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowLeft(event);
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeWindowBottomRight(event: any): void {
     this.resizeWindowBottom(event);
     this.resizeWindowRight(event);

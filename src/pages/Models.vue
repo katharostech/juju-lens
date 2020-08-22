@@ -874,7 +874,7 @@ export default class Index extends Vue {
   created(): void {
     // Filter by specific controller if the route has the `controller` query
     if (this.$route.query['controller']) {
-      this.setCurrentController(this.$route.query['controller'] as string);
+      void this.setCurrentController(this.$route.query['controller'] as string);
     }
 
     // Load the sort models preference
@@ -1060,6 +1060,7 @@ export default class Index extends Vue {
   }
 
   // Resizes the footer
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   resizeFooter(event: any): void {
     const delta = event.delta.y;
     const deltaPercent = (delta / this.pageHeight) * 100;
@@ -1100,6 +1101,7 @@ export default class Index extends Vue {
     window.appLocalStorage.setItem(SORT_MODELS_LOCAL_STORAGE_KEY, value);
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   scrollToElement(el: HTMLElement) {
     const scrollArea = this.$refs.modelScrollArea as QScrollArea;
     const target = scrollArea.getScrollTarget();

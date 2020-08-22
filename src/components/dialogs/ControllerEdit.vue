@@ -163,7 +163,7 @@ export default class ControllerEdit extends Vue {
 
   // following method is REQUIRED
   // (don't change its name --> "show")
-  show() {
+  show(): void {
     if (this.controller) {
       this.name = this.controllerName;
       this.host = this.controller.host;
@@ -177,17 +177,17 @@ export default class ControllerEdit extends Vue {
 
   // following method is REQUIRED
   // (don't change its name --> "hide")
-  hide() {
+  hide(): void {
     (this.$refs.dialog as any).hide();
   }
 
-  onDialogHide() {
+  onDialogHide(): void {
     // required to be emitted
     // when QDialog emits "hide" event
     this.$emit('hide');
   }
 
-  onSubmit() {
+  onSubmit(): void {
     const controller: Controller = {
       host: this.host!,
       port: this.port,
@@ -217,7 +217,7 @@ export default class ControllerEdit extends Vue {
 
     // Update the controller
     this.loading = true;
-    this.updateController({ name: this.name!, controller }).then(() => {
+    void this.updateController({ name: this.name!, controller }).then(() => {
       // on OK, it is REQUIRED to
       // emit "ok" event (with optional payload)
       // before hiding the QDialog
@@ -239,7 +239,7 @@ export default class ControllerEdit extends Vue {
     });
   }
 
-  onCancelClick() {
+  onCancelClick(): void {
     // we just need to hide dialog
     this.hide();
   }
