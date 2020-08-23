@@ -189,7 +189,7 @@ export default class AppConfigDialog extends Vue {
 
   // following method is REQUIRED
   // (don't change its name --> "show")
-  async show(): void {
+  async show(): Promise<void> {
     // postgresql charm config.
     (this.$refs.dialog as any).show();
 

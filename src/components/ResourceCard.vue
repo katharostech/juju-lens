@@ -79,7 +79,7 @@ import { Vue, Component, Prop } from 'vue-property-decorator';
 })
 export default class ResourceCard extends Vue {
   @Prop({ type: String, default: '' }) readonly heading!: string;
-  @Prop({ default: null }) readonly headingLink!: string | object | null;
+  @Prop({ default: null }) readonly headingLink!: string | Record<string, unknown> | null;
   @Prop({ type: String, default: null }) readonly headingIcon!: string | null;
   @Prop({ type: Array, default: [] }) readonly infoItems!: {
     icon: string;

@@ -89,17 +89,17 @@ module.exports = configure(function (ctx) {
         cfg.resolve.alias.store = path.resolve('src/store');
 
         // linting is slow in TS projects, we execute it only for production builds
-        if (ctx.prod) {
-          cfg.module.rules.push({
-            enforce: 'pre',
-            test: /\.(js|vue)$/,
-            loader: 'eslint-loader',
-            exclude: /node_modules/,
-            options: {
-              formatter: require('eslint').CLIEngine.getFormatter('stylish')
-            }
-          });
-        }
+        // if (ctx.prod) {
+        //   cfg.module.rules.push({
+        //     enforce: 'pre',
+        //     test: /\.(js|vue)$/,
+        //     loader: 'eslint-loader',
+        //     exclude: /node_modules/,
+        //     options: {
+        //       formatter: require('eslint').CLIEngine.getFormatter('stylish')
+        //     }
+        //   });
+        // }
 
         // YAML Loader
         cfg.module.rules.push({

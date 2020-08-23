@@ -387,7 +387,7 @@ export default class MainLayout extends Vue {
   }
 
   set currentController(value: 'All' | string) {
-    this.setCurrentController(value);
+    void this.setCurrentController(value);
   }
   get controllerOptions(): ('All' | string)[] {
     const controllerNames = [];
