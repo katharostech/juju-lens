@@ -12,7 +12,7 @@ const { configure } = require('quasar/wrappers');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
-module.exports = configure(function (ctx) {
+module.exports = configure(function (/* ctx */) {
   return {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
