@@ -416,7 +416,11 @@
                                   :key="unit.name"
                                   :src="unit.charmIconUrl"
                                   :style="
-                                    `box-shadow: 0 0 4px ${unit.statusIcon.color}; border: 2px solid ${unit.statusIcon.color}; border-radius: 50%; width: 2.5em;`
+                                    `box-shadow: 0 0 4px ${unit.statusIcon.color};
+                                    border: 2px solid ${unit.statusIcon.color};
+                                    border-radius: 50%;
+                                    width: 2.5em;
+                                    height: 2.5em`
                                   "
                                   class="hover-grow"
                                   @click.native="
