@@ -12,13 +12,19 @@
  */
 
 /*!
- * Vue.js v2.6.11
- * (c) 2014-2019 Evan You
+ * Vue-Lazyload.js v1.3.3
+ * (c) 2019 Awe <hilongjw@gmail.com>
  * Released under the MIT License.
  */
 
 /*!
- * vuex v3.4.0
+ * Vue.js v2.6.12
+ * (c) 2014-2020 Evan You
+ * Released under the MIT License.
+ */
+
+/*!
+ * vuex v3.5.1
  * (c) 2020 Evan You
  * @license MIT
  */
