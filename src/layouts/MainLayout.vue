@@ -17,10 +17,8 @@
           @click="showTaskbar = !showTaskbar"
         />
         <!-- Logo -->
-        <router-link class="wrapper-link" :to="{ name: 'home' }">
-          <q-avatar>
-            <img src="~assets/logo.svg" />
-          </q-avatar>
+        <router-link class="wrapper-link flex items-center" :to="{ name: 'home' }">
+          <img src="~assets/logo.svg" width="42px" />
         </router-link>
         <!-- Toolbar title -->
         <q-toolbar-title :style="!showTitle ? 'padding: 0;' : ''">
