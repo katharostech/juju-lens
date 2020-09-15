@@ -1,15 +1,14 @@
 <template>
   <!-- A simple component for charm icons that reverts to a "?" icon when the
   charm icon cannot be loaded -->
-  <q-img v-fix-q-img-on-edge :src="src">
-    <template v-slot:error>
-      <img
-        src="./CharmIcon/broken-charm-icon.svg"
-        style="max-width: 100%; max-height: 100%; width: 100%; height: 100%"
-      />
-    </template>
-    <slot name="default" />
-  </q-img>
+  <div v-lazy-container="{ selector: 'img' }">
+    <img
+      :data-src="src"
+      data-loading="/CharmIcon/loading-charm-icon.svg"
+      data-error="/CharmIcon/broken-charm-icon.svg"
+      width="100%"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -20,3 +19,17 @@ export default class CharmIcon extends Vue {
   @Prop(String) readonly src!: string;
 }
 </script>
+
+<style lang="stylus">
+@keyframes spin {
+  from   {transform: RotateZ(0deg);}
+  to  {transform: RotateZ(360deg)}
+}
+
+img
+  transition opacity 0.6s
+
+img[lazy=loading]
+  opacity 0.5
+  animation spin 2s linear infinite
+</style>

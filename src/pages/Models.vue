@@ -263,11 +263,11 @@
                               <!-- App Logo -->
                               <q-item-section
                                 avatar
-                                style="width: 2.5em; height: 2.5em"
+                                style="width: 3em; height: 3em"
                               >
                                 <charm-icon
                                   :src="application.charmIconUrl"
-                                  style="width: 2.5em; height: 2.5em"
+                                  style="width: 3em; height: 3em"
                                 />
                               </q-item-section>
 
