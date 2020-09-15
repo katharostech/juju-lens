@@ -1,7 +1,7 @@
 <template>
   <!-- A simple component for charm icons that reverts to a "?" icon when the
   charm icon cannot be loaded -->
-  <q-img :src="src">
+  <q-img v-fix-q-img-on-edge :src="src">
     <template v-slot:error>
       <img
         src="./CharmIcon/broken-charm-icon.svg"

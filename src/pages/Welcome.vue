@@ -7,7 +7,7 @@
       >
         <div class="text-center text-h3 q-mb-md">Juju Lens</div>
         <a href="https://katharostech.com" class="logo-banner">
-          <q-img src="/katharostech-banner.svg" />
+          <q-img v-fix-q-img-on-edge src="/katharostech-banner.svg" />
         </a>
         <p class="q-ma-md text-body1">
           Welcome to Juju Lens, a Juju GUI developed by

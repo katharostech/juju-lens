@@ -17,37 +17,6 @@ export default class App extends Vue {
     undefined
   >;
 
-  mounted(): void {
-    this.fixEdgeBug();
-  }
-
-  updated(): void {
-    this.fixEdgeBug();
-  }
-
-  fixEdgeBug() {
-    if (window.navigator.userAgent.includes('Edge/')) {
-      //
-      // Microsoft Edge Bug fix: go and "jiggle" all of the q-img spacer divs in
-      // order to make edge re-evaluate their size and properly position the
-      // image.
-      //
-
-      console.log('"touching" q-img elements to fix Edge rendering bug"');
-      // Get all q-img elements
-      const els = this.$el.querySelectorAll('.q-img div:first-child');
-      // For each q-img element
-      els.forEach((x: any) =>
-        // Wait one millisecond
-        setTimeout(() => {
-          // Add one hundredth of a percent to the padding to cause re-evaluation
-          x.style.paddingBottom =
-            parseFloat(x.style.paddingBottom.replace('%', '')) + 0.01 + '%';
-        }, 50)
-      );
-    }
-  }
-
   async created(): Promise<void> {
     // Set the dark theme from the local storage
     const darkMode = window.appLocalStorage.getItem('darkMode');
