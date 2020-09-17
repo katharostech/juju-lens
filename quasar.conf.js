@@ -88,6 +88,7 @@ module.exports = configure(function(/* ctx */) {
       extendWebpack(cfg) {
         // Aliases
         cfg.resolve.alias.store = path.resolve('src/store');
+        cfg.resolve.alias.utils = path.resolve('src/utils');
 
         // linting is slow in TS projects, we execute it only for production builds
         // if (ctx.prod) {

@@ -6,6 +6,7 @@
 
 mod local_storage_plugin;
 mod websocket_plugin;
+mod ssh_plugin;
 
 fn main() {
   // Initialize the logger
@@ -14,6 +15,7 @@ fn main() {
   tauri::AppBuilder::new()
     .plugin(local_storage_plugin::LocalStorage)
     .plugin(websocket_plugin::WebsocketPlugin::new())
+    .plugin(ssh_plugin::SshPlugin::new())
     .build()
     .run();
 }

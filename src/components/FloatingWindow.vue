@@ -9,7 +9,7 @@
   >
     <transition name="window-transition">
       <div
-        class="floating-window shadow-2"
+        class="floating-window shadow-5"
         :style="floatingWindowStyle"
         v-if="visible"
       >
@@ -177,42 +177,42 @@
           <!-- Resize Top side -->
           <div
             v-touch-pan.mouse.up.down.prevent="resizeWindowTop"
-            style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em;"
+            style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Bottom side -->
           <div
             v-touch-pan.mouse.up.down.prevent="resizeWindowBottom"
-            style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em;"
+            style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Right side -->
           <div
             v-touch-pan.mouse.left.right.prevent="resizeWindowRight"
-            style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em;"
+            style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Left side -->
           <div
             v-touch-pan.mouse.left.right.prevent="resizeWindowLeft"
-            style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em;"
+            style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Top Left -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowTopLeft"
-            style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Top Right -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowTopRight"
-            style="position: absolute; top: 0; right: 0; cursor: ne-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; top: 0; right: 0; cursor: ne-resize; width: 0.7em; height: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Bottom Left -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowBottomLeft"
-            style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em; z-index: 100"
           ></div>
           <!-- Resize Bottom Right -->
           <div
             v-touch-pan.mouse.prevent="resizeWindowBottomRight"
-            style="position: absolute; bottom: 0; right: 0; cursor: se-resize; width: 0.7em; height: 0.7em;"
+            style="position: absolute; bottom: 0; right: 0; cursor: se-resize; width: 0.7em; height: 0.7em; z-index: 100"
           ></div>
         </q-card>
       </div>
@@ -303,6 +303,7 @@ export default class FloatingWindow extends Vue {
     }
   }
 
+  // TODO: Fix draggable issues when parent size is not updated when the screen size changes
   get parentSize(): [number, number] {
     return [
       width(this.$refs.parentSizeDetector as Element),

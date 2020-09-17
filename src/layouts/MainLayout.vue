@@ -17,7 +17,10 @@
           @click="showTaskbar = !showTaskbar"
         />
         <!-- Logo -->
-        <router-link class="wrapper-link flex items-center" :to="{ name: 'home' }">
+        <router-link
+          class="wrapper-link flex items-center"
+          :to="{ name: 'home' }"
+        >
           <img src="~assets/logo.svg" width="42px" />
         </router-link>
         <!-- Toolbar title -->
@@ -29,6 +32,13 @@
             @resize="({ width }) => (showTitle = width > 86)"
           />
         </q-toolbar-title>
+        <q-btn
+          v-if="isTauri"
+          color="negative"
+          icon="fas fa-biohazard"
+          label="Get Public Key"
+          @click="copyPublicKey()"
+        />
         <!-- Toolbar tabs -->
         <q-tabs inline-label shrink class="gt-mobile-menu">
           <q-route-tab
@@ -192,7 +202,7 @@
                 />
               </q-item-section>
               <q-item-section>
-                {{ window.app.name }} / {{ window.unit.index }}
+                {{ window.unit.name }}
               </q-item-section>
             </q-item>
           </q-list>
@@ -312,6 +322,7 @@ import DebugWindow from 'components/DebugWindow.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
+import { getSshKeypair } from 'utils/ssh';
 
 import { actionTypes as jujuActionTypes } from 'store/juju/actions';
 import {
@@ -322,14 +333,12 @@ import {
 } from 'store/juju/state';
 const juju = namespace('juju');
 
-import {
-  FloatingWindow,
-  FloatingWindowKind,
-  FloatingWindowKindString
-} from 'store/app/state';
+import { FloatingWindow, FloatingWindowKind } from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
 import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
+
+import { copyToClipboard } from 'quasar';
 
 interface UnitNotification {
   unit: Unit;
@@ -355,20 +364,18 @@ export default class MainLayout extends Vue {
   @app.Mutation(appMutationTypes.toggleFloatingWindowVisible)
   toggleFloatingWindowVisible!: (id: string) => void;
 
+  get isTauri(): boolean {
+    return !!window.__TAURI__;
+  }
+
   get floatingTermWindows(): FloatingWindow[] {
     return this.floatingWindows.filter(
-      window =>
-        window.kind ==
-        (FloatingWindowKind[
-          FloatingWindowKind.terminal
-        ] as FloatingWindowKindString)
+      window => window.kind == FloatingWindowKind[FloatingWindowKind.terminal]
     );
   }
   get floatingLogWindows(): FloatingWindow[] {
     return this.floatingWindows.filter(
-      window =>
-        window.kind ==
-        (FloatingWindowKind[FloatingWindowKind.log] as FloatingWindowKindString)
+      window => window.kind == FloatingWindowKind[FloatingWindowKind.log]
     );
   }
 
@@ -496,6 +503,20 @@ export default class MainLayout extends Vue {
           reply to the public <a target="_blank" href="https://discourse.juju.is/t/juju-lens-a-new-juju-gui-you-dont-have-to-deploy/3309?u=zicklag"> \
           forum topic</a> so that everyone can see and collaborate on it!'
     });
+  }
+
+  copyPublicKey(): void {
+    getSshKeypair()
+      .then(x => {
+        copyToClipboard(x.public);
+        this.$q.notify('Copied to clipboard');
+      })
+      .catch(e => {
+        this.$q.dialog({
+          title: 'failure',
+          message: e
+        });
+      });
   }
 }
 </script>

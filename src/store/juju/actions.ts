@@ -7,6 +7,7 @@ import Jujulib from '@canonical/jujulib';
 import allModelWatcherFacade from '@canonical/jujulib/api/facades/all-model-watcher-v2.js';
 import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
 import applicationFacade from '@canonical/jujulib/api/facades/application-v8.js';
+import keyManagerFacade from '@canonical/jujulib/api/facades/key-manager-v1';
 import { getItemId } from './state/utils';
 
 export const actionTypes = {
@@ -219,7 +220,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         (controller.models[modelId] && !controller.models[modelId].conn)
       ) {
         // Create a Juju API connection
-        const facades = [applicationFacade];
+        const facades = [applicationFacade, keyManagerFacade];
         const options = {
           debug: false,
           facades: facades,
@@ -315,7 +316,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         timeout: 2000
       });
     });
-  }
+  },
 };
 
 export default actions;

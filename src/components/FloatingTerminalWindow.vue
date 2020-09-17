@@ -15,15 +15,8 @@
       :style="{ 'z-index': floatingWindow.zIndex }"
       @click.native="focusFloatingWindow(floatingWindowId)"
     >
-      <!-- Terminal Body -->
-      <div class="floating-terminal-window--terminal fit q-pa-xs">
-        <q-input
-          v-model="termText"
-          square
-          autogrow
-          type="textarea"
-          style="width: 100% height: 100%;"
-        />
+      <div class="fit q-pa-xs bg-black">
+        <x-term class="fade-in-on-display full-height" :startupDelay="500" />
       </div>
     </floating-window-component>
   </div>
@@ -31,6 +24,7 @@
 
 <script lang="ts">
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
+import XTerm from 'components/XTerm.vue';
 
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
@@ -42,11 +36,13 @@ const app = namespace('app');
 
 @Component({
   components: {
-    FloatingWindowComponent
+    FloatingWindowComponent,
+    XTerm
   }
 })
 export default class FloatingTerminalWindow extends Vue {
   @Prop(String) floatingWindowId!: string;
+  @Prop(String) termOptions!: object;
   @app.State floatingWindows!: FloatingWindow[];
   @app.Mutation(mutationTypes.toggleFloatingWindowVisible)
   toggleFloatingWindowVisible!: (id: string) => void;
@@ -62,8 +58,6 @@ export default class FloatingTerminalWindow extends Vue {
       window => window.id == this.floatingWindowId
     )[0];
   }
-
-  termText = 'ubuntu@host $ ';
 }
 </script>
 
@@ -75,4 +69,13 @@ export default class FloatingTerminalWindow extends Vue {
   textarea
     color white
     padding 0 !important
+
+.fade-in-on-display
+  opacity 0
+  animation fade-in 1s 0.5s forwards
+
+@keyframes fade-in {
+  0%   {opacity:0}
+  100% {opacity:1}
+}
 </style>

@@ -26,6 +26,9 @@ async-executor = "0.1.2"
 tracing = "0.1.17"
 tracing-subscriber = "0.2.9"
 smol = "0.3.3"
+ssh2 = "0.8.2"
+rsa = { git = "https://github.com/RustCrypto/RSA.git" }
+rand = "0.7.3"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"
@@ -37,3 +40,10 @@ no-server = [ "tauri/no-server" ]
 [[bin]]
 name = "juju-lens"
 path = "src/main.rs"
+
+[profile.dev]
+opt-level = 3
+debug = false
+
+[profile.release]
+lto = "thin"
