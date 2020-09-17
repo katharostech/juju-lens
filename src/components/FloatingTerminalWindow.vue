@@ -16,7 +16,7 @@
       @click.native="focusFloatingWindow(floatingWindowId)"
     >
       <div class="fit q-pa-xs bg-black">
-        <x-term class="fade-in-on-display full-height" :startupDelay="500" />
+        <x-term ref="term" class="fade-in-on-display full-height" :startupDelay="300" :auto-resize="floatingWindow.visible" />
       </div>
     </floating-window-component>
   </div>
@@ -26,7 +26,7 @@
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
 import XTerm from 'components/XTerm.vue';
 
-import { Vue, Component, Prop } from 'vue-property-decorator';
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 
 import { FloatingWindow } from 'store/app/state';
@@ -58,6 +58,13 @@ export default class FloatingTerminalWindow extends Vue {
       window => window.id == this.floatingWindowId
     )[0];
   }
+
+  @Watch('floatingWindow.visible')
+  visibilityChanged(visible: boolean) {
+    if (visible) {
+      (this.$refs.term as any).focus();
+    }
+  }
 }
 </script>
 
@@ -72,7 +79,7 @@ export default class FloatingTerminalWindow extends Vue {
 
 .fade-in-on-display
   opacity 0
-  animation fade-in 1s 0.5s forwards
+  animation fade-in 1s 0.3s ease forwards
 
 @keyframes fade-in {
   0%   {opacity:0}

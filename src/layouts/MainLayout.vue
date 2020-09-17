@@ -162,9 +162,11 @@
               clickable
               v-ripple
               @click="
-                toggleFloatingWindowVisible(window.id);
                 if (window.visible) {
-                  focus;
+                  focusFloatingWindow(window.id);
+                } else {
+                  toggleFloatingWindowVisible(window.id);
+                  focusFloatingWindow(window.id);
                 }
               "
             >
@@ -363,6 +365,8 @@ export default class MainLayout extends Vue {
   ) => void;
   @app.Mutation(appMutationTypes.toggleFloatingWindowVisible)
   toggleFloatingWindowVisible!: (id: string) => void;
+  @app.Mutation(appMutationTypes.focusFloatingWindow)
+  focusFloatingWindow!: (id: string) => void;
 
   get isTauri(): boolean {
     return !!window.__TAURI__;

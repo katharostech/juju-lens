@@ -7,91 +7,36 @@
     ref="parentSizeDetector"
     style="position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden; pointer-events: none;"
   >
-    <transition name="window-transition">
-      <div
-        class="floating-window shadow-5"
-        :style="floatingWindowStyle"
-        v-if="visible"
-      >
-        <q-card class="fit column">
-          <q-bar
-            v-touch-pan.mouse.prevent="moveWindow"
-            class="col-auto floating-window--bar cursor-pointer"
-          >
-            <q-icon v-if="icon" :name="icon" />
+    <div
+      class="floating-window shadow-5"
+      :class="{
+        'window-transition-transitioning': transitioning,
+        'window-transition-hidden': !actuallyVisible
+      }"
+      :style="floatingWindowStyle"
+    >
+      <q-card class="fit column">
+        <q-bar
+          v-touch-pan.mouse.prevent="moveWindow"
+          class="col-auto floating-window--bar cursor-pointer"
+        >
+          <q-icon v-if="icon" :name="icon" />
 
-            <div class="text-weight-bold ellipsis">{{ title }}</div>
+          <div class="text-weight-bold ellipsis">{{ title }}</div>
 
-            <q-space />
+          <q-space />
 
-            <!-- TODO: Use material icons instead of fontawesome? -->
+          <!-- TODO: Use material icons instead of fontawesome? -->
 
-            <div style="position: relative;">
-              <!-- Position button -->
-              <q-btn
-                v-if="showMinimize"
-                v-ripple
-                dense
-                flat
-                icon="fas fa-th"
-                @click="showPositionButtons = !showPositionButtons"
-              >
-                <q-tooltip
-                  transition-show="jump-up"
-                  transition-hide="jump-down"
-                  anchor="top middle"
-                  self="bottom middle"
-                  :delay="500"
-                >
-                  Position
-                </q-tooltip>
-              </q-btn>
-
-              <!-- Position select buttons -->
-              <transition
-                v-for="([x, y], i) in [
-                  [0, 1],
-                  [1, 1],
-                  [1, 0],
-                  [1, -1],
-                  [0, -1],
-                  [-1, -1],
-                  [-1, 0],
-                  [-1, 1],
-                  [0, 0]
-                ]"
-                :key="i"
-                name="pos-btn-trans"
-              >
-                <q-btn
-                  v-if="showPositionButtons"
-                  round
-                  dense
-                  color="secondary"
-                  :style="
-                    `position: absolute; left: ${3 * x}em; top: ${3 * y}em;`
-                  "
-                  class="position-button"
-                  @click="setWindowTilePosition([x, y])"
-                >
-                  <q-icon
-                    v-if="!(x == 0 && y == 0)"
-                    name="arrow_drop_down"
-                    :style="`transform: rotate(${-i * 45}deg)`"
-                  />
-                  <q-icon v-else name="pages" />
-                </q-btn>
-              </transition>
-            </div>
-
-            <!-- Minimize button -->
+          <div style="position: relative;">
+            <!-- Position button -->
             <q-btn
               v-if="showMinimize"
               v-ripple
               dense
               flat
-              icon="fas fa-window-minimize"
-              @click="$emit('minimize')"
+              icon="fas fa-th"
+              @click="showPositionButtons = !showPositionButtons"
             >
               <q-tooltip
                 transition-show="jump-up"
@@ -100,123 +45,179 @@
                 self="bottom middle"
                 :delay="500"
               >
-                Minimize
+                Position
               </q-tooltip>
             </q-btn>
 
-            <!-- Maximize button -->
-            <q-btn
-              v-if="!maximized && showMaximize"
-              v-ripple
-              dense
-              flat
-              icon="fas fa-expand"
-              @click="$emit('maximize')"
+            <!-- Position select buttons -->
+            <transition
+              v-for="([x, y], i) in [
+                [0, 1],
+                [1, 1],
+                [1, 0],
+                [1, -1],
+                [0, -1],
+                [-1, -1],
+                [-1, 0],
+                [-1, 1],
+                [0, 0]
+              ]"
+              :key="i"
+              name="pos-btn-trans"
             >
-              <q-tooltip
-                transition-show="jump-up"
-                transition-hide="jump-down"
-                anchor="top middle"
-                self="bottom middle"
-                :delay="500"
+              <q-btn
+                v-if="showPositionButtons"
+                round
+                dense
+                color="secondary"
+                :style="
+                  `position: absolute; left: ${3 * x}em; top: ${3 * y}em;`
+                "
+                class="position-button"
+                @click="setWindowTilePosition([x, y])"
               >
-                Maximize
-              </q-tooltip>
-            </q-btn>
-
-            <!-- Restore button -->
-            <q-btn
-              v-if="maximized && showMaximize"
-              v-ripple
-              dense
-              flat
-              icon="fas fa-window-restore"
-              @click="$emit('restore')"
-            >
-              <q-tooltip
-                transition-show="jump-up"
-                transition-hide="jump-down"
-                anchor="top middle"
-                self="bottom middle"
-                :delay="500"
-              >
-                Restore
-              </q-tooltip>
-            </q-btn>
-
-            <!-- Close button -->
-            <q-btn
-              v-if="showClose"
-              v-ripple
-              dense
-              flat
-              icon="fas fa-window-close"
-              @click="$emit('close')"
-            >
-              <q-tooltip
-                transition-show="jump-up"
-                transition-hide="jump-down"
-                anchor="top middle"
-                self="bottom middle"
-                :delay="500"
-              >
-                Close
-              </q-tooltip>
-            </q-btn>
-          </q-bar>
-
-          <!-- Window Content -->
-          <div class="col relative-position">
-            <div class="floating-window--content">
-              <slot name="default" />
-            </div>
+                <q-icon
+                  v-if="!(x == 0 && y == 0)"
+                  name="arrow_drop_down"
+                  :style="`transform: rotate(${-i * 45}deg)`"
+                />
+                <q-icon v-else name="pages" />
+              </q-btn>
+            </transition>
           </div>
 
-          <!-- RESIZE HANDLES -->
+          <!-- Minimize button -->
+          <q-btn
+            v-if="showMinimize"
+            v-ripple
+            dense
+            flat
+            icon="fas fa-window-minimize"
+            @click="$emit('minimize')"
+          >
+            <q-tooltip
+              transition-show="jump-up"
+              transition-hide="jump-down"
+              anchor="top middle"
+              self="bottom middle"
+              :delay="500"
+            >
+              Minimize
+            </q-tooltip>
+          </q-btn>
 
-          <!-- Resize Top side -->
-          <div
-            v-touch-pan.mouse.up.down.prevent="resizeWindowTop"
-            style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Bottom side -->
-          <div
-            v-touch-pan.mouse.up.down.prevent="resizeWindowBottom"
-            style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Right side -->
-          <div
-            v-touch-pan.mouse.left.right.prevent="resizeWindowRight"
-            style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Left side -->
-          <div
-            v-touch-pan.mouse.left.right.prevent="resizeWindowLeft"
-            style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Top Left -->
-          <div
-            v-touch-pan.mouse.prevent="resizeWindowTopLeft"
-            style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Top Right -->
-          <div
-            v-touch-pan.mouse.prevent="resizeWindowTopRight"
-            style="position: absolute; top: 0; right: 0; cursor: ne-resize; width: 0.7em; height: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Bottom Left -->
-          <div
-            v-touch-pan.mouse.prevent="resizeWindowBottomLeft"
-            style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em; z-index: 100"
-          ></div>
-          <!-- Resize Bottom Right -->
-          <div
-            v-touch-pan.mouse.prevent="resizeWindowBottomRight"
-            style="position: absolute; bottom: 0; right: 0; cursor: se-resize; width: 0.7em; height: 0.7em; z-index: 100"
-          ></div>
-        </q-card>
-      </div>
-    </transition>
+          <!-- Maximize button -->
+          <q-btn
+            v-if="!maximized && showMaximize"
+            v-ripple
+            dense
+            flat
+            icon="fas fa-expand"
+            @click="$emit('maximize')"
+          >
+            <q-tooltip
+              transition-show="jump-up"
+              transition-hide="jump-down"
+              anchor="top middle"
+              self="bottom middle"
+              :delay="500"
+            >
+              Maximize
+            </q-tooltip>
+          </q-btn>
+
+          <!-- Restore button -->
+          <q-btn
+            v-if="maximized && showMaximize"
+            v-ripple
+            dense
+            flat
+            icon="fas fa-window-restore"
+            @click="$emit('restore')"
+          >
+            <q-tooltip
+              transition-show="jump-up"
+              transition-hide="jump-down"
+              anchor="top middle"
+              self="bottom middle"
+              :delay="500"
+            >
+              Restore
+            </q-tooltip>
+          </q-btn>
+
+          <!-- Close button -->
+          <q-btn
+            v-if="showClose"
+            v-ripple
+            dense
+            flat
+            icon="fas fa-window-close"
+            @click="$emit('close')"
+          >
+            <q-tooltip
+              transition-show="jump-up"
+              transition-hide="jump-down"
+              anchor="top middle"
+              self="bottom middle"
+              :delay="500"
+            >
+              Close
+            </q-tooltip>
+          </q-btn>
+        </q-bar>
+
+        <!-- Window Content -->
+        <div class="col relative-position">
+          <div class="floating-window--content">
+            <slot name="default" />
+          </div>
+        </div>
+
+        <!-- RESIZE HANDLES -->
+
+        <!-- Resize Top side -->
+        <div
+          v-touch-pan.mouse.up.down.prevent="resizeWindowTop"
+          style="position: absolute; left: 0; right: 0; top: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Bottom side -->
+        <div
+          v-touch-pan.mouse.up.down.prevent="resizeWindowBottom"
+          style="position: absolute; bottom: 0; right: 0; left: 0; cursor: ns-resize; height: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Right side -->
+        <div
+          v-touch-pan.mouse.left.right.prevent="resizeWindowRight"
+          style="position: absolute; bottom: 0; right: 0; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Left side -->
+        <div
+          v-touch-pan.mouse.left.right.prevent="resizeWindowLeft"
+          style="position: absolute; bottom: 0; right: left; top: 0; cursor: ew-resize; width: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Top Left -->
+        <div
+          v-touch-pan.mouse.prevent="resizeWindowTopLeft"
+          style="position: absolute; top: 0; left: 0; cursor: nw-resize; width: 0.7em; height: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Top Right -->
+        <div
+          v-touch-pan.mouse.prevent="resizeWindowTopRight"
+          style="position: absolute; top: 0; right: 0; cursor: ne-resize; width: 0.7em; height: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Bottom Left -->
+        <div
+          v-touch-pan.mouse.prevent="resizeWindowBottomLeft"
+          style="position: absolute; bottom: 0; left: 0; cursor: sw-resize; width: 0.7em; height: 0.7em; z-index: 100"
+        ></div>
+        <!-- Resize Bottom Right -->
+        <div
+          v-touch-pan.mouse.prevent="resizeWindowBottomRight"
+          style="position: absolute; bottom: 0; right: 0; cursor: se-resize; width: 0.7em; height: 0.7em; z-index: 100"
+        ></div>
+      </q-card>
+    </div>
   </div>
 </template>
 
@@ -236,8 +237,15 @@ export default class FloatingWindow extends Vue {
   @Prop({ type: Boolean, default: true }) readonly showClose!: boolean;
   @Prop(String) readonly icon!: string;
 
+  // This is used during startup to indicate that the window starts hidden
+  // before it is animated into view
+  overrideHidden = true;
+  get actuallyVisible(): boolean {
+    return this.visible && !this.overrideHidden;
+  }
+
   readonly transitionDuration = 0.3;
-  transitioning = false;
+  transitioning = true;
 
   top = 15;
   left = 15;
@@ -265,8 +273,19 @@ export default class FloatingWindow extends Vue {
     }
   }
 
+  created(): void {
+    // Animate the window in when it is created
+    setTimeout(() => {
+      this.overrideHidden = false;
+    }, 1);
+    setTimeout(() => {
+      this.transitioning = false;
+    }, this.transitionDuration * 1000);
+  }
+
   @Watch('maximized')
-  onMaximizedChange(): void {
+  @Watch('visible')
+  handleTransitioning(): void {
     // Set this to transitioning for the duration of the transition
     this.transitioning = true;
     setTimeout(
@@ -460,12 +479,10 @@ export default class FloatingWindow extends Vue {
   transform scale(0) !important
 
 // Window transition classes
-.window-transition-enter-active,
-.window-transition-leave-active
+.window-transition-transitioning
     transition all 0.4s ease
 
-.window-transition-leave-to,
-.window-transition-enter
+.window-transition-hidden
   transform scale(0) !important
   left -10% !important
   right 100% !important

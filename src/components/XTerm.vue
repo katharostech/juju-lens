@@ -22,11 +22,13 @@ export default class TestTerm extends Vue {
   // frame and the terminal needs the concrete size in order to bind to the div.
   @Prop({ type: Number, default: 0 }) readonly startupDelay!: number;
 
+  // Enable auto-resizing
+  @Prop({ type: Boolean, default: false }) readonly autoResize!: boolean;
+
   id = '';
 
-  // these are initialized in `loadTerm`
-  fitAddon!: FitAddon;
-  t!: Terminal;
+  fitAddon: FitAddon | null = null;
+  t: Terminal | null = null;
 
   created() {
     this.id = uid();
@@ -37,7 +39,7 @@ export default class TestTerm extends Vue {
   }
 
   onResize() {
-    if (this.fitAddon) {
+    if (this.fitAddon && this.autoResize) {
       this.fitAddon.fit();
     }
   }
@@ -46,19 +48,18 @@ export default class TestTerm extends Vue {
     if (!this.t) {
       // Wait 100 milis before attaching terminal to make sure it gets a concrete height
       setTimeout(() => {
-        console.log('loading term');
         this.t = new Terminal();
         this.fitAddon = new FitAddon();
         this.t.loadAddon(this.fitAddon);
         this.t.loadAddon(new WebLinksAddon());
 
         (this.t as any).prompt = () => {
-          this.t.write('\r\n$ ');
+          this.t?.write('\r\n$ ');
         };
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.t.open(document.getElementById(`term-${this.id}`)!);
-        this.t.focus()
+        this.t.focus();
         this.fitAddon.fit();
 
         this.t.writeln('Welcome to xterm.js');
@@ -78,14 +79,18 @@ export default class TestTerm extends Vue {
           } else if (ev.keyCode === 8) {
             // Do not delete the prompt
             if ((this.t as any)._core.buffer.x > 2) {
-              this.t.write('\b \b');
+              this.t?.write('\b \b');
             }
           } else if (printable) {
-            this.t.write(e.key);
+            this.t?.write(e.key);
           }
         });
       }, this.startupDelay);
     }
+  }
+
+  public focus() {
+    this.t?.focus();
   }
 }
 </script>
