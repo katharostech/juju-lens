@@ -10,6 +10,7 @@ use tungstenite::Message;
 
 use std::{
     collections::HashMap,
+    io::Write,
     sync::{Arc, Mutex},
 };
 
@@ -124,8 +125,20 @@ impl Plugin for SshPlugin {
                     session.set_tcp_stream(tcp_conn);
                     session.handshake().unwrap();
 
+                    // Create temporary key files
+                    let private_key_tmpfile = tempfile::NamedTempFile::new()?;
+                    private_key_tmpfile.write_all(private_key.as_bytes())?;
+                    let public_key_tmpfile = tempfile::NamedTempFile::new()?;
+                    public_key_tmpfile.write_all(public_key.as_bytes())?;
+
+                    // Crreate session
                     session
-                        .userauth_pubkey_memory(&user, Some(&public_key), &private_key, None)
+                        .userauth_pubkey_file(
+                            &user,
+                            public_key_tmpfile.path(),
+                            public_key_tmpfile.path(),
+                            None,
+                        )
                         .unwrap();
 
                     if !session.authenticated() {

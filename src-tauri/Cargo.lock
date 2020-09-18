@@ -878,6 +878,7 @@ dependencies = [
  "ssh2",
  "tauri",
  "tauri-api",
+ "tempfile",
  "tracing",
  "tracing-subscriber",
  "tungstenite",

@@ -16,7 +16,13 @@
       @click.native="focusFloatingWindow(floatingWindowId)"
     >
       <div class="fit q-pa-xs bg-black">
-        <x-term ref="term" class="fade-in-on-display full-height" :startupDelay="300" :auto-resize="floatingWindow.visible" />
+        <x-term
+          ref="term"
+          class="fade-in-on-display full-height"
+          :startupDelay="300"
+          :auto-resize="floatingWindow.visible"
+          @data="data => log(data)"
+        />
       </div>
     </floating-window-component>
   </div>
@@ -53,10 +59,19 @@ export default class FloatingTerminalWindow extends Vue {
   @app.Action(actionTypes.removeFloatingWindow)
   removeFloatingWindow!: (id: string) => void;
 
+  log(data: any) {
+    console.log(data);
+  }
+
   get floatingWindow(): FloatingWindow {
     return this.floatingWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
+  }
+
+  mounted(): void {
+    console.log('mounted');
+    (this.$refs.term as any).write('> ');
   }
 
   @Watch('floatingWindow.visible')
