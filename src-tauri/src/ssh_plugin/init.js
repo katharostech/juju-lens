@@ -123,7 +123,7 @@ class TauriSshSession {
   }
 }
 
-window.TauriSsh = TauriSsh;
+window.TauriSsh = TauriSshSession;
 window.tauriSshKeyGen = () => {
   return window.__TAURI__.tauri.promisified({
     cmd: 'tauriSshKeyGen'

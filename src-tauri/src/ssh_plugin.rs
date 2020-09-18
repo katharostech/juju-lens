@@ -91,15 +91,13 @@ impl Plugin for SshPlugin {
 
     // Add the command handlers for the plugin
     fn extend_api(&self, webview: &mut Webview<'_>, payload: &str) -> Result<bool, String> {
-        use Command::*;
-
         // Parse the payload as json
         match serde_json::from_str::<Command>(payload) {
             // If the payload fails to parse, assume that it was not meant for this plugin
             Err(_) => Ok(false),
             // Match on the parsed command
             Ok(command) => match command {
-                TauriSshKeyGen { callback, error } => {
+                Command::TauriSshKeyGen { callback, error } => {
                     tauri::execute_promise(
                         webview,
                         || {
@@ -162,7 +160,6 @@ impl Plugin for SshPlugin {
 
                     Ok(true)
                 }
-                Command::TauriSshKeyGen { callback, error } => Ok(true),
                 Command::TauriSshSessionSend { id, data } => Ok(true),
                 Command::TauriSshSessionClose { id } => Ok(true),
             },
