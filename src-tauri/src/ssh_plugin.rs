@@ -10,6 +10,7 @@ use tungstenite::Message;
 
 use std::{
     collections::HashMap,
+    fmt::Display,
     io::Write,
     sync::{Arc, Mutex},
 };
@@ -71,6 +72,16 @@ enum Command {
     },
 }
 
+trait ErrDisplay<T, E> {
+    fn err_display(self) -> Result<T, String>;
+}
+
+impl<T, E: std::error::Error> ErrDisplay<T, E> for Result<T, E> {
+    fn err_display(self) -> Result<T, String> {
+        self.map_err(|e| format!("{}", e))
+    }
+}
+
 // Implement Tauri plugin trait
 impl Plugin for SshPlugin {
     // Add the init.js code that sets up the JavaScript classes and bindings to the Tauri commands
@@ -126,20 +137,24 @@ impl Plugin for SshPlugin {
                     session.handshake().unwrap();
 
                     // Create temporary key files
-                    let private_key_tmpfile = tempfile::NamedTempFile::new()?;
-                    private_key_tmpfile.write_all(private_key.as_bytes())?;
-                    let public_key_tmpfile = tempfile::NamedTempFile::new()?;
-                    public_key_tmpfile.write_all(public_key.as_bytes())?;
+                    let mut private_key_tmpfile = tempfile::NamedTempFile::new().err_display()?;
+                    private_key_tmpfile
+                        .write_all(private_key.as_bytes())
+                        .err_display()?;
+                    let mut public_key_tmpfile = tempfile::NamedTempFile::new().err_display()?;
+                    public_key_tmpfile
+                        .write_all(public_key.as_bytes())
+                        .err_display()?;
 
-                    // Crreate session
+                    // Create session
                     session
                         .userauth_pubkey_file(
                             &user,
-                            public_key_tmpfile.path(),
+                            Some(public_key_tmpfile.path()),
                             public_key_tmpfile.path(),
                             None,
                         )
-                        .unwrap();
+                        .err_display()?;
 
                     if !session.authenticated() {
                         panic!("Not authenticated");

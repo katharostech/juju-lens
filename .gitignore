@@ -1,5 +1,6 @@
 *gitignore*
 !.gitignore
+.cargo/config
 
 .DS_Store
 .thumbs.db
