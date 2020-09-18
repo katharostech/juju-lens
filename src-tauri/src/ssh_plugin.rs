@@ -103,7 +103,7 @@ impl Plugin for SshPlugin {
                     tauri::execute_promise(
                         webview,
                         || {
-                            let mut rng = rand::rngs::OsRng;
+                            let mut rng = rand::thread_rng();
                             let private = rsa::RSAPrivateKey::new(&mut rng, 4096)?;
                             let public = rsa::RSAPublicKey::from(&private);
 

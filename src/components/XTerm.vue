@@ -63,6 +63,7 @@ export default class TestTerm extends Vue {
           this.$emit('data', data);
         });
 
+        this.$emit('ready');
       }, this.startupDelay);
     }
   }
@@ -71,12 +72,10 @@ export default class TestTerm extends Vue {
     this.t?.focus();
   }
 
-  public isReady(): boolean {
-    return !!this.t;
-  }
-
   public write(data: any) {
-    this.t?.write(data);
+    // We actually want this to error if the terminal is not ready yet.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.t!.write(data);
   }
 }
 </script>

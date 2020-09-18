@@ -22,6 +22,7 @@
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
           @data="data => log(data)"
+          @ready="termReady"
         />
       </div>
     </floating-window-component>
@@ -63,15 +64,16 @@ export default class FloatingTerminalWindow extends Vue {
     console.log(data);
   }
 
+  termReady(): void {
+    const term = this.$refs.term as any;
+
+    term.write('> ')
+  }
+
   get floatingWindow(): FloatingWindow {
     return this.floatingWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
-  }
-
-  mounted(): void {
-    console.log('mounted');
-    (this.$refs.term as any).write('> ');
   }
 
   @Watch('floatingWindow.visible')
