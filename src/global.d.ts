@@ -10,5 +10,6 @@ interface Window {
   appLocalStorage: any;
   TauriWebSocketInsecure: any;
   TauriWebSocket: any;
+  TauriSshSession: any;
   tauriSshKeyGen: () => Promise<{ private: string; public: string }>;
 }

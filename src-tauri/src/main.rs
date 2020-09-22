@@ -5,8 +5,9 @@
 )]
 
 mod local_storage_plugin;
-mod websocket_plugin;
+mod plugin_utils;
 mod ssh_plugin;
+mod websocket_plugin;
 
 fn main() {
   // Initialize the logger

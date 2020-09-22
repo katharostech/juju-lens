@@ -9,9 +9,9 @@ class TauriSshSession {
   constructor(options) {
     this._user = options.user;
     this._host = options.host;
-    this._public_key = options.public_key;
-    this._private_key = options.private_key;
-    this._host_key = options.host_key;
+    this._publicKey = options.publicKey;
+    this._privateKey = options.privateKey;
+    this._hostKey = options.hostKey;
 
     this._id = id();
     this.onclose = null;
@@ -22,21 +22,19 @@ class TauriSshSession {
     this._onmessage_listeners = [];
     this.onopen = null;
     this._onopen_listeners = [];
-    this._readyState = READYSTATE_CONNECTING;
+  }
 
-    window.__TAURI__.tauri.invoke({
+  async connect() {
+    return window.__TAURI__.tauri.promisified({
       cmd: 'tauriSshSessionCreate',
       id: this._id,
       user: this._user,
       host: this._host,
-      public_key: this._public_key,
-      private_key: this._private_key,
-      host_key: this._host_key,
+      public_key: this._publicKey,
+      private_key: this._privateKey,
+      host_key: this._hostKey,
       // Create callbacks
       error_callback: window.__TAURI__.tauri.transformCallback(x => {
-        // Assume that erros mean the connection has been killed. Not the best
-        // solution but should work well enough for now.
-        this._readyState = READYSTATE_CLOSED;
         if (this.onerror) {
           this.onerror(x);
         }
@@ -45,7 +43,6 @@ class TauriSshSession {
         }
       }),
       open_callback: window.__TAURI__.tauri.transformCallback(x => {
-        this._readyState = READYSTATE_OPEN;
         if (this.onopen) {
           this.onopen(x);
         }
@@ -55,6 +52,7 @@ class TauriSshSession {
       }, true /* once only callback */),
       message_callback: window.__TAURI__.tauri.transformCallback(x => {
         if (this.onmessage) {
+          console.log('message');
           this.onmessage(x);
         }
         for (const handler in this._onmessage_listeners) {
@@ -62,7 +60,6 @@ class TauriSshSession {
         }
       }),
       close_callback: window.__TAURI__.tauri.transformCallback(x => {
-        this._readyState = READYSTATE_CLOSED;
         if (this.onclose) {
           this.onclose(x);
         }
@@ -73,31 +70,16 @@ class TauriSshSession {
     });
   }
 
-  get readyState() {
-    return this._readyState;
-  }
-
   get url() {
     return this._url;
   }
 
   send(data) {
-    if (this.readyState == READYSTATE_OPEN) {
-      window.__TAURI__.tauri.invoke({
-        cmd: 'tauriSshSessionSend',
-        id: this._id,
-        data
-      });
-    } else if (this.readyState == READYSTATE_CONNECTING) {
-      console.error('Could not send data: connection not ready yet');
-    } else if (
-      this.readyState == READYSTATE_CLOSED ||
-      this.readyState == READYSTATE_CLOSING
-    ) {
-      console.error(
-        'Could not send data: connection is closing or has been closed'
-      );
-    }
+    window.__TAURI__.tauri.invoke({
+      cmd: 'tauriSshSessionSend',
+      id: this._id,
+      data: data,
+    });
   }
 
   close(code, reason) {
@@ -123,7 +105,7 @@ class TauriSshSession {
   }
 }
 
-window.TauriSsh = TauriSshSession;
+window.TauriSshSession = TauriSshSession;
 window.tauriSshKeyGen = () => {
   return window.__TAURI__.tauri.promisified({
     cmd: 'tauriSshKeyGen'

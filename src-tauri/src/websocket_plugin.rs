@@ -7,13 +7,15 @@ use async_native_tls::TlsConnector;
 use futures::{select_biased, FutureExt, SinkExt, StreamExt};
 use serde_json::Value;
 use tauri::{plugin::Plugin, Webview, WebviewMut};
-use tracing::{debug, error, trace};
+use tracing as trc;
 use tungstenite::Message;
 
 use std::{
   collections::HashMap,
   sync::{Arc, Mutex},
 };
+
+use crate::plugin_utils::{log_error, run_js_callback};
 
 mod websocket_client;
 use websocket_client::{connect, WsStream};
@@ -44,7 +46,7 @@ impl WebsocketPlugin {
 
 impl Default for WebsocketPlugin {
   fn default() -> Self {
-    debug!("Starting tauri websocket plugin");
+    trc::debug!("Starting tauri websocket plugin");
 
     // Create a new async executor
     let ex = Executor::new();
@@ -60,7 +62,7 @@ impl Default for WebsocketPlugin {
     std::thread::spawn(move || {
       ex.run(async {
         shutdown_receiver.recv().await.ok();
-        trace!("Shutting down executor");
+        trc::trace!("Shutting down executor");
       })
     });
 
@@ -121,7 +123,7 @@ impl Plugin for WebsocketPlugin {
             message_callback,
             close_callback,
           } => {
-            trace!(id = id.as_str(), "Received command: tauriWebsocketCreate");
+            trc::trace!(id = id.as_str(), "Received command: tauriWebsocketCreate");
 
             // Create a channel that allows us to send messages to the websocket manager task
             let (channel_sender, channel_receiver) = unbounded();
@@ -149,7 +151,7 @@ impl Plugin for WebsocketPlugin {
                 // Try to connect to the websocket endpoint
                 match connect(&url, tls).await {
                   Ok((mut stream, _resp)) => {
-                    debug!("Connected to websocket: {}", url);
+                    trc::debug!("Connected to websocket: {}", url);
 
                     // Run the JS open callback
                     run_js_callback(webview.clone(), open_callback, format!("{}", Value::Null));
@@ -200,7 +202,7 @@ impl Plugin for WebsocketPlugin {
             Ok(true)
           }
           TauriWebsocketSend { id, data } => {
-            trace!(
+            trc::trace!(
               id = id.as_str(),
               data = format!("{:?}", data).as_str(),
               "Received command: tauriWebsocketSend"
@@ -294,7 +296,7 @@ async fn channel_message_handler(
     // If we received a message on the channel
     Ok(message) => {
       // Send the message over the websocket
-      trace!(
+      trc::trace!(
         sent_message = message.to_string().as_str(),
         "Sending message over websocket"
       );
@@ -314,32 +316,4 @@ async fn channel_message_handler(
       true
     }
   }
-}
-
-fn log_error<E: std::fmt::Debug + 'static + Sync + Send>(e: E, mut webview: WebviewMut) {
-  webview
-    .dispatch(move |webview| {
-      webview.eval(&format!(
-        "console.error({});",
-        Value::String(format!("{:?}", e))
-      ))
-    })
-    .unwrap_or_else(|e| {
-      error!("Error: {:?}", e);
-    });
-}
-
-/// Runs the specified javascript callback, passing it the given payload
-fn run_js_callback(mut webview: WebviewMut, callback: String, payloadjs: String) {
-  webview
-    .dispatch(move |webview| {
-      let code = format!(
-        "window[{callback}]({payloadjs})",
-        callback = Value::String(callback),
-        payloadjs = payloadjs,
-      );
-      trace!("Running JS: {}", code);
-      webview.eval(&code)
-    })
-    .unwrap_or_else(|e| log_error(e, webview.clone()));
 }

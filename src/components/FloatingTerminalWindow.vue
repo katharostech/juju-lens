@@ -66,8 +66,6 @@ export default class FloatingTerminalWindow extends Vue {
 
   termReady(): void {
     const term = this.$refs.term as any;
-
-    term.write('> ')
   }
 
   get floatingWindow(): FloatingWindow {

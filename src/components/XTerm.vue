@@ -14,6 +14,7 @@ import 'xterm/css/xterm.css';
 import 'xterm/lib/xterm.js';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { FitAddon } from 'xterm-addon-fit';
+import { getSshKeypair } from 'utils/ssh';
 
 @Component
 export default class TestTerm extends Vue {
@@ -34,8 +35,8 @@ export default class TestTerm extends Vue {
     this.id = uid();
   }
 
-  mounted(): void {
-    this.loadTerm();
+  async mounted(): Promise<void> {
+    await this.loadTerm();
   }
 
   onResize() {
@@ -44,27 +45,46 @@ export default class TestTerm extends Vue {
     }
   }
 
-  loadTerm(): void {
+  async loadTerm(): Promise<void> {
     if (!this.t) {
-      // Wait for the startup delay ( most likely ) to allow the dom to get to a point
-      // at which it has concrete dimensions for the terminal to attach to.
-      setTimeout(() => {
-        this.t = new Terminal();
-        this.fitAddon = new FitAddon();
-        this.t.loadAddon(this.fitAddon);
-        this.t.loadAddon(new WebLinksAddon());
+      const keypair = await getSshKeypair();
+      const session = new window.TauriSshSession({
+        user: 'vagrant',
+        host: '127.0.0.1:22',
+        publicKey: keypair.public,
+        privateKey: keypair.private
+      });
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.t.open(document.getElementById(`term-${this.id}`)!);
-        this.t.focus();
-        this.fitAddon.fit();
+      session
+        .connect()
+        .then(() => {
+          // Wait for the startup delay ( most likely ) to allow the dom to get to a point
+          // at which it has concrete dimensions for the terminal to attach to.
+          setTimeout(() => {
+            this.t = new Terminal();
+            this.fitAddon = new FitAddon();
+            this.t.loadAddon(this.fitAddon);
+            this.t.loadAddon(new WebLinksAddon());
 
-        this.t.onData(data => {
-          this.$emit('data', data);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            this.t.open(document.getElementById(`term-${this.id}`)!);
+            this.t.focus();
+            this.fitAddon.fit();
+
+            this.t.onData(data => {
+              session.send(data);
+            });
+
+            session.onmessage = (m: any) => {
+              this.t?.write(m);
+            };
+
+            this.$emit('ready');
+          }, this.startupDelay);
+        })
+        .catch((e: any) => {
+          console.error(e);
         });
-
-        this.$emit('ready');
-      }, this.startupDelay);
     }
   }
 
