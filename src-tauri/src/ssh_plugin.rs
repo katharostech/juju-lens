@@ -14,13 +14,19 @@ use std::{
 
 use crate::plugin_utils::run_js_callback;
 
+/// A command to send to the SSH channel
+enum ChannelCommand {
+  SetPtySize { width: u32, height: u32 },
+}
+
+/// SSH Connection data
 struct SshConnData {
   stream: Stream,
   // This shutdown sender will keep alive the SSH connection handler thread
   // until it is dropped, but it is not directly read ( thus the
   // allow(dead_code) )
   #[allow(dead_code)]
-  shutdown_sender: SyncSender<()>,
+  command_sender: SyncSender<ChannelCommand>,
 }
 
 /// A Tauri plugin that adds an ssh client
@@ -65,6 +71,11 @@ enum Command {
     // These are from the Tauri JS `promisified` function
     callback: String,
     error: String,
+  },
+  TauriSshSessionSetPtySize {
+    id: String,
+    width: u32,
+    height: u32,
   },
   /// Send a message over a websocket
   TauriSshSessionSend {
@@ -189,14 +200,14 @@ impl Plugin for SshPlugin {
                 let mut stream2 = channel.stream(0);
 
                 // Create the shutdown signal channel
-                let (shutdown_sender, shutdown_receiver) = std::sync::mpsc::sync_channel(1);
+                let (command_sender, command_receiver) = std::sync::mpsc::sync_channel(1);
 
                 // Register the stream
                 ssh_connections.lock().unwrap().insert(
                   id.clone(),
                   SshConnData {
                     stream: stream1,
-                    shutdown_sender,
+                    command_sender,
                   },
                 );
 
@@ -207,9 +218,15 @@ impl Plugin for SshPlugin {
                   let mut buf = [0u8; 1];
                   loop {
                     // Check for shutdown signal
-                    match shutdown_receiver.try_recv() {
+                    match command_receiver.try_recv() {
+                      // If we got the signal to resize the terminal
+                      Ok(ChannelCommand::SetPtySize { width, height }) => {
+                        if let Err(e) = channel.request_pty_size(width, height, None, None) {
+                          trc::error!(id = id.as_str(), "Error resizing terminal PTY: {}", e);
+                        }
+                      }
                       // If we got the signal or the sender was dropped, shutdown the connection
-                      Err(TryRecvError::Disconnected) | Ok(()) => {
+                      Err(TryRecvError::Disconnected) => {
                         trc::debug!(id = id.as_str(), "Closing ssh connection");
                         // Set blocking so we don't have to handle async
                         session.set_blocking(true);
@@ -260,7 +277,8 @@ impl Plugin for SshPlugin {
                     } else {
                       trc::trace!(
                         id = id.as_str(),
-                        data = format!("{:?}", buf).as_str(),
+                        data = format!("{:?}", buf[0]).as_str(),
+                        as_char = format!("{}", buf[0] as char).as_str(),
                         "Got data from SSH connection"
                       );
 
@@ -281,6 +299,23 @@ impl Plugin for SshPlugin {
               callback,
               error,
             );
+            Ok(true)
+          }
+          Command::TauriSshSessionSetPtySize { id, width, height } => {
+            trc::trace!(id = id.as_str(), width, height, "Resizing SSH terminal PTY");
+            if let Some(conn) = self.ssh_connections.lock().unwrap().get_mut(&id) {
+              if let Err(e) = conn
+                .command_sender
+                .send(ChannelCommand::SetPtySize { width, height })
+              {
+                trc::error!(
+                  id = id.as_str(),
+                  "Internal failure to send command to resize SSH terminal PTY: {}",
+                  e
+                );
+              }
+            }
+
             Ok(true)
           }
           Command::TauriSshSessionSend { id, data } => {

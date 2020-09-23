@@ -77,7 +77,7 @@ class TauriSshSession {
     window.__TAURI__.tauri.invoke({
       cmd: 'tauriSshSessionSend',
       id: this._id,
-      data: btoa(data),
+      data: btoa(data)
     });
   }
 
@@ -87,6 +87,15 @@ class TauriSshSession {
       id: this._id,
       code: code || null,
       reason: reason || null
+    });
+  }
+
+  resize(width, height) {
+    window.__TAURI__.tauri.invoke({
+      cmd: 'tauriSshSessionSetPtySize',
+      id: this._id,
+      width,
+      height
     });
   }
 

@@ -43,56 +43,84 @@ export default class TestTerm extends Vue {
   onResize() {
     if (this.fitAddon && this.autoResize) {
       this.fitAddon.fit();
+      const { cols, rows } = this.fitAddon.proposeDimensions();
+      this.session.resize(cols, rows);
     }
   }
 
   async loadTerm(): Promise<void> {
     if (!this.t) {
       const keypair = await getSshKeypair();
-      this.session = new window.TauriSshSession({
-        user: 'vagrant',
-        host: '127.0.0.1:22',
-        publicKey: keypair.public,
-        privateKey: keypair.private
-      });
-
-      this.session.onclose = () => {
-        this.$emit('close');
-      };
-
-      this.session.onerror = (e: string) => {
-        this.$emit('error', e);
-      };
-
-      this.session
-        .connect()
-        .then(() => {
-          // Wait for the startup delay ( most likely ) to allow the dom to get to a point
-          // at which it has concrete dimensions for the terminal to attach to.
-          setTimeout(() => {
-            this.t = new Terminal();
-            this.fitAddon = new FitAddon();
-            this.t.loadAddon(this.fitAddon);
-            this.t.loadAddon(new WebLinksAddon());
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.t.open(document.getElementById(`term-${this.id}`)!);
-            this.t.focus();
-            this.fitAddon.fit();
-
-            this.t.onData(data => {
-              this.session.send(data);
-            });
-
-            this.session.onmessage = (m: any) => {
-              this.t?.write(m);
-            };
-
-            this.$emit('ready');
-          }, this.startupDelay);
+      this.$q
+        .dialog({
+          title: 'Username',
+          message: 'Connection username',
+          prompt: {
+            label: 'username',
+            model: 'vagrant',
+            type: 'text' // optional
+          },
+          persistent: true
         })
-        .catch((e: any) => {
-          this.$emit('connect-failure', e);
+        .onOk((user: string) => {
+          this.$q
+            .dialog({
+              title: 'Host',
+              message: 'Connection host:port',
+              prompt: {
+                label: 'host',
+                model: '127.0.0.1',
+                type: 'text' // optional
+              },
+              persistent: true
+            })
+            .onOk((host: string) => {
+              this.session = new window.TauriSshSession({
+                user,
+                host: host.includes(':') ? host : host + ':22',
+                publicKey: keypair.public,
+                privateKey: keypair.private
+              });
+
+              this.session.onclose = () => {
+                this.$emit('close');
+              };
+
+              this.session.onerror = (e: string) => {
+                this.$emit('error', e);
+              };
+
+              // Wait for the startup delay ( most likely ) to allow the dom to get to a point
+              // at which it has concrete dimensions for the terminal to attach to.
+              setTimeout(() => {
+                this.t = new Terminal();
+                this.fitAddon = new FitAddon();
+                this.t.loadAddon(this.fitAddon);
+                this.t.loadAddon(new WebLinksAddon());
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                this.t.open(document.getElementById(`term-${this.id}`)!);
+                this.t.focus();
+                this.fitAddon.fit();
+
+                this.t.onData(data => {
+                  this.session.send(data);
+                });
+
+                this.session.onmessage = (m: any) => {
+                  this.t?.write(m);
+                };
+
+                this.session
+                  .connect()
+                  .then(() => {
+                    this.$emit('ready');
+                  })
+                  .catch((e: any) => {
+                    this.$emit('connect-failure', e);
+                  });
+              }, this.startupDelay);
+            });
         });
     }
   }
@@ -108,7 +136,7 @@ export default class TestTerm extends Vue {
   }
 
   public close() {
-    this.session.close()
+    this.session.close();
   }
 }
 </script>
