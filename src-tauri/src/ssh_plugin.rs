@@ -3,18 +3,30 @@
 
 use rsa::{PrivateKeyPemEncoding, PublicKeyParts};
 use serde_json::Value;
-use ssh2::{Session, Stream};
-use tauri::{plugin::Plugin, Webview, WebviewMut};
+use ssh2::Stream;
+use tauri::{plugin::Plugin, Webview};
 use tracing as trc;
 
-use std::{collections::HashMap, io::Read, io::Write, sync::mpsc::Sender, sync::Arc, sync::Mutex};
+use std::{
+  collections::HashMap, io::Read, io::Write, sync::mpsc::SyncSender, sync::mpsc::TryRecvError,
+  sync::Arc, sync::Mutex,
+};
 
 use crate::plugin_utils::run_js_callback;
+
+struct SshConnData {
+  stream: Stream,
+  // This shutdown sender will keep alive the SSH connection handler thread
+  // until it is dropped, but it is not directly read ( thus the
+  // allow(dead_code) )
+  #[allow(dead_code)]
+  shutdown_sender: SyncSender<()>,
+}
 
 /// A Tauri plugin that adds an ssh client
 #[derive(Default)]
 pub struct SshPlugin {
-  ssh_connections: Arc<Mutex<HashMap<String, Stream>>>,
+  ssh_connections: Arc<Mutex<HashMap<String, SshConnData>>>,
 }
 
 impl SshPlugin {
@@ -176,19 +188,82 @@ impl Plugin for SshPlugin {
                 // data from the SSH stream
                 let mut stream2 = channel.stream(0);
 
+                // Create the shutdown signal channel
+                let (shutdown_sender, shutdown_receiver) = std::sync::mpsc::sync_channel(1);
+
                 // Register the stream
-                ssh_connections.lock().unwrap().insert(id, stream1);
+                ssh_connections.lock().unwrap().insert(
+                  id.clone(),
+                  SshConnData {
+                    stream: stream1,
+                    shutdown_sender,
+                  },
+                );
 
                 // Create a thread to handle incomming data from the SSH connection
                 std::thread::spawn(move || {
                   trc::trace!("Staring handler thread");
+
                   let mut buf = [0u8; 1];
                   loop {
+                    // Check for shutdown signal
+                    match shutdown_receiver.try_recv() {
+                      // If we got the signal or the sender was dropped, shutdown the connection
+                      Err(TryRecvError::Disconnected) | Ok(()) => {
+                        trc::debug!(id = id.as_str(), "Closing ssh connection");
+                        // Set blocking so we don't have to handle async
+                        session.set_blocking(true);
+
+                        // Close the channel
+                        if let Err(e) = channel.close() {
+                          trc::error!(id = id.as_str(), "Error closing SSH connection: {}", e);
+                        }
+
+                        break;
+                      }
+                      // If the signal has not been sent but the channel is still open,
+                      // keep looping
+                      Err(TryRecvError::Empty) => (),
+                    }
+
+                    // If we get an error reading from the ssh stream
                     if let Err(e) = stream2.read_exact(&mut buf) {
                       if e.kind() != std::io::ErrorKind::WouldBlock {
-                        panic!("Error [TODO]: {}", e);
+                        // If the channel is closed
+                        if channel.eof() {
+                          trc::debug!(id = id.as_str(), "SSH channel closed, cleaning up");
+
+                          // Remote the stream from the ssh connction list
+                          ssh_connections.lock().unwrap().remove(&id);
+
+                          // Run the connection close callback
+                          run_js_callback(webview_mut, close_callback, "".into());
+
+                          // Exit the loop
+                          break;
+                        } else {
+                          trc::error!(id = id.as_str(), "Error reading ssh channel data: {}", e);
+
+                          run_js_callback(
+                            webview_mut.clone(),
+                            error_callback.clone(),
+                            Value::String(e.to_string()).to_string(),
+                          )
+                        }
+                      } else {
+                        // 17 milliseconds is about 60hz which is as fast as most screen refreshes
+                        // ( so fast enough ) and it doesn't have a noticable impact on CPU usage.
+                        std::thread::sleep(std::time::Duration::from_millis(17));
                       }
+
+                    // If se successfully got data from the ssh connection
                     } else {
+                      trc::trace!(
+                        id = id.as_str(),
+                        data = format!("{:?}", buf).as_str(),
+                        "Got data from SSH connection"
+                      );
+
                       run_js_callback(
                         webview_mut.clone(),
                         message_callback.clone(),
@@ -209,17 +284,30 @@ impl Plugin for SshPlugin {
             Ok(true)
           }
           Command::TauriSshSessionSend { id, data } => {
-            if let Some(stream) = self.ssh_connections.lock().unwrap().get_mut(&id) {
+            if let Some(conn) = self.ssh_connections.lock().unwrap().get_mut(&id) {
+              let decoded = base64::decode(&data).expect("Could not decode base64");
               trc::trace!(
                 id = id.as_str(),
                 data = data.as_str(),
+                decoded = format!("{:?}", decoded).as_str(),
                 "Sending data to SSH connection"
               );
-              stream.write_all(&data.as_bytes()).expect("TODO:");
+              conn.stream.write_all(&decoded).expect("TODO:");
             }
             Ok(true)
           }
-          Command::TauriSshSessionClose { id } => Ok(true),
+          Command::TauriSshSessionClose { id } => {
+            // Remove the connection data which will shutdown the connection by
+            // dropping the shutdown sender
+            if let None = self.ssh_connections.lock().unwrap().remove(&id) {
+              trc::warn!(
+                id = id.as_str(),
+                "Attempted to delete non-existant SSH session"
+              );
+            }
+
+            Ok(true)
+          }
         }
       }
     }

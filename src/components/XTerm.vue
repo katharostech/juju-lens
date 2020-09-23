@@ -30,6 +30,7 @@ export default class TestTerm extends Vue {
 
   fitAddon: FitAddon | null = null;
   t: Terminal | null = null;
+  session: any = null;
 
   created() {
     this.id = uid();
@@ -48,14 +49,22 @@ export default class TestTerm extends Vue {
   async loadTerm(): Promise<void> {
     if (!this.t) {
       const keypair = await getSshKeypair();
-      const session = new window.TauriSshSession({
+      this.session = new window.TauriSshSession({
         user: 'vagrant',
         host: '127.0.0.1:22',
         publicKey: keypair.public,
         privateKey: keypair.private
       });
 
-      session
+      this.session.onclose = () => {
+        this.$emit('close');
+      };
+
+      this.session.onerror = (e: string) => {
+        this.$emit('error', e);
+      };
+
+      this.session
         .connect()
         .then(() => {
           // Wait for the startup delay ( most likely ) to allow the dom to get to a point
@@ -72,10 +81,10 @@ export default class TestTerm extends Vue {
             this.fitAddon.fit();
 
             this.t.onData(data => {
-              session.send(data);
+              this.session.send(data);
             });
 
-            session.onmessage = (m: any) => {
+            this.session.onmessage = (m: any) => {
               this.t?.write(m);
             };
 
@@ -83,7 +92,7 @@ export default class TestTerm extends Vue {
           }, this.startupDelay);
         })
         .catch((e: any) => {
-          console.error(e);
+          this.$emit('connect-failure', e);
         });
     }
   }
@@ -96,6 +105,10 @@ export default class TestTerm extends Vue {
     // We actually want this to error if the terminal is not ready yet.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.t!.write(data);
+  }
+
+  public close() {
+    this.session.close()
   }
 }
 </script>

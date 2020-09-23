@@ -52,7 +52,6 @@ class TauriSshSession {
       }, true /* once only callback */),
       message_callback: window.__TAURI__.tauri.transformCallback(x => {
         if (this.onmessage) {
-          console.log('message');
           this.onmessage(x);
         }
         for (const handler in this._onmessage_listeners) {
@@ -78,7 +77,7 @@ class TauriSshSession {
     window.__TAURI__.tauri.invoke({
       cmd: 'tauriSshSessionSend',
       id: this._id,
-      data: data,
+      data: btoa(data),
     });
   }
 

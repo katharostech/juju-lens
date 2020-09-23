@@ -10,7 +10,7 @@
       v-on:maximize="toggleFloatingWindowMaximized(floatingWindowId)"
       v-on:restore="toggleFloatingWindowMaximized(floatingWindowId)"
       v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
-      v-on:close="removeFloatingWindow(floatingWindowId)"
+      v-on:close="removeFloatingWindow(floatingWindowId); closeSshConn()"
       icon="fas fa-terminal"
       :style="{ 'z-index': floatingWindow.zIndex }"
       @click.native="focusFloatingWindow(floatingWindowId)"
@@ -22,7 +22,28 @@
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
           @data="data => log(data)"
-          @ready="termReady"
+          @connect-failure="
+            e => {
+              $q.notify({
+                color: 'negative',
+                message: e,
+                position: 'bottom-right',
+                timeout: 2000
+              });
+              removeFloatingWindow(floatingWindowId);
+            }
+          "
+          @error="
+            e => {
+              $q.notify({
+                color: 'negative',
+                message: e,
+                position: 'bottom-right',
+                timeout: 2000
+              });
+            }
+          "
+          @close="removeFloatingWindow(floatingWindowId)"
         />
       </div>
     </floating-window-component>
@@ -64,14 +85,14 @@ export default class FloatingTerminalWindow extends Vue {
     console.log(data);
   }
 
-  termReady(): void {
-    const term = this.$refs.term as any;
-  }
-
   get floatingWindow(): FloatingWindow {
     return this.floatingWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
+  }
+
+  closeSshConn() {
+    (this.$refs.term as any).close();
   }
 
   @Watch('floatingWindow.visible')

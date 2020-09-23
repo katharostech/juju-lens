@@ -848,6 +848,7 @@ dependencies = [
  "async-executor",
  "async-native-tls",
  "async-tungstenite",
+ "base64",
  "futures",
  "native-tls",
  "openssh-keys",
