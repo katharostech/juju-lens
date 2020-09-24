@@ -127,7 +127,7 @@ impl Plugin for SshPlugin {
                 );
 
                 Ok(KeyPair {
-                  private: private.to_pem_pkcs8()?,
+                  private: private.to_pem_pkcs1()?,
                   public: public.to_key_format(),
                 })
               },
