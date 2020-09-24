@@ -5,9 +5,9 @@
       <div
         class="flex justify-center items-center"
         style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 1000000; opacity: 0.8"
-        v-if="!loading"
+        v-if="loading"
       >
-        <q-spinner size="10em" />
+        <q-spinner size="10em" color="white" />
       </div>
     </transition>
   </div>
