@@ -1,6 +1,15 @@
 <template>
   <div :id="`term-${id}`" class="vue-xterm bg-black" style="overflow: hidden;">
     <q-resize-observer :debounce="250" @resize="onResize" />
+    <transition name="fade">
+      <div
+        class="flex justify-center items-center"
+        style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 1000000; opacity: 0.8"
+        v-if="!loading"
+      >
+        <q-spinner size="10em" />
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -31,6 +40,7 @@ export default class TestTerm extends Vue {
   fitAddon: FitAddon | null = null;
   t: Terminal | null = null;
   session: any = null;
+  loading = true;
 
   created() {
     this.id = uid();
@@ -90,8 +100,9 @@ export default class TestTerm extends Vue {
                 this.$emit('error', e);
               };
 
-              // Wait for the startup delay ( most likely ) to allow the dom to get to a point
-              // at which it has concrete dimensions for the terminal to attach to.
+              // Wait for the startup delay ( most likely ) to allow the dom to
+              // get to a point at which it has concrete dimensions for the
+              // terminal to attach to.
               setTimeout(() => {
                 this.t = new Terminal();
                 this.fitAddon = new FitAddon();
@@ -107,6 +118,10 @@ export default class TestTerm extends Vue {
                   this.session.send(data);
                 });
 
+                // TODO: Handle t.onBinary? ( Only used for certain mouse
+                // commands that aren't valid UTF-8, so probably not that
+                // important.
+
                 this.session.onmessage = (m: any) => {
                   this.t?.write(m);
                 };
@@ -114,6 +129,7 @@ export default class TestTerm extends Vue {
                 this.session
                   .connect()
                   .then(() => {
+                    this.loading = false;
                     this.$emit('ready');
                   })
                   .catch((e: any) => {
@@ -140,3 +156,12 @@ export default class TestTerm extends Vue {
   }
 }
 </script>
+
+<style lang="stylus">
+.fade-enter-active,
+.fade-leave-actie
+  transition opacity 0.5s !important
+
+.fade-enter, .fade-leave-to
+  opacity 0
+</style>

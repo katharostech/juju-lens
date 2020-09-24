@@ -10,7 +10,10 @@
       v-on:maximize="toggleFloatingWindowMaximized(floatingWindowId)"
       v-on:restore="toggleFloatingWindowMaximized(floatingWindowId)"
       v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
-      v-on:close="removeFloatingWindow(floatingWindowId); closeSshConn()"
+      v-on:close="
+        removeFloatingWindow(floatingWindowId);
+        closeSshConn();
+      "
       icon="fas fa-terminal"
       :style="{ 'z-index': floatingWindow.zIndex }"
       @click.native="focusFloatingWindow(floatingWindowId)"
@@ -18,7 +21,7 @@
       <div class="fit q-pa-xs bg-black">
         <x-term
           ref="term"
-          class="fade-in-on-display full-height"
+          class="full-height"
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
           @data="data => log(data)"
@@ -112,13 +115,4 @@ export default class FloatingTerminalWindow extends Vue {
   textarea
     color white
     padding 0 !important
-
-.fade-in-on-display
-  opacity 0
-  animation fade-in 1s 0.3s ease forwards
-
-@keyframes fade-in {
-  0%   {opacity:0}
-  100% {opacity:1}
-}
 </style>

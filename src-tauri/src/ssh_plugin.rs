@@ -268,7 +268,7 @@ impl Plugin for SshPlugin {
                           )
                         }
                       } else {
-                        // 17 milliseconds is about 60hz which is as fast as most screen refreshes
+                        // 17 milliseconds is about 60hz which is as fast as most screens refreshe
                         // ( so fast enough ) and it doesn't have a noticable impact on CPU usage.
                         std::thread::sleep(std::time::Duration::from_millis(17));
                       }
