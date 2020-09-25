@@ -172,7 +172,7 @@
                   <div class="avatar-stack">
                     <q-avatar
                       v-for="application in model.applications"
-                      :key="application.id"
+                      :key="application.name"
                       size="2em"
                       @click.stop="
                         () => {
@@ -280,7 +280,7 @@
                                 <div class="row reverse">
                                   <div
                                     v-for="unit in application.units"
-                                    :key="unit.id"
+                                    :key="unit.name"
                                   >
                                     <q-icon
                                       :name="unit.statusIcon.icon"
@@ -317,6 +317,7 @@
                                           </q-item-section>
                                         </q-item>
                                         <q-item
+                                          v-if="isTauri"
                                           v-ripple
                                           clickable
                                           @click="
@@ -632,6 +633,7 @@
                         <q-tooltip>Open Logs</q-tooltip>
                       </q-btn>
                       <q-btn
+                        v-if="isTauri"
                         dense
                         flat
                         size="0.8em"
@@ -746,6 +748,7 @@
                                     <q-tooltip>Open Logs</q-tooltip>
                                   </q-btn>
                                   <q-btn
+                                    v-if="isTauri"
                                     dense
                                     flat
                                     size="1em"
@@ -1194,6 +1197,10 @@ export default class Index extends Vue {
       parent: this,
       app
     });
+  }
+
+  get isTauri(): boolean {
+    return !!window.__TAURI__;
   }
 }
 </script>

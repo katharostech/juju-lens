@@ -8,8 +8,8 @@ use tauri::{plugin::Plugin, Webview};
 use tracing as trc;
 
 use std::{
-  collections::HashMap, io::Read, io::Write, sync::mpsc::SyncSender, sync::mpsc::TryRecvError,
-  sync::Arc, sync::Mutex,
+  collections::HashMap, io::BufReader, io::Read, io::Write, sync::mpsc::SyncSender,
+  sync::mpsc::TryRecvError, sync::Arc, sync::Mutex,
 };
 
 use crate::plugin_utils::run_js_callback;
@@ -197,7 +197,7 @@ impl Plugin for SshPlugin {
                 let stream1 = channel.stream(0);
                 // Create another stream that can be used to read
                 // data from the SSH stream
-                let mut stream2 = channel.stream(0);
+                let mut stream2 = BufReader::new(channel.stream(0));
 
                 // Create the shutdown signal channel
                 let (command_sender, command_receiver) = std::sync::mpsc::sync_channel(1);
@@ -212,87 +212,111 @@ impl Plugin for SshPlugin {
                 );
 
                 // Create a thread to handle incomming data from the SSH connection
-                std::thread::spawn(move || {
-                  trc::trace!("Staring handler thread");
-
-                  let mut buf = [0u8; 1];
-                  loop {
-                    // Check for shutdown signal
-                    match command_receiver.try_recv() {
-                      // If we got the signal to resize the terminal
-                      Ok(ChannelCommand::SetPtySize { width, height }) => {
-                        if let Err(e) = channel.request_pty_size(width, height, None, None) {
-                          trc::error!(id = id.as_str(), "Error resizing terminal PTY: {}", e);
-                        }
-                      }
-                      // If we got the signal or the sender was dropped, shutdown the connection
-                      Err(TryRecvError::Disconnected) => {
-                        trc::debug!(id = id.as_str(), "Closing ssh connection");
-                        // Set blocking so we don't have to handle async
-                        session.set_blocking(true);
-
-                        // Close the channel
-                        if let Err(e) = channel.close() {
-                          trc::error!(id = id.as_str(), "Error closing SSH connection: {}", e);
-                        }
-
-                        break;
-                      }
-                      // If the signal has not been sent but the channel is still open,
-                      // keep looping
-                      Err(TryRecvError::Empty) => (),
-                    }
-
-                    // If we get an error reading from the ssh stream
-                    if let Err(e) = stream2.read_exact(&mut buf) {
-                      if e.kind() != std::io::ErrorKind::WouldBlock {
-                        // If the channel is closed
-                        if channel.eof() {
-                          trc::debug!(id = id.as_str(), "SSH channel closed, cleaning up");
-
-                          // Remote the stream from the ssh connction list
-                          ssh_connections.lock().unwrap().remove(&id);
-
-                          // Run the connection close callback
-                          run_js_callback(webview_mut, close_callback, "".into());
-
-                          // Exit the loop
-                          break;
-                        } else {
-                          trc::error!(id = id.as_str(), "Error reading ssh channel data: {}", e);
+                let webview_mut2 = webview_mut.clone();
+                std::thread::Builder::new()
+                  .name("SSH Input Handler".into())
+                  .spawn(move || {
+                    // Create a thread that will periodically send the updated data to the JavaScript terminal
+                    let (byte_sender, byte_receiver) = std::sync::mpsc::channel::<u8>();
+                    std::thread::Builder::new()
+                      .name("Terminal Screen Refresher".into())
+                      .spawn(move || {
+                        let mut buf = Vec::new();
+                        'thread: loop {
+                          // Get all pending bytes from our channel
+                          loop {
+                            match byte_receiver.try_recv() {
+                              Ok(byte) => buf.push(byte),
+                              Err(TryRecvError::Empty) => break,
+                              Err(TryRecvError::Disconnected) => break 'thread,
+                            }
+                          }
 
                           run_js_callback(
-                            webview_mut.clone(),
-                            error_callback.clone(),
-                            Value::String(e.to_string()).to_string(),
-                          )
+                            webview_mut2.clone(),
+                            message_callback.clone(),
+                            format!("Uint16Array.from({:?})", buf),
+                          );
+                          buf.clear();
+
+                          // Sleep for 1/60th of a second
+                          std::thread::sleep(std::time::Duration::from_millis(42));
                         }
-                      } else {
-                        // 17 milliseconds is about 60hz which is as fast as most screens refreshe
-                        // ( so fast enough ) and it doesn't have a noticable impact on CPU usage.
-                        std::thread::sleep(std::time::Duration::from_millis(17));
+                      })
+                      .unwrap();
+
+                    let mut buf = [0u8; 1];
+                    loop {
+                      // Check for shutdown signal
+                      match command_receiver.try_recv() {
+                        // If we got the signal to resize the terminal
+                        Ok(ChannelCommand::SetPtySize { width, height }) => {
+                          if let Err(e) = channel.request_pty_size(width, height, None, None) {
+                            trc::error!(id = id.as_str(), "Error resizing terminal PTY: {}", e);
+                          }
+                        }
+                        // If we got the signal or the sender was dropped, shutdown the connection
+                        Err(TryRecvError::Disconnected) => {
+                          trc::debug!(id = id.as_str(), "Closing ssh connection");
+                          // Set blocking so we don't have to handle async
+                          session.set_blocking(true);
+
+                          // Close the channel
+                          if let Err(e) = channel.close() {
+                            trc::error!(id = id.as_str(), "Error closing SSH connection: {}", e);
+                          }
+
+                          break;
+                        }
+                        // If the signal has not been sent but the channel is still open,
+                        // keep looping
+                        Err(TryRecvError::Empty) => (),
                       }
 
-                    // If se successfully got data from the ssh connection
-                    } else {
-                      trc::trace!(
-                        id = id.as_str(),
-                        data = format!("{:?}", buf[0]).as_str(),
-                        as_char = format!("{}", buf[0] as char).as_str(),
-                        "Got data from SSH connection"
-                      );
+                      // If we get an error reading from the ssh stream
+                      if let Err(e) = stream2.read_exact(&mut buf) {
+                        if e.kind() != std::io::ErrorKind::WouldBlock {
+                          // If the channel is closed
+                          if channel.eof() {
+                            trc::debug!(id = id.as_str(), "SSH channel closed, cleaning up");
 
-                      run_js_callback(
-                        webview_mut.clone(),
-                        message_callback.clone(),
-                        format!(
-                          "(() => {{const a = new Uint8Array(1); a[0] = {}; return a; }})()",
-                          buf[0]
-                        ),
-                      );
+                            // Remote the stream from the ssh connction list
+                            ssh_connections.lock().unwrap().remove(&id);
+
+                            // Run the connection close callback
+                            run_js_callback(webview_mut, close_callback, "".into());
+
+                            // Exit the loop
+                            break;
+                          } else {
+                            trc::error!(id = id.as_str(), "Error reading ssh channel data: {}", e);
+
+                            run_js_callback(
+                              webview_mut.clone(),
+                              error_callback.clone(),
+                              Value::String(e.to_string()).to_string(),
+                            )
+                          }
+                        } else {
+                          // 17 milliseconds is about 60hz which is as fast as most screens refreshe
+                          // ( so fast enough ) and it doesn't have a noticable impact on CPU usage.
+                          std::thread::sleep(std::time::Duration::from_millis(17));
+                        }
+
+                      // If se successfully got data from the ssh connection
+                      } else {
+                        trc::trace!(
+                          id = id.as_str(),
+                          data = format!("{:?}", buf[0]).as_str(),
+                          as_char = format!("{}", buf[0] as char).as_str(),
+                          "Got data from SSH connection"
+                        );
+
+                        byte_sender.send(buf[0]).unwrap();
+                      }
                     }
-                  }
-                });
+                  })
+                  .unwrap(); // Thread spawn
 
                 Ok(())
               },

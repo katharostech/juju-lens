@@ -26,16 +26,6 @@ function focusFloatingWindow(state: AppStateInterface, id: string): void {
 }
 
 const mutation: MutationTree<AppStateInterface> = {
-  // The debug window is not something we are planning on using anymore.
-  // Leaving this around just in case.
-  toggleDebugWindow(state: AppStateInterface) {
-    state.debugWindow.visible = !state.debugWindow.visible;
-  },
-
-  toggleDebugWindowMaximized(state: AppStateInterface) {
-    state.debugWindow.maximized = !state.debugWindow.maximized;
-  },
-
   /** Add floating window */
   [mutationTypes.addFloatingWindow](state, window: FloatingWindow) {
     state.floatingWindows.push(window);

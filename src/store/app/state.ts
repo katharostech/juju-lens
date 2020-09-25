@@ -5,9 +5,6 @@ export interface DebugWindowState {
   maximized: boolean;
 }
 
-// TODO: Is app too much to add to the floating window? We really just needs the
-// Apps name for the taskbar. This will probably change a lot when we hook it up
-// to the API so I think it is fine for now.
 export interface FloatingWindow {
   id: string;
   unit: Unit;
