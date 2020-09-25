@@ -47,6 +47,7 @@ impl SshPlugin {
 struct KeyPair {
   private: String,
   public: String,
+  fingerprint: String,
 }
 
 /// The commands that we can receive from the browser
@@ -129,6 +130,7 @@ impl Plugin for SshPlugin {
                 Ok(KeyPair {
                   private: private.to_pem_pkcs1()?,
                   public: public.to_key_format(),
+                  fingerprint: get_key_fingerprint(public),
                 })
               },
               callback,
@@ -371,4 +373,14 @@ impl Plugin for SshPlugin {
       }
     }
   }
+}
+
+fn get_key_fingerprint(public_key: openssh_keys::PublicKey) -> String {
+  let mut sh = md5::Context::new();
+  sh.consume(public_key.data());
+  sh.compute()
+    .iter()
+    .map(|x| format!("{:02x}", x))
+    .collect::<Vec<_>>()
+    .join(":")
 }

@@ -11,5 +11,9 @@ interface Window {
   TauriWebSocketInsecure: any;
   TauriWebSocket: any;
   TauriSshSession: any;
-  tauriSshKeyGen: () => Promise<{ private: string; public: string }>;
+  tauriSshKeyGen: () => Promise<{
+    private: string;
+    public: string;
+    fingerprint: string;
+  }>;
 }

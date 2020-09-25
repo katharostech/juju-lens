@@ -9,6 +9,7 @@ import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
 import applicationFacade from '@canonical/jujulib/api/facades/application-v8.js';
 import keyManagerFacade from '@canonical/jujulib/api/facades/key-manager-v1';
 import { getItemId } from './state/utils';
+import { getSshKeypair } from 'utils/ssh';
 
 export const actionTypes = {
   // Controllers
@@ -190,7 +191,10 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
   },
 
   /**
-   * Commit's a delta from the controller all model watcher. There is a corresponding mutation that handles most of the work, but this function must be an action because for models it must open up a websocket connection for the model.
+   * Commits a delta from the controller all model watcher. There is a
+   * corresponding mutation that handles most of the work, but this function
+   * must be an action because for models it must open up a websocket connection
+   * for the model.
    */
   [actionTypes.commitControllerDelta](
     ctx,
@@ -253,6 +257,17 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
             // Add the connection to the model data
             model.conn = result;
 
+            // Make sure the Juju Lens SSH key has been added to the models
+            // authorized keys.
+            if (window.__TAURI__) {
+              getSshKeypair().then(keypair => {
+                model.conn.conn.facades.keyManager.addKeys({
+                  user: `user-${controller.username}`,
+                  sshKeys: [keypair.public]
+                });
+              });
+            }
+
             // Apply the mutation to the state
             ctx.commit(mutationTypes.commitControllerDelta, {
               name,
@@ -275,22 +290,51 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
    */
   [actionTypes.deleteController](ctx, name: string) {
     const controller = ctx.state.controllers[name];
-    // Close controller connection if it is open
-    if (controller && controller.conn && controller.controllerWatchHandle) {
-      controller.controllerWatchHandle.stop((err: any) => {
-        if (err) {
-          console.error(err);
+
+    const removeController = () => {
+      // Close controller watcher connection
+      if (controller && controller.conn && controller.controllerWatchHandle) {
+        controller.controllerWatchHandle.stop((err: any) => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      }
+
+      // Remove controller and persist state
+      ctx.commit(mutationTypes.deleteController, name);
+      persistControllerState(ctx.state);
+    };
+
+    // If the controller has an active connection
+    if (window.__TAURI__) {
+      getSshKeypair().then(keypair => {
+        const promises = [];
+        // Remove the Juju Lens SSH key from the models
+        for (const modelName in controller.models) {
+          const model = controller.models[modelName];
+
+          if (model.conn) {
+            promises.push(
+              model.conn.conn.facades.keyManager.deleteKeys({
+                user: `user-${controller.username}`,
+                sshKeys: [keypair.fingerprint]
+              })
+            );
+          }
         }
+
+        // TODO: Find out if a logout is necessary:
+        // https://github.com/juju/js-libjuju/blob/124ea0969ff9702b07eb2ea79f5b1b471e741b07/examples/watch-all-models.js#L41
+
+        // Wait untill all the keys have been removed
+        Promise.all(promises).then(() => {
+          removeController();
+        });
       });
-
-      // TODO: Find out if a logout is necessary:
-      // https://github.com/juju/js-libjuju/blob/124ea0969ff9702b07eb2ea79f5b1b471e741b07/examples/watch-all-models.js#L41
+    } else {
+      removeController();
     }
-
-    ctx.commit(mutationTypes.deleteController, name);
-
-    // Persist state
-    persistControllerState(ctx.state);
   },
 
   /** Logout of all controllers and clear the persited Juju state */
@@ -316,7 +360,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         timeout: 2000
       });
     });
-  },
+  }
 };
 
 export default actions;
