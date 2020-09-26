@@ -115,7 +115,7 @@ export default class FloatingTerminalWindow extends Vue {
       .publicKeys({
         entities: [
           {
-            tag: `unit-${this.floatingWindow.unit.name}`
+            tag: `unit-${this.floatingWindow.unit.name.replace('/', '-')}`
           }
         ]
       })
