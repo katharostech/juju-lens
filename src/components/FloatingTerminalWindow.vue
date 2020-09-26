@@ -107,8 +107,8 @@ export default class FloatingTerminalWindow extends Vue {
         }
       ]
     }).then((res: any) => {
-      const hostKey = res.results[0].publicKeys[0];
-      (this.$refs.term as any).start('ubuntu', this.floatingWindow.unit.name, hostKey);
+      const hostKeys = res.results[0].publicKeys;
+      (this.$refs.term as any).start('ubuntu', this.floatingWindow.unit['public-address'], hostKeys);
     });
   }
 

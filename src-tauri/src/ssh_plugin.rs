@@ -66,7 +66,7 @@ enum Command {
     host: String,
     public_key: String,
     private_key: String,
-    host_key: Option<String>,
+    host_keys: Option<Vec<String>>,
     error_callback: String,
     message_callback: String,
     close_callback: String,
@@ -145,7 +145,7 @@ impl Plugin for SshPlugin {
             host,
             public_key,
             private_key,
-            host_key,
+            host_keys,
             error_callback,
             message_callback,
             close_callback,
@@ -153,7 +153,13 @@ impl Plugin for SshPlugin {
             callback,
             error,
           } => {
-            trc::debug!(id = id.as_str(), "Creating SSH session");
+            trc::debug!(
+              id = id.as_str(),
+              user = user.as_str(),
+              host = host.as_str(),
+              host_keys = format!("{:?}", host_keys).as_str(),
+              "Creating SSH session"
+            );
             let ssh_connections = self.ssh_connections.clone();
             let webview_mut = webview.as_mut();
             tauri::execute_promise(
@@ -165,24 +171,34 @@ impl Plugin for SshPlugin {
                 session.handshake()?;
 
                 // Verify the host key
-                if let Some(real_host_key) = host_key {
+                if let Some(valid_host_keys) = host_keys {
                   let mut verified = false;
-                  if let Some((candidate_host_key, _type)) = session.host_key() {
-                    let real_host_key = real_host_key
-                      .split(" ") // Split the key by spaces
-                      .skip(1) // Skip the first section, i.e. `ssh-[something]`
-                      .next() // Get the host key base64
-                      .ok_or(anyhow::format_err!("Could not parse host key from client"))?;
-                    let real_host_key = base64::decode(real_host_key)
-                      .context("Could not base64 decode host key from client")?;
 
-                    if candidate_host_key == real_host_key.as_slice() {
-                      verified = true;
+                  // If the server has a host key
+                  if let Some((host_key, key_type)) = session.host_key() {
+                    // For every valid key
+                    for valid_host_key in valid_host_keys {
+                      let valid_host_key = valid_host_key
+                        .split(" ") // Split the key by spaces
+                        .skip(1) // Skip the first section, i.e. `ssh-[something]`
+                        .next() // Get the host key base64
+                        .ok_or(anyhow::format_err!("Could not parse host key from client"))?;
+
+                      let valid_host_key = base64::decode(valid_host_key)
+                        .context("Could not base64 decode host key from client")?;
+
+                      // Check whether or not the host key matched the valid key
+                      if host_key == valid_host_key.as_slice() {
+                        verified = true;
+                        break;
+                      }
                     }
                   }
                   if !verified {
                     anyhow::bail!("Host key verification failed")
                   }
+                } else {
+                  trc::warn!("Host key not provided: connecting to SSH session without validating host key");
                 }
 
                 // Create temporary key files

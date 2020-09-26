@@ -59,12 +59,12 @@ export default class XTerm extends Vue {
     }
   }
 
-  public start(user: string, host: string, hostKey: string) {
+  public start(user: string, host: string, hostKeys: string[]) {
     // Wait for the component to mount
     setTimeout(
       function wait(this: XTerm) {
         if (this.$el) {
-          this.loadTerm(user, host, hostKey);
+          this.loadTerm(user, host, hostKeys);
         } else {
           setTimeout(wait.bind(this), 200);
         }
@@ -73,7 +73,7 @@ export default class XTerm extends Vue {
     );
   }
 
-  async loadTerm(user: string, host: string, hostKey: string): Promise<void> {
+  async loadTerm(user: string, host: string, hostKeys: string[]): Promise<void> {
     if (!this.t) {
       const keypair = await getSshKeypair();
       this.session = new window.TauriSshSession({
@@ -81,7 +81,7 @@ export default class XTerm extends Vue {
         host: host.includes(':') ? host : host + ':22',
         publicKey: keypair.public,
         privateKey: keypair.private,
-        hostKey: hostKey || undefined
+        hostKeys: hostKeys
       });
 
       this.session.onclose = () => {

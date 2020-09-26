@@ -11,7 +11,7 @@ class TauriSshSession {
     this._host = options.host;
     this._publicKey = options.publicKey;
     this._privateKey = options.privateKey;
-    this._hostKey = options.hostKey;
+    this._hostKeys = options.hostKeys;
 
     this._id = id();
     this.onclose = null;
@@ -32,7 +32,7 @@ class TauriSshSession {
       host: this._host,
       public_key: this._publicKey,
       private_key: this._privateKey,
-      host_key: this._hostKey,
+      host_keys: this._hostKeys,
       // Create callbacks
       error_callback: window.__TAURI__.tauri.transformCallback(x => {
         if (this.onerror) {
