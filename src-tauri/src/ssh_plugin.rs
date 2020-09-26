@@ -1,6 +1,7 @@
 //! Tauri plugin for opening websocket connections with extra optinos for
 //! connections to untrusted certificates
 
+use anyhow::Context;
 use rsa::{PrivateKeyPemEncoding, PublicKeyParts};
 use serde_json::Value;
 use ssh2::Stream;
@@ -162,6 +163,27 @@ impl Plugin for SshPlugin {
                 let mut session = ssh2::Session::new()?;
                 session.set_tcp_stream(tcp_conn);
                 session.handshake()?;
+
+                // Verify the host key
+                if let Some(real_host_key) = host_key {
+                  let mut verified = false;
+                  if let Some((candidate_host_key, _type)) = session.host_key() {
+                    let real_host_key = real_host_key
+                      .split(" ") // Split the key by spaces
+                      .skip(1) // Skip the first section, i.e. `ssh-[something]`
+                      .next() // Get the host key base64
+                      .ok_or(anyhow::format_err!("Could not parse host key from client"))?;
+                    let real_host_key = base64::decode(real_host_key)
+                      .context("Could not base64 decode host key from client")?;
+
+                    if candidate_host_key == real_host_key.as_slice() {
+                      verified = true;
+                    }
+                  }
+                  if !verified {
+                    anyhow::bail!("Host key verification failed")
+                  }
+                }
 
                 // Create temporary key files
                 let mut private_key_tmpfile = tempfile::NamedTempFile::new()?;

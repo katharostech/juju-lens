@@ -8,6 +8,7 @@ import allModelWatcherFacade from '@canonical/jujulib/api/facades/all-model-watc
 import controllerFacade from '@canonical/jujulib/api/facades/controller-v5.js';
 import applicationFacade from '@canonical/jujulib/api/facades/application-v8.js';
 import keyManagerFacade from '@canonical/jujulib/api/facades/key-manager-v1';
+import sshClientFacade from '@canonical/jujulib/api/facades/ssh-client-v2';
 import { getItemId } from './state/utils';
 import { getSshKeypair } from 'utils/ssh';
 
@@ -224,7 +225,7 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         (controller.models[modelId] && !controller.models[modelId].conn)
       ) {
         // Create a Juju API connection
-        const facades = [applicationFacade, keyManagerFacade];
+        const facades = [applicationFacade, keyManagerFacade, sshClientFacade];
         const options = {
           debug: false,
           facades: facades,

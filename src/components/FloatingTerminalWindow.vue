@@ -24,7 +24,6 @@
           class="full-height"
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
-          @data="data => log(data)"
           @connect-failure="
             e => {
               $q.notify({
@@ -63,7 +62,9 @@ import { namespace } from 'vuex-class';
 import { FloatingWindow } from 'store/app/state';
 import { mutationTypes } from 'store/app/mutations';
 import { actionTypes } from 'store/app/actions';
+import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
+const juju = namespace('juju');
 
 @Component({
   components: {
@@ -73,7 +74,7 @@ const app = namespace('app');
 })
 export default class FloatingTerminalWindow extends Vue {
   @Prop(String) floatingWindowId!: string;
-  @Prop(String) termOptions!: object;
+
   @app.State floatingWindows!: FloatingWindow[];
   @app.Mutation(mutationTypes.toggleFloatingWindowVisible)
   toggleFloatingWindowVisible!: (id: string) => void;
@@ -84,14 +85,31 @@ export default class FloatingTerminalWindow extends Vue {
   @app.Action(actionTypes.removeFloatingWindow)
   removeFloatingWindow!: (id: string) => void;
 
-  log(data: any) {
-    console.log(data);
-  }
+  @juju.Getter('currentControllerModelsFilled')
+  controllerModels!: FilledModel[];
 
   get floatingWindow(): FloatingWindow {
     return this.floatingWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
+  }
+
+  get model(): FilledModel {
+    const modelUuid = this.floatingWindow.app['model-uuid'];
+    return this.controllerModels.filter(x => x['model-uuid'] == modelUuid)[0];
+  }
+
+  created(): void {
+    this.model.conn.conn.facades.sshClient.publicKeys({
+      entities: [
+        {
+          tag: `unit-${this.floatingWindow.unit.name}`
+        }
+      ]
+    }).then((res: any) => {
+      const hostKey = res.results[0].publicKeys[0];
+      (this.$refs.term as any).start('ubuntu', this.floatingWindow.unit.name, hostKey);
+    });
   }
 
   closeSshConn() {

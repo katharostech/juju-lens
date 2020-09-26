@@ -26,7 +26,7 @@ import { FitAddon } from 'xterm-addon-fit';
 import { getSshKeypair } from 'utils/ssh';
 
 @Component
-export default class TestTerm extends Vue {
+export default class XTerm extends Vue {
   // TODO: Not the best solution, but the startup delay fixes issues with the
   // floating windows where they don't have a concrete size for a small time
   // frame and the terminal needs the concrete size in order to bind to the div.
@@ -34,6 +34,11 @@ export default class TestTerm extends Vue {
 
   // Enable auto-resizing
   @Prop({ type: Boolean, default: false }) readonly autoResize!: boolean;
+
+  // SSH connection parameters
+  @Prop({ type: String, default: null }) username!: string | null;
+  @Prop({ type: String, default: null }) host!: string | null;
+  @Prop({ type: String, default: null }) hostKey!: string | null;
 
   id = '';
 
@@ -46,10 +51,6 @@ export default class TestTerm extends Vue {
     this.id = uid();
   }
 
-  async mounted(): Promise<void> {
-    await this.loadTerm();
-  }
-
   onResize() {
     if (this.fitAddon && this.autoResize) {
       this.fitAddon.fit();
@@ -58,86 +59,75 @@ export default class TestTerm extends Vue {
     }
   }
 
-  async loadTerm(): Promise<void> {
+  public start(user: string, host: string, hostKey: string) {
+    // Wait for the component to mount
+    setTimeout(
+      function wait(this: XTerm) {
+        if (this.$el) {
+          this.loadTerm(user, host, hostKey);
+        } else {
+          setTimeout(wait.bind(this), 200);
+        }
+      }.bind(this),
+      200
+    );
+  }
+
+  async loadTerm(user: string, host: string, hostKey: string): Promise<void> {
     if (!this.t) {
       const keypair = await getSshKeypair();
-      this.$q
-        .dialog({
-          title: 'Username',
-          message: 'Connection username',
-          prompt: {
-            label: 'username',
-            model: 'vagrant',
-            type: 'text' // optional
-          },
-          persistent: true
-        })
-        .onOk((user: string) => {
-          this.$q
-            .dialog({
-              title: 'Host',
-              message: 'Connection host:port',
-              prompt: {
-                label: 'host',
-                model: '127.0.0.1',
-                type: 'text' // optional
-              },
-              persistent: true
-            })
-            .onOk((host: string) => {
-              this.session = new window.TauriSshSession({
-                user,
-                host: host.includes(':') ? host : host + ':22',
-                publicKey: keypair.public,
-                privateKey: keypair.private
-              });
+      this.session = new window.TauriSshSession({
+        user,
+        host: host.includes(':') ? host : host + ':22',
+        publicKey: keypair.public,
+        privateKey: keypair.private,
+        hostKey: hostKey || undefined
+      });
 
-              this.session.onclose = () => {
-                this.$emit('close');
-              };
+      this.session.onclose = () => {
+        this.$emit('close');
+      };
 
-              this.session.onerror = (e: string) => {
-                this.$emit('error', e);
-              };
+      this.session.onerror = (e: string) => {
+        this.$emit('error', e);
+      };
 
-              // Wait for the startup delay ( most likely ) to allow the dom to
-              // get to a point at which it has concrete dimensions for the
-              // terminal to attach to.
-              setTimeout(() => {
-                this.t = new Terminal();
-                this.fitAddon = new FitAddon();
-                this.t.loadAddon(this.fitAddon);
-                this.t.loadAddon(new WebLinksAddon());
+      // Wait for the startup delay ( most likely ) to allow the dom to
+      // get to a point at which it has concrete dimensions for the
+      // terminal to attach to.
+      setTimeout(() => {
+        this.t = new Terminal();
+        this.fitAddon = new FitAddon();
+        this.t.loadAddon(this.fitAddon);
+        this.t.loadAddon(new WebLinksAddon());
 
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                this.t.open(document.getElementById(`term-${this.id}`)!);
-                this.t.focus();
-                this.fitAddon.fit();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.t.open(document.getElementById(`term-${this.id}`)!);
+        this.t.focus();
+        this.fitAddon.fit();
 
-                this.t.onData(data => {
-                  this.session.send(data);
-                });
-
-                // TODO: Handle t.onBinary? ( Only used for certain mouse
-                // commands that aren't valid UTF-8, so probably not that
-                // important.
-
-                this.session.onmessage = (m: any) => {
-                  this.t?.write(m);
-                };
-
-                this.session
-                  .connect()
-                  .then(() => {
-                    this.loading = false;
-                    this.$emit('ready');
-                  })
-                  .catch((e: any) => {
-                    this.$emit('connect-failure', e);
-                  });
-              }, this.startupDelay);
-            });
+        this.t.onData(data => {
+          this.session.send(data);
         });
+
+        // TODO: Handle t.onBinary? ( Only used for certain mouse
+        // commands that aren't valid UTF-8, so probably not that
+        // important.
+
+        this.session.onmessage = (m: any) => {
+          this.t?.write(m);
+        };
+
+        this.session
+          .connect()
+          .then(() => {
+            this.loading = false;
+            this.$emit('ready');
+          })
+          .catch((e: any) => {
+            this.$emit('connect-failure', e);
+          });
+      }, this.startupDelay);
     }
   }
 
