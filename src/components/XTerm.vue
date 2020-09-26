@@ -73,7 +73,11 @@ export default class XTerm extends Vue {
     );
   }
 
-  async loadTerm(user: string, host: string, hostKeys: string[]): Promise<void> {
+  async loadTerm(
+    user: string,
+    host: string,
+    hostKeys: string[]
+  ): Promise<void> {
     if (!this.t) {
       const keypair = await getSshKeypair();
       this.session = new window.TauriSshSession({

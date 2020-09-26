@@ -100,16 +100,33 @@ export default class FloatingTerminalWindow extends Vue {
   }
 
   created(): void {
-    this.model.conn.conn.facades.sshClient.publicKeys({
-      entities: [
-        {
-          tag: `unit-${this.floatingWindow.unit.name}`
+    this.model.conn.conn.facades.sshClient
+      .publicKeys({
+        entities: [
+          {
+            tag: `unit-${this.floatingWindow.unit.name}`
+          }
+        ]
+      })
+      .then((res: any) => {
+        console.log(res);
+        if (res.results[0].error) {
+          this.$q.notify({
+            color: 'negative',
+            message: res.results[0].error.message,
+            position: 'bottom-right',
+            timeout: 2000
+          });
+          this.removeFloatingWindow(this.floatingWindowId);
+        } else {
+          const hostKeys = res.results[0].publicKeys;
+          (this.$refs.term as any).start(
+            'ubuntu',
+            this.floatingWindow.unit['public-address'],
+            hostKeys
+          );
         }
-      ]
-    }).then((res: any) => {
-      const hostKeys = res.results[0].publicKeys;
-      (this.$refs.term as any).start('ubuntu', this.floatingWindow.unit['public-address'], hostKeys);
-    });
+      });
   }
 
   closeSshConn() {

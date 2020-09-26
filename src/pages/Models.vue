@@ -406,7 +406,7 @@
                                   <div class="text-weight-bold">
                                     Machine: {{ machine.id }}
                                   </div>
-                                  {{ machine.addresses[0].value }}
+                                  {{ machine.addresses && machine.addresses[0] ? machine.addresses[0].value : '' }}
                                 </div>
                               </q-card-section>
                               <q-card-section
