@@ -7,8 +7,8 @@
       :title="floatingWindow.unit.name"
       :visible="floatingWindow.visible"
       :maximized="floatingWindow.maximized"
-      v-on:maximize="toggleFloatingWindowMaximized(floatingWindowId)"
-      v-on:restore="toggleFloatingWindowMaximized(floatingWindowId)"
+      v-on:maximize="toggleMaximized"
+      v-on:restore="toggleMaximized"
       v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
       v-on:close="
         removeFloatingWindow(floatingWindowId);
@@ -99,6 +99,17 @@ export default class FloatingTerminalWindow extends Vue {
     return this.controllerModels.filter(x => x['model-uuid'] == modelUuid)[0];
   }
 
+  toggleMaximized(): void {
+    this.toggleFloatingWindowMaximized(this.floatingWindowId);
+    // Make sure terminal keeps focus after maximizing
+    (this.$refs.term as any).focus();
+  }
+
+  onRestore(): void {
+    this.toggleFloatingWindowMaximized(this.floatingWindowId);
+    (this.$refs.term as any).focus();
+  }
+
   created(): void {
     this.model.conn.conn.facades.sshClient
       .publicKeys({
@@ -109,7 +120,6 @@ export default class FloatingTerminalWindow extends Vue {
         ]
       })
       .then((res: any) => {
-        console.log(res);
         if (res.results[0].error) {
           this.$q.notify({
             color: 'negative',
