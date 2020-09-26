@@ -32,13 +32,6 @@
             @resize="({ width }) => (showTitle = width > 86)"
           />
         </q-toolbar-title>
-        <q-btn
-          v-if="isTauri"
-          color="negative"
-          icon="fas fa-biohazard"
-          label="Get Public Key"
-          @click="copyPublicKey()"
-        />
         <!-- Toolbar tabs -->
         <q-tabs inline-label shrink class="gt-mobile-menu">
           <q-route-tab
@@ -507,20 +500,6 @@ export default class MainLayout extends Vue {
           reply to the public <a target="_blank" href="https://discourse.juju.is/t/juju-lens-a-new-juju-gui-you-dont-have-to-deploy/3309?u=zicklag"> \
           forum topic</a> so that everyone can see and collaborate on it!'
     });
-  }
-
-  copyPublicKey(): void {
-    getSshKeypair()
-      .then(x => {
-        copyToClipboard(x.public);
-        this.$q.notify('Copied to clipboard');
-      })
-      .catch(e => {
-        this.$q.dialog({
-          title: 'failure',
-          message: e
-        });
-      });
   }
 }
 </script>
