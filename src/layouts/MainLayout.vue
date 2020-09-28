@@ -317,7 +317,6 @@ import DebugWindow from 'components/DebugWindow.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
-import { getSshKeypair } from 'utils/ssh';
 
 import { actionTypes as jujuActionTypes } from 'store/juju/actions';
 import {
@@ -332,8 +331,6 @@ import { FloatingWindow, FloatingWindowKind } from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
 import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
-
-import { copyToClipboard } from 'quasar';
 
 interface UnitNotification {
   unit: Unit;
