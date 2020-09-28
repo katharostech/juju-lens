@@ -171,11 +171,11 @@ impl Plugin for Logging {
 
           // Log the message at the desired level
           match level {
-            BrowserLogLevel::Trace => trc::trace!(target: "juju_lens::webview_log", "{}", message),
-            BrowserLogLevel::Debug => trc::debug!(target: "juju_lens::webview_log", "{}", message),
-            BrowserLogLevel::Info => trc::info!(target: "juju_lens::webview_log", "{}", message),
-            BrowserLogLevel::Warn => trc::warn!(target: "juju_lens::webview_log", "{}", message),
-            BrowserLogLevel::Error => trc::error!(target: "juju_lens::webview_log", "{}", message),
+            BrowserLogLevel::Trace => trc::trace!(target: "juju_lens::webview", "{}", message),
+            BrowserLogLevel::Debug => trc::debug!(target: "juju_lens::webview", "{}", message),
+            BrowserLogLevel::Info => trc::info!(target: "juju_lens::webview", "{}", message),
+            BrowserLogLevel::Warn => trc::warn!(target: "juju_lens::webview", "{}", message),
+            BrowserLogLevel::Error => trc::error!(target: "juju_lens::webview", "{}", message),
           }
 
           Ok(true)
