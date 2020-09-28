@@ -28,6 +28,11 @@ enum Command {
     level: BrowserLogLevel,
     args: Vec<String>,
   },
+  TauriLoggingSetFilter {
+    filter: String,
+    callback: String,
+    error: String,
+  },
 }
 
 /// A visitor that can be used to print field values from a logged event
@@ -37,18 +42,16 @@ struct StringVisitor<'a> {
 
 impl<'a> StringVisitor<'a> {
   fn new(string: &'a mut String) -> Self {
-    StringVisitor {
-      string,
-    }
+    StringVisitor { string }
   }
 }
 
 use std::fmt::{self, Write};
-use tracing::field::{Visit, Field};
+use tracing::field::{Field, Visit};
 impl<'a> Visit for StringVisitor<'a> {
   fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
     if field.name() == "message" {
-      write!(self.string, "{:?};", value).unwrap();
+      write!(self.string, "{:?}; ", value).unwrap();
     } else {
       write!(self.string, "{} = {:?}; ", field.name(), value).unwrap();
     }
@@ -137,6 +140,8 @@ impl Logging {
       std::process::exit(1);
     }
 
+    trc::debug!("Logging initialized");
+
     // Return the logging plugin
     Logging {
       filter_handle,
@@ -156,7 +161,7 @@ impl Plugin for Logging {
     Some(include_str!("./logging_plugin/init.js").into())
   }
 
-  fn extend_api(&self, _webview: &mut Webview<'_>, payload: &str) -> Result<bool, String> {
+  fn extend_api(&self, webview: &mut Webview<'_>, payload: &str) -> Result<bool, String> {
     // Parse the incomming payload as a command
     match serde_json::from_str::<Command>(payload) {
       Err(_) => Ok(false),
@@ -172,6 +177,30 @@ impl Plugin for Logging {
             BrowserLogLevel::Warn => trc::warn!(target: "juju_lens::webview_log", "{}", message),
             BrowserLogLevel::Error => trc::error!(target: "juju_lens::webview_log", "{}", message),
           }
+
+          Ok(true)
+        }
+        Command::TauriLoggingSetFilter {
+          filter,
+          callback,
+          error,
+        } => {
+          let filter_handle = self.filter_handle.clone();
+          tauri::execute_promise(
+            webview,
+            move || {
+              let filter = filter.parse()?;
+              filter_handle
+                .modify(|layer| {
+                  *layer = filter;
+                })
+                .expect("Subscriber doesn't exist!");
+
+              Ok(())
+            },
+            callback,
+            error,
+          );
 
           Ok(true)
         }

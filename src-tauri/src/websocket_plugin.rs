@@ -46,8 +46,6 @@ impl WebsocketPlugin {
 
 impl Default for WebsocketPlugin {
   fn default() -> Self {
-    trc::debug!("Starting tauri websocket plugin");
-
     // Create a new async executor
     let ex = Executor::new();
 
@@ -97,6 +95,10 @@ enum Command {
 
 // Implement Tauri plugin trait
 impl Plugin for WebsocketPlugin {
+  fn created(&self, _webview: &mut Webview<'_>) {
+      trc::debug!("Initialized WebSocket plugin");
+  }
+
   // Add the init.js code that sets up the JavaScript classes and bindings to the Tauri commands
   fn init_script(&self) -> Option<String> {
     Some(include_str!("./websocket_plugin/init.js").into())

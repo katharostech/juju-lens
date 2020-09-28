@@ -38,7 +38,6 @@ pub struct SshPlugin {
 
 impl SshPlugin {
   pub fn new() -> Self {
-    trc::trace!("Starting tauri ssh plugin");
     Self::default()
   }
 }
@@ -102,6 +101,10 @@ impl<T, E: std::error::Error> ErrDisplay<T, E> for Result<T, E> {
 
 // Implement Tauri plugin trait
 impl Plugin for SshPlugin {
+  fn created(&self, _webview: &mut Webview<'_>) {
+      trc::debug!("Initialized SSH plugin");
+  }
+
   // Add the init.js code that sets up the JavaScript classes and bindings to the Tauri commands
   fn init_script(&self) -> Option<String> {
     Some(include_str!("./ssh_plugin/init.js").into())
@@ -175,7 +178,7 @@ impl Plugin for SshPlugin {
                   let mut verified = false;
 
                   // If the server has a host key
-                  if let Some((host_key, key_type)) = session.host_key() {
+                  if let Some((host_key, _key_type)) = session.host_key() {
                     // For every valid key
                     for valid_host_key in valid_host_keys {
                       let valid_host_key = valid_host_key

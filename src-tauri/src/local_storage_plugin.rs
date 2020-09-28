@@ -6,6 +6,7 @@ use tauri::plugin::Plugin;
 use tauri::Webview;
 use tauri_api::config::get as get_config;
 use tauri_api::path::config_dir;
+use tracing as trc;
 
 use std::{
   collections::HashMap,
@@ -56,6 +57,10 @@ enum Command {
 }
 
 impl Plugin for LocalStorage {
+  fn created(&self, _webview: &mut Webview<'_>) {
+      trc::debug!("Initialized local storage plugin");
+  }
+
   fn init_script(&self) -> Option<String> {
     // Load the config file
     let data = run_with_config_file(|mut config_file| {
