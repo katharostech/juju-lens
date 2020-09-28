@@ -1,6 +1,6 @@
 // Local storage init script
 
-const tauriLocalStorageInit = () => {
+(function() {
   /**
    * Create the fake local storage object. This is designed to act essentially
    * the same as the browsers localStorage object, but it's not perfect, just
@@ -40,7 +40,4 @@ const tauriLocalStorageInit = () => {
     // Get the data ( substituted from Rust )
     _data: '{{data}}'
   };
-};
-
-tauriLocalStorageInit();
-delete tauriLocalStorageInit;
+})();
