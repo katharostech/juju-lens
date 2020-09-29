@@ -1,6 +1,11 @@
 // Logging init script
 
 (function() {
+  /** Return a random ID */
+  function id() {
+    return (Math.random() * 1e17).toString(36);
+  }
+
   /**
    * Override the console logging methods to use Tauri instead
    */
@@ -38,6 +43,7 @@
       args: args.map(x => x.toString())
     });
   };
+  
   console.error = (...args) => {
     window.__TAURI__.tauri.invoke({
       cmd: 'tauriLoggingLog',
@@ -47,9 +53,50 @@
   };
 
   window.tauriLoggingSetFilter = filter => {
-    return window.__TAURI__.promisified({
+    return window.__TAURI__.tauri.promisified({
       cmd: 'tauriLoggingSetFilter',
-      filter,
+      filter
     });
+  };
+
+  window.tauriLoggingGetLogs = () => {
+    return window.__TAURI__.tauri.promisified({
+      cmd: 'tauriLoggingDumpLog'
+    });
+  };
+
+  class TauriLoggingSubscriber {
+    constructor() {
+      this._id = id();
+
+      this.onmessage = null;
+      this._onmessage_listeners = [];
+
+      window.__TAURI__.tauri.invoke({
+        cmd: 'tauriLoggingRegisterSubscriber',
+        id: this._id,
+        message_callback: window.__TAURI__.tauri.transformCallback(x => {
+          if (this.onmessage) {
+            this.onmessage(x);
+          }
+          for (const handler in this._onerror_listeners) {
+            handler(x);
+          }
+        })
+      });
+    }
+
+    addMessageListener(listener) {
+      this._onmessage_listeners.push(listener);
+    }
+
+    unregister() {
+      window.__TAURI__.tauri.invoke({
+        cmd: 'tauriLoggingUnregisterSubscriber',
+        id: this._id
+      });
+    }
   }
+
+  window.TauriLoggingSubscriber = TauriLoggingSubscriber;
 })();

@@ -1,7 +1,15 @@
-use std::sync::{Arc, Mutex};
+use std::{
+  collections::HashMap,
+  fmt,
+  sync::{Arc, Mutex},
+};
 
 use tauri::{plugin::Plugin, Webview, WebviewMut};
-use tracing::{self as trc, Event, Level, Subscriber};
+use tracing::{
+  self as trc,
+  field::{Field, Visit},
+  Event, Level, Subscriber,
+};
 use tracing_subscriber::{
   layer::Layered,
   layer::{Context, Layer},
@@ -10,7 +18,7 @@ use tracing_subscriber::{
   EnvFilter, Registry,
 };
 
-#[derive(serde::Deserialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 enum BrowserLogLevel {
   Trace,
@@ -20,42 +28,146 @@ enum BrowserLogLevel {
   Error,
 }
 
-/// The commands that we can receive from the browser
-#[derive(serde::Deserialize)]
-#[serde(tag = "cmd", rename_all = "camelCase")]
-enum Command {
-  TauriLoggingLog {
-    level: BrowserLogLevel,
-    args: Vec<String>,
-  },
-  TauriLoggingSetFilter {
-    filter: String,
-    callback: String,
-    error: String,
-  },
-}
-
-/// A visitor that can be used to print field values from a logged event
-struct StringVisitor<'a> {
-  string: &'a mut String,
-}
-
-impl<'a> StringVisitor<'a> {
-  fn new(string: &'a mut String) -> Self {
-    StringVisitor { string }
+impl From<&trc::Level> for BrowserLogLevel {
+  fn from(l: &trc::Level) -> Self {
+    match *l {
+      trc::Level::TRACE => Self::Trace,
+      trc::Level::DEBUG => Self::Debug,
+      trc::Level::INFO => Self::Info,
+      trc::Level::WARN => Self::Warn,
+      trc::Level::ERROR => Self::Error,
+    }
   }
 }
 
-use std::fmt::{self, Write};
-use tracing::field::{Field, Visit};
-impl<'a> Visit for StringVisitor<'a> {
-  fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
-    if field.name() == "message" {
-      write!(self.string, "{:?} ", value).expect("Could not write to string buffer");
-    } else {
-      write!(self.string, "{}={:?} ", field.name(), value)
-        .expect("Could not write to string buffer");
+/// A log visitor that catalogs the log records for later retrieval
+#[derive(Clone)]
+struct LogCatalog {
+  records: Arc<Mutex<Vec<CatalogRecord>>>,
+  subscribers: Arc<Mutex<HashMap<String, String>>>,
+}
+
+/// A log record in the catalog
+#[derive(Clone, serde::Serialize)]
+struct CatalogRecord {
+  message: String,
+  fields: HashMap<String, serde_json::Value>,
+  level: BrowserLogLevel,
+}
+
+impl CatalogRecord {
+  fn new(level: BrowserLogLevel) -> Self {
+    CatalogRecord {
+      level,
+      fields: HashMap::new(),
+      message: String::new(),
     }
+  }
+}
+
+impl fmt::Display for CatalogRecord {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(
+      f,
+      "{} {}",
+      self.message,
+      self
+        .fields
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, v))
+        .collect::<Vec<_>>()
+        .join(" ")
+    )
+  }
+}
+
+impl LogCatalog {
+  fn add_new_record(&mut self, level: BrowserLogLevel) {
+    let mut records = self.records.lock().unwrap();
+    let record = CatalogRecord::new(level);
+
+    records.push(record);
+  }
+
+  fn clone_last(&self) -> CatalogRecord {
+    if let Some(record) = self.records.lock().unwrap().last() {
+      record.clone()
+    } else {
+      panic!("There's not last record to display");
+    }
+  }
+
+  fn clone_records(&self) -> Vec<CatalogRecord> {
+    self.records.lock().unwrap().clone()
+  }
+}
+
+impl Visit for LogCatalog {
+  fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
+    let mut records = self.records.lock().unwrap();
+    if let Some(record) = records.last_mut() {
+      let name = field.name();
+      if name == "message" {
+        record.message = format!("{:?}", value);
+      } else {
+        record.fields.insert(
+          name.into(),
+          serde_json::Value::String(format!("{:?}", value)),
+        );
+      }
+    } else {
+      panic!("No records to record to!");
+    }
+  }
+
+  fn record_i64(&mut self, field: &Field, value: i64) {
+    let mut records = self.records.lock().unwrap();
+    if let Some(record) = records.last_mut() {
+      record.fields.insert(
+        field.name().into(),
+        serde_json::Value::Number(serde_json::Number::from(value)),
+      );
+    } else {
+      panic!("No records to record to!");
+    }
+  }
+
+  fn record_u64(&mut self, field: &Field, value: u64) {
+    let mut records = self.records.lock().unwrap();
+    if let Some(record) = records.last_mut() {
+      record.fields.insert(
+        field.name().into(),
+        serde_json::Value::Number(serde_json::Number::from(value)),
+      );
+    } else {
+      panic!("No records to record to!");
+    }
+  }
+
+  fn record_bool(&mut self, field: &Field, value: bool) {
+    let mut records = self.records.lock().unwrap();
+    if let Some(record) = records.last_mut() {
+      record
+        .fields
+        .insert(field.name().into(), serde_json::Value::Bool(value));
+    } else {
+      panic!("No records to record to!");
+    }
+  }
+
+  fn record_str(&mut self, field: &Field, value: &str) {
+    let mut records = self.records.lock().unwrap();
+    if let Some(record) = records.last_mut() {
+      record
+        .fields
+        .insert(field.name().into(), serde_json::Value::String(value.into()));
+    } else {
+      panic!("No records to record to!");
+    }
+  }
+
+  fn record_error(&mut self, field: &Field, value: &(dyn std::error::Error + 'static)) {
+    self.record_debug(field, &value)
   }
 }
 
@@ -63,6 +175,8 @@ impl<'a> Visit for StringVisitor<'a> {
 /// provided by another subscriber
 struct LoggingLayer {
   webview: Arc<Mutex<Option<WebviewMut>>>,
+  log_catalog: LogCatalog,
+  subscribers: Arc<Mutex<HashMap<String, String>>>,
 }
 
 impl<S: Subscriber> Layer<S> for LoggingLayer {
@@ -80,17 +194,27 @@ impl<S: Subscriber> Layer<S> for LoggingLayer {
       }
       .to_string();
 
-      // Format the message
-      let mut message = String::new();
-      let mut visitor = StringVisitor::new(&mut message);
-      event.record(&mut visitor);
+      // Format and record the message
+      let mut catalog = self.log_catalog.clone();
+      catalog.add_new_record(event.metadata().level().into());
+      event.record(&mut catalog);
+      let record = catalog.clone_last();
 
+      let subscribers = self.subscribers.clone();
       if let Err(e) = webview.dispatch(move |webview| {
         webview.eval(&format!(
           "realConsole{}({})",
           func_name,
-          serde_json::Value::String(message)
+          serde_json::Value::String(record.to_string())
         ));
+
+        for subscriber_callback in subscribers.lock().unwrap().values() {
+          webview.eval(&format!(
+            "window[{}]({})",
+            serde_json::Value::String(subscriber_callback.into()),
+            serde_json::to_string(&record).expect("Could not serialize record")
+          ));
+        }
       }) {
         eprintln!(
           "{} Problem eval-ing JavaScript: {}",
@@ -107,6 +231,8 @@ impl<S: Subscriber> Layer<S> for LoggingLayer {
 pub struct Logging {
   filter_handle: Handle<EnvFilter, Layered<tracing_subscriber::fmt::Layer<Registry>, Registry>>,
   webview: Arc<Mutex<Option<WebviewMut>>>,
+  log_catalog: LogCatalog,
+  subscribers: Arc<Mutex<HashMap<String, String>>>,
 }
 
 impl Logging {
@@ -126,9 +252,20 @@ impl Logging {
     // Grab a handle to the log level so that we can change the log level at runtime
     let filter_handle = builder.reload_handle();
 
+    // Initialize subscriber list
+    let subscribers = Arc::new(Mutex::new(HashMap::new()));
+
+    // Create a log catalog
+    let log_catalog = LogCatalog {
+      records: Default::default(),
+      subscribers: subscribers.clone(),
+    };
+
     // Build the subscriber
     let subscriber = builder.finish().with(LoggingLayer {
       webview: webview.clone(),
+      log_catalog: log_catalog.clone(),
+      subscribers: subscribers.clone(),
     });
 
     // Set the subscriber as the global log handler
@@ -147,12 +284,42 @@ impl Logging {
     Logging {
       filter_handle,
       webview,
+      log_catalog,
+      subscribers,
     }
   }
 }
 
+/// The commands that we can receive from the browser
+#[derive(serde::Deserialize)]
+#[serde(tag = "cmd", rename_all = "camelCase")]
+enum Command {
+  TauriLoggingLog {
+    level: BrowserLogLevel,
+    args: Vec<String>,
+  },
+  TauriLoggingSetFilter {
+    filter: String,
+    callback: String,
+    error: String,
+  },
+  TauriLoggingDumpLog {
+    callback: String,
+    error: String,
+  },
+  TauriLoggingRegisterSubscriber {
+    id: String,
+    message_callback: String,
+  },
+  TauriLoggingUnregisterSubscriber {
+    id: String,
+  },
+}
+
 impl Plugin for Logging {
   fn created(&self, webview: &mut Webview<'_>) {
+    trc::debug!("Initializing logging plugin");
+
     // Get a webview handle that can be used to log to the browser console
     *self.webview.lock().unwrap() = Some(webview.as_mut());
   }
@@ -167,6 +334,7 @@ impl Plugin for Logging {
     match serde_json::from_str::<Command>(payload) {
       Err(_) => Ok(false),
       Ok(command) => match command {
+        // Log a message command
         Command::TauriLoggingLog { args, level } => {
           let message = args.join(" ");
 
@@ -181,16 +349,23 @@ impl Plugin for Logging {
 
           Ok(true)
         }
+
+        // Update logging filter command
         Command::TauriLoggingSetFilter {
           filter,
           callback,
           error,
         } => {
+          trc::debug!(filter = filter.as_str(), "Setting logging filter");
+
           let filter_handle = self.filter_handle.clone();
           tauri::execute_promise(
             webview,
             move || {
+              // Parse the filter
               let filter = filter.parse()?;
+
+              // Use the filter handle to modify the env filter
               filter_handle
                 .modify(|layer| {
                   *layer = filter;
@@ -202,6 +377,42 @@ impl Plugin for Logging {
             callback,
             error,
           );
+
+          Ok(true)
+        }
+
+        // Dump all logs
+        Command::TauriLoggingDumpLog { callback, error } => {
+          trc::debug!("Dumping logs for JavaScript");
+
+          let log_catalog = self.log_catalog.clone();
+          tauri::execute_promise(
+            webview,
+            move || Ok(log_catalog.clone_records()),
+            callback,
+            error,
+          );
+
+          Ok(true)
+        }
+
+        // Register log subscriber
+        Command::TauriLoggingRegisterSubscriber {
+          id,
+          message_callback,
+        } => {
+          self
+            .subscribers
+            .lock()
+            .unwrap()
+            .insert(id, message_callback);
+
+          Ok(true)
+        }
+
+        // Unregister log subscriber
+        Command::TauriLoggingUnregisterSubscriber { id } => {
+          self.subscribers.lock().unwrap().remove(&id);
 
           Ok(true)
         }
