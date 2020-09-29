@@ -51,9 +51,10 @@ use tracing::field::{Field, Visit};
 impl<'a> Visit for StringVisitor<'a> {
   fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
     if field.name() == "message" {
-      write!(self.string, "{:?}; ", value).unwrap();
+      write!(self.string, "{:?} ", value).expect("Could not write to string buffer");
     } else {
-      write!(self.string, "{} = {:?}; ", field.name(), value).unwrap();
+      write!(self.string, "{}={:?} ", field.name(), value)
+        .expect("Could not write to string buffer");
     }
   }
 }
