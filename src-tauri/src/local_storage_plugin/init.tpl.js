@@ -1,12 +1,9 @@
 // Local storage init script
 
-(function() {
-  /**
-   * Create the fake local storage object. This is designed to act essentially
-   * the same as the browsers localStorage object, but it's not perfect, just
-   * good enough.
-   */
-  window.tauriLocalStorage = {
+// Override the built-in browser local storage object
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    // All of the storage read operations just read from the local _data field
     get length() {
       return Object.keys(this._data).length;
     },
@@ -16,6 +13,9 @@
     getItem(key) {
       return this._data[key];
     },
+    // All of the writes to the storage update the local _data field and then
+    // submit a command to Tarui to persist the changes assuming that everything
+    // will go fine.
     setItem(key, value) {
       __TAURI__.tauri.invoke({
         cmd: 'tauriLocalStorageSetItem',
@@ -37,7 +37,7 @@
         cmd: 'tauriLocalStorageClear'
       });
     },
-    // Get the data ( substituted from Rust )
+    // Get the initial data ( substituted from Rust )
     _data: '{{data}}'
-  };
-})();
+  }
+});

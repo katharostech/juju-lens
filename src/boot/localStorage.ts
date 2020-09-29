@@ -24,30 +24,26 @@ declare module 'vue/types/vue' {
   }
 }
 
-const realLocalStorage: LocalStorageRaw = window.__TAURI__
-  ? window.tauriLocalStorage
-  : window.localStorage;
-
-const localStorage: LocalStorage = {
+const appLocalStorage: LocalStorage = {
   get length() {
-    return realLocalStorage.length;
+    return window.localStorage.length;
   },
   key(n) {
-    return realLocalStorage.key(n);
+    return window.localStorage.key(n);
   },
   getItem(key) {
-    const item = realLocalStorage.getItem(key);
+    const item = window.localStorage.getItem(key);
     return item ? JSON.parse(item) : null;
   },
   setItem(key, value) {
-    return realLocalStorage.setItem(key, JSON.stringify(value));
+    return window.localStorage.setItem(key, JSON.stringify(value));
   },
   removeItem(key) {
-    realLocalStorage.removeItem(key);
+    window.localStorage.removeItem(key);
   },
   clear() {
-    realLocalStorage.clear();
+    window.localStorage.clear();
   }
 };
 
-window.appLocalStorage = localStorage;
+window.appLocalStorage = appLocalStorage;

@@ -11,40 +11,125 @@ use tracing as trc;
 use std::{
   collections::HashMap,
   fs::{File, OpenOptions},
-  io::{Read, Seek, SeekFrom, Write},
+  io::{Read, Seek, SeekFrom},
+  sync::Arc,
+  sync::Mutex,
 };
+
+/// Wrapper for the config file that handles actual file operations
+struct Storage(Arc<Mutex<StorageInner>>);
+
+struct StorageInner {
+  file: File,
+  data: HashMap<String, String>,
+}
+
+impl Storage {
+  fn new(mut file: File) -> Result<Self, anyhow::Error> {
+    let data = {
+      // Start at the beginning of the file
+      file.seek(SeekFrom::Start(0))?;
+
+      // Get content
+      let mut content = String::new();
+      let byte_count = file.read_to_string(&mut content)?;
+
+      // If the file is empty
+      if byte_count == 0 {
+        // Return an empty hash map
+        HashMap::new()
+
+      // If the file has data
+      } else {
+        // Parse the JSON
+        serde_json::from_str(&content).context("Could not parse local storage file as JSON")?
+      }
+    };
+
+    Ok(Storage(Arc::new(Mutex::new(StorageInner { file, data }))))
+  }
+
+  fn clone_data(&self) -> HashMap<String, String> {
+    self.0.lock().unwrap().data.clone()
+  }
+
+  fn with_data<F: FnOnce(&mut HashMap<String, String>) -> T, T>(&self, modify_data: F) {
+    // Lock memory
+    let StorageInner {
+      ref mut file,
+      ref mut data,
+    } = *self.0.lock().unwrap();
+
+    // Modify the data
+    modify_data(data);
+
+    || -> Result<(), anyhow::Error> {
+      {
+        // Start at the beginning of the file
+        file.seek(SeekFrom::Start(0))?;
+
+        // Truncate the file
+        file.set_len(0)?;
+
+        // Write the data to the file
+        serde_json::to_writer(file, &data)?;
+
+        // Forward return value
+        Ok(())
+      }
+    }()
+    // If the file could not be written
+    .unwrap_or_else(|e| {
+      // Report an error
+      trc::error!(
+        "Could not load local storage data: '{}'. Continuing with empty local storage",
+        e
+      );
+    })
+  }
+}
 
 /// A Tauri plugin that provides a `window.localStorage`-like interface to an
 /// app-specific file in the users config dir.
-pub struct LocalStorage;
+pub struct LocalStorage {
+  config_storage: Storage,
+}
 
-/// Runs a closure passing in the config file path and returning an error if the
-/// path can not be loaded.
-fn run_with_config_file<F: FnOnce(File) -> anyhow::Result<T>, T>(f: F) -> anyhow::Result<T> {
-  // Obtain config dir for this user
-  let config_dir =
-    config_dir().ok_or_else(|| anyhow::format_err!("Could not find user config dir"))?;
-  // Load the unique app identifier from the Tauri config
-  let app_identifier = &get_config()
-    .context("Could not get Tauri config")?
-    .tauri
-    .bundle
-    .identifier;
+impl LocalStorage {
+  pub fn new() -> Result<Self, anyhow::Error> {
+    trc::debug!("Loading config file for local storage");
 
-  // Open the config file
-  let config_file_path = config_dir.join(format!("{}.localStorage.json", app_identifier));
-  let config_file = OpenOptions::new()
-    .create(true)
-    .write(true)
-    .read(true)
-    .open(&config_file_path)
-    .context(format!(
-      "Could not open config file: {:?}",
-      &config_file_path
-    ))?;
+    // Obtain config dir for this user
+    let config_dir =
+      config_dir().ok_or_else(|| anyhow::format_err!("Could not find user config dir"))?;
 
-  // Run the passed in closure, giving it our opened config file
-  Ok(f(config_file).context("Error updating config")?)
+    // Load the unique app identifier from the Tauri config
+    let app_identifier = &get_config()
+      .context("Could not get Tauri config")?
+      .tauri
+      .bundle
+      .identifier;
+
+    // Open the config file
+    let config_file_path = config_dir.join(format!("{}.localStorage.json", app_identifier));
+    trc::debug!(
+      config_file_path = config_file_path.to_string_lossy().into_owned().as_str(),
+      "Using local storage file"
+    );
+    let config_file = OpenOptions::new()
+      .create(true)
+      .write(true)
+      .read(true)
+      .open(&config_file_path)
+      .context(format!(
+        "Could not open config file: {:?}",
+        &config_file_path
+      ))?;
+
+    let config_storage = Storage::new(config_file)?;
+
+    Ok(LocalStorage { config_storage })
+  }
 }
 
 /// The commands that we can receive from the browser
@@ -58,108 +143,53 @@ enum Command {
 
 impl Plugin for LocalStorage {
   fn created(&self, _webview: &mut Webview<'_>) {
-      trc::debug!("Initialized local storage plugin");
+    trc::debug!("Initialized local storage plugin");
   }
 
   fn init_script(&self) -> Option<String> {
-    // Load the config file
-    let data = run_with_config_file(|mut config_file| {
-      // Read the contents of the config file
-      let mut raw_data = String::new();
-      config_file.read_to_string(&mut raw_data)?;
-
-      // If the config file is empty, return an empty JSON object
-      if raw_data == "" {
-        return Ok("{}".into());
-      // Otherwise, take the JSON data from the file
-      } else {
-        return Ok(raw_data);
-      }
-    })
-    .unwrap_or_else(|e| {
-      eprintln!("{:?}", e);
-      String::new()
-    });
+    // Load the config data
+    let data = { self.config_storage.clone_data() };
 
     // Add our init script with the config data substituted into it
     Some(
       include_str!("./local_storage_plugin/init.tpl.js")
-        .replace("'{{data}}'", &data)
+        .replace(
+          "'{{data}}'",
+          &serde_json::to_string(&data).expect("Could not serialize hash map"),
+        )
         .into(),
     )
   }
 
   fn extend_api(&self, _webview: &mut Webview<'_>, payload: &str) -> Result<bool, String> {
-    use Command::*;
     // Parse the incomming payload as a command
     match serde_json::from_str::<Command>(payload) {
       Err(_) => Ok(false),
       Ok(command) => {
         match command {
           // Set an item in the local storage
-          TauriLocalStorageSetItem { key, value } => run_with_config_file(|mut config_file| {
-            // Read the file data
-            let mut raw_data = String::new();
-            config_file.read_to_string(&mut raw_data)?;
-
-            // Parse the data or initialize it if empty
-            let mut data: HashMap<String, String>;
-            if raw_data == "" {
-              config_file.write_all(b"{}")?;
-              data = HashMap::new();
-            } else {
-              data = serde_json::from_str(&raw_data).context("Could not parse local storage")?;
-            }
-
-            // Add the item to the data
-            data.insert(key, value);
-
-            // Truncate the file and re-write it with our updated data
-            config_file.set_len(0)?;
-            config_file.seek(SeekFrom::Start(0))?;
-            serde_json::to_writer(config_file, &data)?;
+          Command::TauriLocalStorageSetItem { key, value } => {
+            // Insert the key
+            self
+              .config_storage
+              .with_data(move |data| data.insert(key, value));
 
             Ok(true)
-          }),
-          TauriLocalStorageRemove { key } => run_with_config_file(|mut config_file| {
-            // Read the config file
-            let mut raw_data = String::new();
-            config_file.read_to_string(&mut raw_data)?;
-
-            // Parse the config file or initialize it if empty
-            let mut data: HashMap<String, String>;
-            if raw_data == "" {
-              config_file.write_all(b"{}")?;
-              data = HashMap::new();
-            } else {
-              data = serde_json::from_str(&raw_data).context("Could not parse local storage")?;
-            }
-
-            // Remove the item from the data
-            data.remove(&key);
-
-            // Truncate the file and re-write it with our updated data
-            config_file.set_len(0)?;
-            config_file.seek(SeekFrom::Start(0))?;
-            serde_json::to_writer(config_file, &data)?;
+          }
+          Command::TauriLocalStorageRemove { key } => {
+            // Remove the key
+            self.config_storage.with_data(|data| data.remove(&key));
 
             Ok(true)
-          }),
-          TauriLocalStorageClear => run_with_config_file(|mut config_file| {
-            // Truncate the file and initialize it with an empty JSON object
-            config_file.set_len(0)?;
-            config_file.seek(SeekFrom::Start(0))?;
-            config_file.write_all(b"{}")?;
+          }
+          Command::TauriLocalStorageClear => {
+            // Clear the data
+            self.config_storage.with_data(|data| *data = HashMap::new());
 
             Ok(true)
-          }),
+          }
         }
       }
-      // Log any errors that occurr
-      .map_err(|e| {
-        eprintln!("{:?}", e);
-        e.to_string()
-      }),
     }
   }
 }

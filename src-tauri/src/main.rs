@@ -6,16 +6,24 @@
 )]
 
 mod local_storage_plugin;
+mod logging_plugin;
 mod plugin_utils;
 mod ssh_plugin;
 mod websocket_plugin;
-mod logging_plugin;
-
 
 fn main() {
   tauri::AppBuilder::new()
     .plugin(logging_plugin::Logging::new())
-    .plugin(local_storage_plugin::LocalStorage)
+    .plugin(
+      local_storage_plugin::LocalStorage::new().unwrap_or_else(|e| {
+        eprintln!(
+          "{} Error processing config file: {}",
+          ansi_term::Colour::Red.paint("Error: "),
+          e
+        );
+        std::process::exit(1);
+      }),
+    )
     .plugin(websocket_plugin::WebsocketPlugin::new())
     .plugin(ssh_plugin::SshPlugin::new())
     .build()
