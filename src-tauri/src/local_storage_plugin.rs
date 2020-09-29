@@ -97,7 +97,7 @@ pub struct LocalStorage {
 
 impl LocalStorage {
   pub fn new() -> Result<Self, anyhow::Error> {
-    trc::debug!("Loading config file for local storage");
+    trc::debug!("Loading local storage file");
 
     // Obtain config dir for this user
     let config_dir =
@@ -169,6 +169,12 @@ impl Plugin for LocalStorage {
         match command {
           // Set an item in the local storage
           Command::TauriLocalStorageSetItem { key, value } => {
+            trc::trace!(
+              key = key.as_str(),
+              sensitive_value = value.as_str(),
+              "Setting local storage key"
+            );
+
             // Insert the key
             self
               .config_storage
@@ -177,12 +183,16 @@ impl Plugin for LocalStorage {
             Ok(true)
           }
           Command::TauriLocalStorageRemove { key } => {
+            trc::trace!(key = key.as_str(), "Removing local storage key");
+
             // Remove the key
             self.config_storage.with_data(|data| data.remove(&key));
 
             Ok(true)
           }
           Command::TauriLocalStorageClear => {
+            trc::trace!("Clearing local storage");
+
             // Clear the data
             self.config_storage.with_data(|data| *data = HashMap::new());
 
