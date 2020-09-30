@@ -1,6 +1,6 @@
 {
   "name": "juju-lens",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "A prototype Juju GUI",
   "productName": "Juju Lens",
   "author": "Zicklag <zicklag@katharostech.com>",

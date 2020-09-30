@@ -7,6 +7,8 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import { loadLogFilter } from 'utils/logging';
+
 import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
@@ -26,6 +28,9 @@ export default class App extends Vue {
     ) {
       this.$q.dark.set(darkMode);
     }
+
+    // Load the log filter
+    loadLogFilter();
 
     // Load the controllers from the local store
     await this.loadControllers();

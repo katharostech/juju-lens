@@ -7,9 +7,10 @@ export interface DebugWindowState {
 
 export interface FloatingWindow {
   id: string;
-  unit: Unit;
-  app: Application;
   kind: FloatingWindowKindString;
+  // App and unit should only be null for the `jujuLensLog` type
+  unit?: Unit;
+  app?: Application;
   visible: boolean;
   maximized: boolean;
   zIndex: number;
@@ -17,7 +18,8 @@ export interface FloatingWindow {
 
 export enum FloatingWindowKind {
   log,
-  terminal
+  terminal,
+  lensLog
 }
 
 export type FloatingWindowKindString = keyof typeof FloatingWindowKind;

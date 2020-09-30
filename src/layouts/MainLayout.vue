@@ -206,13 +206,13 @@
         <q-separator style="height: 1px" />
 
         <q-list>
-          <!-- Info Button -->
-          <q-item clickable v-ripple :to="{ name: 'welcome' }">
+          <!-- Settings Button -->
+          <q-item v-if="isTauri" clickable v-ripple @click="showSettingsDialog">
             <q-item-section avatar>
-              <q-icon name="info" />
+              <q-icon name="settings" />
             </q-item-section>
             <q-item-section>
-              Welcome Page
+              Settings
             </q-item-section>
           </q-item>
 
@@ -331,6 +331,8 @@ import { FloatingWindow, FloatingWindowKind } from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
 import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
+
+import LensSettingsDialog from 'components/dialogs/LensSettingsDialog.vue';
 
 interface UnitNotification {
   unit: Unit;
@@ -500,6 +502,13 @@ export default class MainLayout extends Vue {
           \
           If you have bugs or feature requests you can also open an issue on \
           <a href="https://github.com/katharostech/juju-lens/issues" target="_blank">GitHub</a>.'
+    });
+  }
+
+  showSettingsDialog(): void {
+    this.$q.dialog({
+      component: LensSettingsDialog,
+      parent: this
     });
   }
 }

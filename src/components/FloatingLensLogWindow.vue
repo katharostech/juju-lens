@@ -72,7 +72,7 @@ const juju = namespace('juju');
     XTerm
   }
 })
-export default class FloatingTerminalWindow extends Vue {
+export default class FloatingLensLogWindow extends Vue {
   @Prop(String) floatingWindowId!: string;
 
   @app.State floatingWindows!: FloatingWindow[];
