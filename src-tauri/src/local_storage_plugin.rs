@@ -171,7 +171,7 @@ impl Plugin for LocalStorage {
           Command::TauriLocalStorageSetItem { key, value } => {
             trc::trace!(
               key = key.as_str(),
-              sensitive_value = value.as_str(),
+              value = value.as_str(),
               "Setting local storage key"
             );
 
