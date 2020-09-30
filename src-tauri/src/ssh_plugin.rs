@@ -160,7 +160,6 @@ impl Plugin for SshPlugin {
               id = id.as_str(),
               user = user.as_str(),
               host = host.as_str(),
-              host_keys = format!("{:?}", host_keys).as_str(),
               "Creating SSH session"
             );
             let ssh_connections = self.ssh_connections.clone();
@@ -207,6 +206,7 @@ impl Plugin for SshPlugin {
                 }
 
                 // Create temporary key files
+                trc::trace!("Creating temporary SSH key files");
                 let mut private_key_tmpfile = tempfile::NamedTempFile::new()?;
                 private_key_tmpfile.write_all(private_key.as_bytes())?;
                 let mut public_key_tmpfile = tempfile::NamedTempFile::new()?;
@@ -258,6 +258,7 @@ impl Plugin for SshPlugin {
 
                 // Create a thread to handle incomming data from the SSH connection
                 let webview_mut2 = webview_mut.clone();
+                let id_ = id.clone();
                 std::thread::Builder::new()
                   .name("SSH Input Handler".into())
                   .spawn(move || {
@@ -278,6 +279,7 @@ impl Plugin for SshPlugin {
                           }
 
                           if buf.len() > 0 {
+                            trc::trace!(id = id_.as_str(), "Flushing terminal output buffer to JS");
                             run_js_callback(
                               webview_mut2.clone(),
                               message_callback.clone(),
