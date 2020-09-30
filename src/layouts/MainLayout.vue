@@ -493,9 +493,13 @@ export default class MainLayout extends Vue {
       title: 'Leave Feedback',
       html: true,
       message:
-        'We\'re so glad you want to leave feedback! Right now the best way to do that is to \
-          reply to the public <a target="_blank" href="https://discourse.juju.is/t/juju-lens-a-new-juju-gui-you-dont-have-to-deploy/3309?u=zicklag"> \
-          forum topic</a> so that everyone can see and collaborate on it!'
+        'We\'re so glad you want to leave feedback! The best way to let us know what you think is to \
+          reply to the Juju Lens \
+          <a target="_blank" href="https://discourse.juju.is/t/juju-lens-v0-1-0-new-desktop-application-with-ssh-support/3613?u=zicklag"> \
+          announcement</a> on the forum.<br /><br /> \
+          \
+          If you have bugs or feature requests you can also open an issue on \
+          <a href="https://github.com/katharostech/juju-lens/issues" target="_blank">GitHub</a>.'
     });
   }
 }
