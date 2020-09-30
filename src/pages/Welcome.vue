@@ -6,37 +6,19 @@
         style="max-width: 60em"
       >
         <div class="text-center text-h3 q-mb-md">Juju Lens</div>
-        <a href="https://katharostech.com" class="logo-banner">
+        <div class="text-center text-h6 q-mb-md">By <a href="https://katharostech.com" target="_blank">Katharos Technology</a></div>
+        <a href="https://katharostech.com" class="logo-banner" target="_blank">
           <img src="/katharostech-banner.svg" width="100%" height="100%" />
         </a>
         <p class="q-ma-md text-body1">
-          Welcome to Juju Lens, a Juju GUI developed by
-          <a href="https://katharostech.com">Katharos Technology</a>. Juju Lens
-          is currently under heavy development and many features are not
-          finished yet, but you are free to try it out!
+          Welcome to Juju Lens! Juju Lens is an Open Source
+          <a href="https://jaas.ai" target="_blank">Juju</a> web and desktop application by
+          <a href="https://katharostech.com" target="_blank">Katharos Technology</a>.
         </p>
         <p class="q-ma-md text-body1">
           Juju Lens allows you to connect to any number of different Juju
           controllers and it will give you a live view into the state of your
-          Juju cluster. You can use this instance of Juju Lens without even
-          having to deploy anything! Everything runs locally in your browser.
-        </p>
-        <p class="q-ma-md text-body1">
-          You can add controllers to Juju lens in the
-          <router-link :to="{ name: 'controllers' }">Controllers</router-link>
-          tab by specifying the host and port of the server to connect to along
-          with your user credentials. Once you add your controller, Juju Lens
-          will connect and start displaying the models, applications, and units
-          in the
-          <router-link :to="{ name: 'models' }">Models</router-link> tab.
-        </p>
-        <p class="q-ma-md text-body1">
-          Currently, controller connection information, including user
-          credentials, are stored in your browser window and persisted across
-          restarts. Eventually there will be a convenient way to login and
-          logout, but for now you must delete the controller from the
-          <router-link :to="{ name: 'controllers' }">Controllers</router-link>
-          tab if you want to "logout" of a controller.
+          Juju cluster. To get started all you have to do is add a controller!
         </p>
         <div class="flex justify-center q-gutter-md q-mt-md">
           <q-btn
