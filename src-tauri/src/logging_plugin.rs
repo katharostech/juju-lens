@@ -383,7 +383,7 @@ impl Plugin for Logging {
 
         // Dump all logs
         Command::TauriLoggingDumpLog { callback, error } => {
-          trc::debug!("Dumping logs for JavaScript");
+          trc::debug!("Dumping logs to JavaScript");
 
           let log_catalog = self.log_catalog.clone();
           tauri::execute_promise(
