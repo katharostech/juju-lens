@@ -102,7 +102,7 @@ impl<T, E: std::error::Error> ErrDisplay<T, E> for Result<T, E> {
 // Implement Tauri plugin trait
 impl Plugin for SshPlugin {
   fn created(&self, _webview: &mut Webview<'_>) {
-      trc::debug!("Initialized SSH plugin");
+    trc::debug!("Initialized SSH plugin");
   }
 
   // Add the init.js code that sets up the JavaScript classes and bindings to the Tauri commands
@@ -201,7 +201,9 @@ impl Plugin for SshPlugin {
                     anyhow::bail!("Host key verification failed")
                   }
                 } else {
-                  trc::warn!("Host key not provided: connecting to SSH session without validating host key");
+                  trc::warn!(
+                    "Host key not provided: connecting to SSH session without validating host key"
+                  );
                 }
 
                 // Create temporary key files
@@ -275,12 +277,14 @@ impl Plugin for SshPlugin {
                             }
                           }
 
-                          run_js_callback(
-                            webview_mut2.clone(),
-                            message_callback.clone(),
-                            format!("Uint16Array.from({:?})", buf),
-                          );
-                          buf.clear();
+                          if buf.len() > 0 {
+                            run_js_callback(
+                              webview_mut2.clone(),
+                              message_callback.clone(),
+                              format!("Uint16Array.from({:?})", buf),
+                            );
+                            buf.clear();
+                          }
 
                           // Sleep for 1/60th of a second
                           std::thread::sleep(std::time::Duration::from_millis(42));
@@ -346,7 +350,7 @@ impl Plugin for SshPlugin {
                           std::thread::sleep(std::time::Duration::from_millis(17));
                         }
 
-                      // If se successfully got data from the ssh connection
+                      // If we successfully got data from the ssh connection
                       } else {
                         trc::trace!(
                           id = id.as_str(),
