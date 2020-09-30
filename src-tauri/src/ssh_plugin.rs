@@ -400,7 +400,9 @@ impl Plugin for SshPlugin {
                 decoded = format!("{:?}", decoded).as_str(),
                 "Sending data to SSH connection"
               );
-              conn.stream.write_all(&decoded).expect("TODO:");
+              if let Err(e) = conn.stream.write_all(&decoded) {
+                trc::error!(id = id.as_str(), "Failure to send data over SSH session: {}", e);
+              }
             }
             Ok(true)
           }
