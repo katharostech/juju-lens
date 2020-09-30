@@ -22,7 +22,18 @@
             <q-item-label v-if="isTauri" header>Logging</q-item-label>
 
             <div v-if="isTauri" class="row">
-              <q-item class="col-12 col-sm-4" clickable v-ripple>
+              <q-item
+                class="col-12 col-sm-4"
+                clickable
+                v-ripple
+                @click="
+                  updateLensLogWindow({
+                    minimized: false,
+                    activated: true
+                  })
+                  hide()
+                "
+              >
                 <q-item-section>
                   <q-item-label>Show Logs</q-item-label>
                   <q-item-label caption>
@@ -62,8 +73,19 @@ import { Vue, Component, Watch } from 'vue-property-decorator';
 
 import { setTraceLogsEnabled, getTraceLogsEnabled } from 'utils/logging';
 
+import { mutationTypes } from 'store/app/mutations';
+import { namespace } from 'vuex-class';
+const app = namespace('app');
+
 @Component
 export default class LensSettingsDialog extends Vue {
+  @app.Mutation(mutationTypes.updateLensLogWindow)
+  updateLensLogWindow!: (options: {
+    minimized?: boolean;
+    maximized?: boolean;
+    activated?: boolean;
+  }) => void;
+
   jujuLensVersion = jujuLensPackageInfo.version;
 
   enableTraceLogs = false;

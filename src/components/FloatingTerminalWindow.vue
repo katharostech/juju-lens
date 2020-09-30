@@ -11,12 +11,12 @@
       v-on:restore="toggleMaximized"
       v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
       v-on:close="
-        removeFloatingWindow(floatingWindowId);
+        removeFloatingUnitWindow(floatingWindowId);
         closeSshConn();
       "
       icon="fas fa-terminal"
       :style="{ 'z-index': floatingWindow.zIndex }"
-      @click.native="focusFloatingWindow(floatingWindowId)"
+      @click.native="focusFloatingUnitWindow(floatingWindowId)"
     >
       <div class="fit q-pa-xs bg-black">
         <x-term
@@ -32,7 +32,7 @@
                 position: 'bottom-right',
                 timeout: 2000
               });
-              removeFloatingWindow(floatingWindowId);
+              removeFloatingUnitWindow(floatingWindowId);
             }
           "
           @error="
@@ -45,7 +45,7 @@
               });
             }
           "
-          @close="removeFloatingWindow(floatingWindowId)"
+          @close="removeFloatingUnitWindow(floatingWindowId)"
         />
       </div>
     </floating-window-component>
@@ -59,7 +59,7 @@ import XTerm from 'components/XTerm.vue';
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 
-import { FloatingWindow } from 'store/app/state';
+import { FloatingUnitWindow } from 'store/app/state';
 import { mutationTypes } from 'store/app/mutations';
 import { actionTypes } from 'store/app/actions';
 import { FilledModel } from 'store/juju/state/utils';
@@ -75,39 +75,39 @@ const juju = namespace('juju');
 export default class FloatingTerminalWindow extends Vue {
   @Prop(String) floatingWindowId!: string;
 
-  @app.State floatingWindows!: FloatingWindow[];
-  @app.Mutation(mutationTypes.toggleFloatingWindowVisible)
-  toggleFloatingWindowVisible!: (id: string) => void;
-  @app.Mutation(mutationTypes.toggleFloatingWindowMaximized)
-  toggleFloatingWindowMaximized!: (id: string) => void;
-  @app.Mutation(mutationTypes.focusFloatingWindow)
-  focusFloatingWindow!: (id: string) => void;
-  @app.Action(actionTypes.removeFloatingWindow)
-  removeFloatingWindow!: (id: string) => void;
+  @app.State floatingUnitWindows!: FloatingUnitWindow[];
+  @app.Mutation(mutationTypes.toggleFloatingUnitWindowVisible)
+  toggleFloatingUnitWindowVisible!: (id: string) => void;
+  @app.Mutation(mutationTypes.toggleFloatingUnitWindowMaximized)
+  toggleFloatingUnitWindowMaximized!: (id: string) => void;
+  @app.Mutation(mutationTypes.focusFloatingUnitWindow)
+  focusFloatingUnitWindow!: (id: string) => void;
+  @app.Action(actionTypes.removeFloatingUnitWindow)
+  removeFloatingUnitWindow!: (id: string) => void;
 
   @juju.Getter('currentControllerModelsFilled')
   controllerModels!: FilledModel[];
 
-  get floatingWindow(): FloatingWindow {
-    return this.floatingWindows.filter(
+  get floatingWindow(): FloatingUnitWindow {
+    return this.floatingUnitWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
   }
 
   get model(): FilledModel {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const modelUuid = this.floatingWindow.app!['model-uuid'];
+    const modelUuid = this.floatingWindow.app['model-uuid'];
     return this.controllerModels.filter(x => x['model-uuid'] == modelUuid)[0];
   }
 
   toggleMaximized(): void {
-    this.toggleFloatingWindowMaximized(this.floatingWindowId);
+    this.toggleFloatingUnitWindowMaximized(this.floatingWindowId);
     // Make sure terminal keeps focus after maximizing
     (this.$refs.term as any).focus();
   }
 
   onRestore(): void {
-    this.toggleFloatingWindowMaximized(this.floatingWindowId);
+    this.toggleFloatingUnitWindowMaximized(this.floatingWindowId);
     (this.$refs.term as any).focus();
   }
 
@@ -117,7 +117,7 @@ export default class FloatingTerminalWindow extends Vue {
         entities: [
           {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            tag: `unit-${this.floatingWindow.unit!.name.replace('/', '-')}`
+            tag: `unit-${this.floatingWindow.unit.name.replace('/', '-')}`
           }
         ]
       })
@@ -129,13 +129,13 @@ export default class FloatingTerminalWindow extends Vue {
             position: 'bottom-right',
             timeout: 2000
           });
-          this.removeFloatingWindow(this.floatingWindowId);
+          this.removeFloatingUnitWindow(this.floatingWindowId);
         } else {
           const hostKeys = res.results[0].publicKeys;
           (this.$refs.term as any).start(
             'ubuntu',
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            this.floatingWindow.unit!['public-address'],
+            this.floatingWindow.unit['public-address'],
             hostKeys
           );
         }

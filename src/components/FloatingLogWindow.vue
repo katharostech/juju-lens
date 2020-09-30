@@ -7,13 +7,13 @@
       :title="floatingWindow.unit.name"
       :visible="floatingWindow.visible"
       :maximized="floatingWindow.maximized"
-      v-on:maximize="toggleFloatingWindowMaximized(floatingWindowId)"
-      v-on:restore="toggleFloatingWindowMaximized(floatingWindowId)"
-      v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
-      v-on:close="removeFloatingWindow(floatingWindowId)"
+      v-on:maximize="toggleFloatingUnitWindowMaximized(floatingWindowId)"
+      v-on:restore="toggleFloatingUnitWindowMaximized(floatingWindowId)"
+      v-on:minimize="toggleFloatingUnitWindowVisible(floatingWindowId)"
+      v-on:close="removeFloatingUnitWindow(floatingWindowId)"
       icon="fas fa-file-alt"
       :style="{ 'z-index': floatingWindow.zIndex }"
-      @click.native="focusFloatingWindow(floatingWindowId)"
+      @click.native="focusFloatingUnitWindow(floatingWindowId)"
     >
       <q-table
         dense
@@ -37,7 +37,7 @@ import { namespace } from 'vuex-class';
 
 import { date } from 'quasar';
 
-import { FloatingWindow } from 'store/app/state';
+import { FloatingUnitWindow } from 'store/app/state';
 import { mutationTypes } from 'store/app/mutations';
 import { actionTypes } from 'store/app/actions';
 const app = namespace('app');
@@ -65,18 +65,18 @@ export interface LogEntry {
 })
 export default class FloatingTerminalWindow extends Vue {
   @Prop(String) floatingWindowId!: string;
-  @app.State floatingWindows!: FloatingWindow[];
-  @app.Mutation(mutationTypes.toggleFloatingWindowVisible)
-  toggleFloatingWindowVisible!: (id: string) => void;
-  @app.Mutation(mutationTypes.toggleFloatingWindowMaximized)
-  toggleFloatingWindowMaximized!: (id: string) => void;
-  @app.Mutation(mutationTypes.focusFloatingWindow)
-  focusFloatingWindow!: (id: string) => void;
-  @app.Action(actionTypes.removeFloatingWindow)
-  removeFloatingWindow!: (id: string) => void;
+  @app.State floatingUnitWindows!: FloatingUnitWindow[];
+  @app.Mutation(mutationTypes.toggleFloatingUnitWindowVisible)
+  toggleFloatingUnitWindowVisible!: (id: string) => void;
+  @app.Mutation(mutationTypes.toggleFloatingUnitWindowMaximized)
+  toggleFloatingUnitWindowMaximized!: (id: string) => void;
+  @app.Mutation(mutationTypes.focusFloatingUnitWindow)
+  focusFloatingUnitWindow!: (id: string) => void;
+  @app.Action(actionTypes.removeFloatingUnitWindow)
+  removeFloatingUnitWindow!: (id: string) => void;
 
-  get floatingWindow(): FloatingWindow {
-    return this.floatingWindows.filter(
+  get floatingWindow(): FloatingUnitWindow {
+    return this.floatingUnitWindows.filter(
       window => window.id == this.floatingWindowId
     )[0];
   }
@@ -89,7 +89,8 @@ export default class FloatingTerminalWindow extends Vue {
       field: 'timestamp',
       sortable: true,
       align: 'left',
-      format: (stamp: number): string => date.formatDate(stamp, 'YY-MM-DD:HH-MM-ss:SS')
+      format: (stamp: number): string =>
+        date.formatDate(stamp, 'YY-MM-DD:HH-MM-ss:SS')
     },
     {
       name: 'message',

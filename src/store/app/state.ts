@@ -1,16 +1,19 @@
 import { Unit, Application } from 'store/juju/state';
 
-export interface DebugWindowState {
-  visible: boolean;
+export interface LensLogWindowState {
+  minimized: boolean;
   maximized: boolean;
+  /** Activated indicates whether the window is visible, either minimized or
+   * not. If it is not activated it will not exist at all. */
+  activated: boolean;
 }
 
-export interface FloatingWindow {
+export interface FloatingUnitWindow {
   id: string;
   kind: FloatingWindowKindString;
   // App and unit should only be null for the `jujuLensLog` type
-  unit?: Unit;
-  app?: Application;
+  unit: Unit;
+  app: Application;
   visible: boolean;
   maximized: boolean;
   zIndex: number;
@@ -18,23 +21,23 @@ export interface FloatingWindow {
 
 export enum FloatingWindowKind {
   log,
-  terminal,
-  lensLog
+  terminal
 }
 
 export type FloatingWindowKindString = keyof typeof FloatingWindowKind;
 
 export interface AppStateInterface {
-  debugWindow: DebugWindowState;
-  floatingWindows: FloatingWindow[];
+  lensLogWindow: LensLogWindowState;
+  floatingUnitWindows: FloatingUnitWindow[];
 }
 
 const state: AppStateInterface = {
-  debugWindow: {
-    visible: false,
-    maximized: false
+  lensLogWindow: {
+    minimized: false,
+    maximized: false,
+    activated: false,
   },
-  floatingWindows: []
+  floatingUnitWindows: []
 };
 
 export default state;

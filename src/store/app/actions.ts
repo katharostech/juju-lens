@@ -3,7 +3,7 @@ import { ActionTree } from 'vuex';
 import { StoreInterface } from '../index';
 import {
   AppStateInterface,
-  FloatingWindow,
+  FloatingUnitWindow,
   FloatingWindowKind,
   FloatingWindowKindString
 } from './state';
@@ -15,7 +15,7 @@ import { uid } from 'quasar';
 
 export const actionTypes = {
   addFloatingWindow: 'addFloatingWindow',
-  removeFloatingWindow: 'removeFloatingWindow'
+  removeFloatingUnitWindow: 'removeFloatingUnitWindow'
 };
 
 const actions: ActionTree<AppStateInterface, StoreInterface> = {
@@ -29,7 +29,7 @@ const actions: ActionTree<AppStateInterface, StoreInterface> = {
     }: { unit: Unit; app: Application; kind: FloatingWindowKind }
   ): string {
     const id = uid();
-    const window: FloatingWindow = {
+    const window: FloatingUnitWindow = {
       id,
       unit,
       app,
@@ -40,18 +40,18 @@ const actions: ActionTree<AppStateInterface, StoreInterface> = {
     };
 
     // First create the window
-    ctx.commit(mutationTypes.addFloatingWindow, window);
+    ctx.commit(mutationTypes.addFloatingUnitWindow, window);
 
     // Then show it separately to add the nice animation effect
     Vue.nextTick(() => {
-      ctx.commit(mutationTypes.toggleFloatingWindowVisible, window.id);
+      ctx.commit(mutationTypes.toggleFloatingUnitWindowVisible, window.id);
     });
 
     return id;
   },
 
   /** Remove Floating Window */
-  [actionTypes.removeFloatingWindow](ctx, id: string): void {
+  [actionTypes.removeFloatingUnitWindow](ctx, id: string): void {
     // Hide the window first
     ctx.commit(mutationTypes.hideFloatingWindow, id);
 
@@ -60,7 +60,7 @@ const actions: ActionTree<AppStateInterface, StoreInterface> = {
     Vue.nextTick(() => {
       // TODO: be smarter than just waiting here for animation to finish?
       setTimeout(() => {
-        ctx.commit(mutationTypes.removeFloatingWindow, id);
+        ctx.commit(mutationTypes.removeFloatingUnitWindow, id);
       }, 400);
     });
   }

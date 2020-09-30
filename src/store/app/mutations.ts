@@ -1,22 +1,25 @@
 import { MutationTree } from 'vuex';
-import { AppStateInterface, FloatingWindow } from './state';
+import { AppStateInterface, FloatingUnitWindow } from './state';
 
 export const mutationTypes = {
-  addFloatingWindow: 'addFloatingWindow',
-  toggleFloatingWindowMaximized: 'toggleFloatingWindowMaximized',
-  toggleFloatingWindowVisible: 'toggleFloatingWindowVisible',
-  // TODO: Merge this and `toggle` into a setFloatingWindowVisible
+  addFloatingUnitWindow: 'addFloatingUnitWindow',
+  toggleFloatingUnitWindowMaximized: 'toggleFloatingUnitWindowMaximized',
+  toggleFloatingUnitWindowVisible: 'toggleFloatingUnitWindowVisible',
+  updateLensLogWindow: 'updateLensLogWindow',
+  // TODO: Make all of the floating unit window functions merge into an
+  // `updateFloatingUnitWindow` mutation like the `updateLensLogWindow`
+  // function.
   hideFloatingWindow: 'hideFloatingWindow',
-  focusFloatingWindow: 'focusFloatingWindow',
-  removeFloatingWindow: 'removeFloatingWindow'
+  focusFloatingUnitWindow: 'focusFloatingUnitWindow',
+  removeFloatingUnitWindow: 'removeFloatingUnitWindow'
 };
 
 /**
  * Make a floating window the focused window. Extracted to a separate function
  * so that it can be used in multiple mutators.
  */
-function focusFloatingWindow(state: AppStateInterface, id: string): void {
-  state.floatingWindows.map(window => {
+function focusFloatingUnitWindow(state: AppStateInterface, id: string): void {
+  state.floatingUnitWindows.map(window => {
     if (window.id == id) {
       window.zIndex = 1;
     } else {
@@ -26,14 +29,31 @@ function focusFloatingWindow(state: AppStateInterface, id: string): void {
 }
 
 const mutation: MutationTree<AppStateInterface> = {
+  // The debug window is not something we are planning on using anymore.
+  // Leaving this around just in case.
+  [mutationTypes.updateLensLogWindow](
+    state: AppStateInterface,
+    options: { minimized?: boolean; maximized?: boolean; activated?: boolean }
+  ) {
+    if (options.minimized != undefined) {
+      state.lensLogWindow.minimized = options.minimized;
+    }
+    if (options.maximized != undefined) {
+      state.lensLogWindow.maximized = options.maximized;
+    }
+    if (options.activated != undefined) {
+      state.lensLogWindow.activated = options.activated;
+    }
+  },
+
   /** Add floating window */
-  [mutationTypes.addFloatingWindow](state, window: FloatingWindow) {
-    state.floatingWindows.push(window);
+  [mutationTypes.addFloatingUnitWindow](state, window: FloatingUnitWindow) {
+    state.floatingUnitWindows.push(window);
   },
 
   /** Toggle floating window maximize */
-  [mutationTypes.toggleFloatingWindowMaximized](state, id: string) {
-    state.floatingWindows.map(window => {
+  [mutationTypes.toggleFloatingUnitWindowMaximized](state, id: string) {
+    state.floatingUnitWindows.map(window => {
       if (window.id == id) {
         window.maximized = !window.maximized;
       }
@@ -41,9 +61,9 @@ const mutation: MutationTree<AppStateInterface> = {
   },
 
   /** Toggle floating window visible */
-  [mutationTypes.toggleFloatingWindowVisible](state, id: string) {
+  [mutationTypes.toggleFloatingUnitWindowVisible](state, id: string) {
     let newVisibleState = false;
-    state.floatingWindows.map(window => {
+    state.floatingUnitWindows.map(window => {
       if (window.id == id) {
         window.visible = !window.visible;
         newVisibleState = window.visible;
@@ -52,14 +72,14 @@ const mutation: MutationTree<AppStateInterface> = {
 
     // Focus the window if it is now visible
     if (newVisibleState) {
-      focusFloatingWindow(state, id);
+      focusFloatingUnitWindow(state, id);
     }
   },
 
   // TODO: Merge this and `toggle` into a setFloatingWindowVisible
   /** Hide floating window */
   [mutationTypes.hideFloatingWindow](state, id: string) {
-    state.floatingWindows.map(window => {
+    state.floatingUnitWindows.map(window => {
       if (window.id == id) {
         window.visible = false;
       }
@@ -70,13 +90,13 @@ const mutation: MutationTree<AppStateInterface> = {
    * Focus a floating window, bringing it to the front of other floating
    * windows.
    */
-  [mutationTypes.focusFloatingWindow](state, id: string) {
-    focusFloatingWindow(state, id);
+  [mutationTypes.focusFloatingUnitWindow](state, id: string) {
+    focusFloatingUnitWindow(state, id);
   },
 
   /** Remove log window */
-  [mutationTypes.removeFloatingWindow](state, id: string) {
-    state.floatingWindows = state.floatingWindows.filter(
+  [mutationTypes.removeFloatingUnitWindow](state, id: string) {
+    state.floatingUnitWindows = state.floatingUnitWindows.filter(
       window => window.id != id
     );
   }

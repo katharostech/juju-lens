@@ -150,16 +150,16 @@
             with an animation -->
             <!-- Floating Window List -->
             <q-item
-              v-for="window in floatingWindows"
+              v-for="window in floatingUnitWindows"
               :key="window.id"
               clickable
               v-ripple
               @click="
                 if (window.visible) {
-                  focusFloatingWindow(window.id);
+                  focusFloatingUnitWindow(window.id);
                 } else {
                   toggleFloatingWindowVisible(window.id);
-                  focusFloatingWindow(window.id);
+                  focusFloatingUnitWindow(window.id);
                 }
               "
             >
@@ -176,7 +176,7 @@
                   <q-item
                     clickable
                     v-close-popup
-                    @click="removeFloatingWindow(window.id)"
+                    @click="removeFloatingUnitWindow(window.id)"
                   >
                     <q-item-section side>
                       <q-icon color="negative" name="fas fa-window-close" />
@@ -206,6 +206,43 @@
         <q-separator style="height: 1px" />
 
         <q-list>
+          <!-- Lens Log Menu item -->
+          <q-item
+            v-if="lensLogWindow.activated"
+            clickable
+            v-ripple
+            @click="updateLensLogWindow({ minimized: false })"
+          >
+            <!-- Taskbar icon close menu -->
+            <q-menu
+              context-menu
+              anchor="center right"
+              self="center left"
+              content-style="z-index: 10000"
+              transition-show="jump-right"
+              transition-hide="jump-left"
+            >
+              <q-list dense>
+                <q-item
+                  clickable
+                  v-close-popup
+                  @click="updateLensLogWindow({ activated: false })"
+                >
+                  <q-item-section side>
+                    <q-icon color="negative" name="fas fa-window-close" />
+                  </q-item-section>
+                  <q-item-section>Close</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+            <q-item-section avatar style="min-width: 2em;">
+              <q-icon name="fas fa-file-alt" />
+            </q-item-section>
+            <q-item-section>
+              Juju Lens Logs
+            </q-item-section>
+          </q-item>
+
           <!-- Settings Button -->
           <q-item v-if="isTauri" clickable v-ripple @click="showSettingsDialog">
             <q-item-section avatar>
@@ -302,6 +339,8 @@
           :key="window.id"
           :floatingWindowId="window.id"
         />
+
+        <lens-log-window v-if="lensLogWindow.activated" />
       </q-page>
     </q-page-container>
   </q-layout>
@@ -313,7 +352,7 @@ import Badge from 'components/Badge.vue';
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
 import FloatingTerminalWindow from 'components/FloatingTerminalWindow.vue';
 import FloatingLogWindow from 'components/FloatingLogWindow.vue';
-import DebugWindow from 'components/DebugWindow.vue';
+import LensLogWindow from 'components/LensLogWindow.vue';
 
 import { Component, Vue } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
@@ -325,11 +364,15 @@ import {
   Application,
   UnitStatusSeverity
 } from 'store/juju/state';
+import { FilledModel } from 'store/juju/state/utils';
 const juju = namespace('juju');
 
-import { FloatingWindow, FloatingWindowKind } from 'store/app/state';
+import {
+  FloatingUnitWindow,
+  FloatingWindowKind,
+  LensLogWindowState
+} from 'store/app/state';
 import { mutationTypes as appMutationTypes } from 'store/app/mutations';
-import { FilledModel } from 'store/juju/state/utils';
 const app = namespace('app');
 
 import LensSettingsDialog from 'components/dialogs/LensSettingsDialog.vue';
@@ -346,31 +389,37 @@ interface UnitNotification {
     FloatingWindowComponent,
     FloatingTerminalWindow,
     FloatingLogWindow,
-    DebugWindow,
+    LensLogWindow,
     Badge
   }
 })
 export default class MainLayout extends Vue {
-  @app.State readonly floatingWindows!: FloatingWindow[];
-  @app.Mutation(appMutationTypes.removeFloatingWindow) removeFloatingWindow!: (
-    id: string
-  ) => void;
-  @app.Mutation(appMutationTypes.toggleFloatingWindowVisible)
-  toggleFloatingWindowVisible!: (id: string) => void;
-  @app.Mutation(appMutationTypes.focusFloatingWindow)
-  focusFloatingWindow!: (id: string) => void;
+  @app.State readonly floatingUnitWindows!: FloatingUnitWindow[];
+  @app.State readonly lensLogWindow!: LensLogWindowState;
+  @app.Mutation(appMutationTypes.removeFloatingUnitWindow)
+  removeFloatingUnitWindow!: (id: string) => void;
+  @app.Mutation(appMutationTypes.toggleFloatingUnitWindowVisible)
+  toggleFloatingUnitWindowVisible!: (id: string) => void;
+  @app.Mutation(appMutationTypes.focusFloatingUnitWindow)
+  focusFloatingUnitWindow!: (id: string) => void;
+  @app.Mutation(appMutationTypes.updateLensLogWindow)
+  updateLensLogWindow!: (options: {
+    minimized?: boolean;
+    maximized?: boolean;
+    activated?: boolean;
+  }) => void;
 
   get isTauri(): boolean {
     return !!window.__TAURI__;
   }
 
-  get floatingTermWindows(): FloatingWindow[] {
-    return this.floatingWindows.filter(
+  get floatingTermWindows(): FloatingUnitWindow[] {
+    return this.floatingUnitWindows.filter(
       window => window.kind == FloatingWindowKind[FloatingWindowKind.terminal]
     );
   }
-  get floatingLogWindows(): FloatingWindow[] {
-    return this.floatingWindows.filter(
+  get floatingLogWindows(): FloatingUnitWindow[] {
+    return this.floatingUnitWindows.filter(
       window => window.kind == FloatingWindowKind[FloatingWindowKind.log]
     );
   }
