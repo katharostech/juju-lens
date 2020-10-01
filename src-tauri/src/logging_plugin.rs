@@ -237,6 +237,7 @@ impl<S: Subscriber> Layer<S> for LoggingLayer {
     // Handle webviewlogging
     if let Some(ref mut webview) = *self.webview.lock().unwrap() {
       // Get the name of the browser console log suffix
+      #[cfg(debug_assertions)]
       let browser_log_name = match *event.metadata().level() {
         Level::TRACE => "Trace",
         Level::DEBUG => "Debug",
