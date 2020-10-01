@@ -34,6 +34,7 @@ openssh-keys = "0.4.2"
 base64 = "0.12.3"
 md5 = "0.7.0"
 ansi_term = "0.12.1"
+chrono = "0.4.18"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"

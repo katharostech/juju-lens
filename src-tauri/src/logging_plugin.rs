@@ -1,9 +1,12 @@
 use std::{
   collections::HashMap,
   fmt,
+  fs::File,
+  io::Write,
   sync::{Arc, Mutex},
 };
 
+use chrono::{DateTime, Local};
 use tauri::{plugin::Plugin, Webview, WebviewMut};
 use tracing::{
   self as trc,
@@ -40,6 +43,18 @@ impl From<&trc::Level> for BrowserLogLevel {
   }
 }
 
+impl AsRef<str> for BrowserLogLevel {
+  fn as_ref(&self) -> &str {
+    match self {
+      BrowserLogLevel::Trace => "TRACE",
+      BrowserLogLevel::Debug => "DEBUG",
+      BrowserLogLevel::Info => " INFO",
+      BrowserLogLevel::Warn => " WARN",
+      BrowserLogLevel::Error => "ERROR",
+    }
+  }
+}
+
 /// A log visitor that catalogs the log records for later retrieval
 #[derive(Clone)]
 struct LogCatalog {
@@ -53,20 +68,29 @@ struct CatalogRecord {
   message: String,
   fields: HashMap<String, serde_json::Value>,
   level: BrowserLogLevel,
-  timestamp: u64,
+  #[serde(serialize_with = "serialize_timestamp")]
+  timestamp: DateTime<Local>,
 }
 
 impl CatalogRecord {
-  fn new(timestamp: u64, level: BrowserLogLevel) -> Self {
+  fn new(level: BrowserLogLevel) -> Self {
     CatalogRecord {
       level,
       fields: HashMap::new(),
       message: String::new(),
-      timestamp,
+      timestamp: Local::now(),
     }
   }
 }
 
+fn serialize_timestamp<S: serde::Serializer>(
+  date: &DateTime<Local>,
+  s: S,
+) -> Result<S::Ok, S::Error> {
+  s.serialize_i64(date.timestamp_millis())
+}
+
+// Display for catalog records prints just the message and the fields
 impl fmt::Display for CatalogRecord {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
@@ -83,10 +107,25 @@ impl fmt::Display for CatalogRecord {
   }
 }
 
+// Debug for catalog records prints the timestamp and the log level as well in a
+// log file type of format
+impl fmt::Debug for CatalogRecord {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    // Format the timestamp
+    write!(f, "{} ", self.timestamp.format("%b %d %H:%M:%S"))?;
+
+    // Write the log level
+    write!(f, "{} ", self.level.as_ref())?;
+
+    // Write the message
+    write!(f, "{}", self)
+  }
+}
+
 impl LogCatalog {
-  fn add_new_record(&mut self, timestamp: u64, level: BrowserLogLevel) {
+  fn add_new_record(&mut self, level: BrowserLogLevel) {
     let mut records = self.records.lock().unwrap();
-    let record = CatalogRecord::new(timestamp, level);
+    let record = CatalogRecord::new(level);
 
     records.push(record);
   }
@@ -179,15 +218,26 @@ struct LoggingLayer {
   webview: Arc<Mutex<Option<WebviewMut>>>,
   log_catalog: LogCatalog,
   subscribers: Arc<Mutex<HashMap<String, String>>>,
+  log_file: Arc<Mutex<File>>,
 }
 
 impl<S: Subscriber> Layer<S> for LoggingLayer {
-  #[cfg(debug_assertions)]
   fn on_event(&self, event: &Event<'_>, _ctx: Context<'_, S>) {
-    // On debug builds, log all events to the browser console for convenience
-    #[cfg(debug_assertions)]
+    // Format and record the message
+    let mut catalog = self.log_catalog.clone();
+    catalog.add_new_record(event.metadata().level().into());
+    event.record(&mut catalog);
+    let record = catalog.clone_last();
+
+    // Log to the log file
+    if let Err(e) = writeln!(self.log_file.lock().unwrap(), "{:?}", record) {
+      trc::error!("Error logging to file: {}", e);
+    }
+
+    // Handle webviewlogging
     if let Some(ref mut webview) = *self.webview.lock().unwrap() {
-      let func_name = match *event.metadata().level() {
+      // Get the name of the browser console log suffix
+      let browser_log_name = match *event.metadata().level() {
         Level::TRACE => "Trace",
         Level::DEBUG => "Debug",
         Level::INFO => "Log",
@@ -196,26 +246,19 @@ impl<S: Subscriber> Layer<S> for LoggingLayer {
       }
       .to_string();
 
-      // Format and record the message
-      let mut catalog = self.log_catalog.clone();
-      catalog.add_new_record(
-        std::time::SystemTime::now()
-          .duration_since(std::time::SystemTime::UNIX_EPOCH)
-          .expect("System time before Unix Epoch!")
-          .as_secs() * 1000,
-        event.metadata().level().into(),
-      );
-      event.record(&mut catalog);
-      let record = catalog.clone_last();
-
+      // Lock our subscribers
       let subscribers = self.subscribers.clone();
+
       if let Err(e) = webview.dispatch(move |webview| {
+        // Log to the browser console on debug builds for convenience
+        #[cfg(debug_assertions)]
         webview.eval(&format!(
           "realConsole{}({})",
-          func_name,
+          browser_log_name,
           serde_json::Value::String(record.to_string())
         ));
 
+        // Run callbacks for our subscribers
         for subscriber_callback in subscribers.lock().unwrap().values() {
           webview.eval(&format!(
             "window[{}]({})",
@@ -244,7 +287,7 @@ pub struct Logging {
 }
 
 impl Logging {
-  pub fn new() -> Self {
+  pub fn new() -> anyhow::Result<Self> {
     // Create null webview
     let webview = Arc::new(Mutex::new(None));
 
@@ -269,11 +312,23 @@ impl Logging {
       subscribers: subscribers.clone(),
     };
 
+    // Open the log file
+    let log_file_path = tauri_api::path::cache_dir()
+      .ok_or_else(|| anyhow::format_err!("Could not determine user cache dir"))?
+      .join("com.katharostech.juju.jujuLens.log");
+    let log_file = std::fs::OpenOptions::new()
+      .create(true)
+      .write(true)
+      .truncate(true)
+      .open(log_file_path)?;
+    let log_file = Arc::new(Mutex::new(log_file));
+
     // Build the subscriber
     let subscriber = builder.finish().with(LoggingLayer {
       webview: webview.clone(),
       log_catalog: log_catalog.clone(),
       subscribers: subscribers.clone(),
+      log_file,
     });
 
     // Set the subscriber as the global log handler
@@ -289,12 +344,12 @@ impl Logging {
     trc::debug!("Logging initialized");
 
     // Return the logging plugin
-    Logging {
+    Ok(Logging {
       filter_handle,
       webview,
       log_catalog,
       subscribers,
-    }
+    })
   }
 }
 

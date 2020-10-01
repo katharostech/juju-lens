@@ -10,7 +10,10 @@
       v-on:maximize="toggleMaximized"
       v-on:restore="toggleMaximized"
       v-on:minimize="toggleFloatingUnitWindowVisible(floatingWindowId)"
-      v-on:close="close()"
+      v-on:close="
+        close();
+        removeFloatingUnitWindow(floatingWindowId);
+      "
       icon="fas fa-terminal"
       :style="{ 'z-index': floatingWindow.zIndex }"
       @click.native="focusFloatingUnitWindow(floatingWindowId)"

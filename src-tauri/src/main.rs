@@ -13,7 +13,14 @@ mod websocket_plugin;
 
 fn main() {
   tauri::AppBuilder::new()
-    .plugin(logging_plugin::Logging::new())
+    .plugin(logging_plugin::Logging::new().unwrap_or_else(|e| {
+      eprintln!(
+        "{} Error configuring logging : {}",
+        ansi_term::Colour::Red.paint("Error: "),
+        e
+      );
+      std::process::exit(1);
+    }))
     .plugin(
       local_storage_plugin::LocalStorage::new().unwrap_or_else(|e| {
         eprintln!(
