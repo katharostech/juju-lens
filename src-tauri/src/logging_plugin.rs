@@ -53,14 +53,16 @@ struct CatalogRecord {
   message: String,
   fields: HashMap<String, serde_json::Value>,
   level: BrowserLogLevel,
+  timestamp: u64,
 }
 
 impl CatalogRecord {
-  fn new(level: BrowserLogLevel) -> Self {
+  fn new(timestamp: u64, level: BrowserLogLevel) -> Self {
     CatalogRecord {
       level,
       fields: HashMap::new(),
       message: String::new(),
+      timestamp,
     }
   }
 }
@@ -82,9 +84,9 @@ impl fmt::Display for CatalogRecord {
 }
 
 impl LogCatalog {
-  fn add_new_record(&mut self, level: BrowserLogLevel) {
+  fn add_new_record(&mut self, timestamp: u64, level: BrowserLogLevel) {
     let mut records = self.records.lock().unwrap();
-    let record = CatalogRecord::new(level);
+    let record = CatalogRecord::new(timestamp, level);
 
     records.push(record);
   }
@@ -196,7 +198,13 @@ impl<S: Subscriber> Layer<S> for LoggingLayer {
 
       // Format and record the message
       let mut catalog = self.log_catalog.clone();
-      catalog.add_new_record(event.metadata().level().into());
+      catalog.add_new_record(
+        std::time::SystemTime::now()
+          .duration_since(std::time::SystemTime::UNIX_EPOCH)
+          .expect("System time before Unix Epoch!")
+          .as_secs() * 1000,
+        event.metadata().level().into(),
+      );
       event.record(&mut catalog);
       let record = catalog.clone_last();
 

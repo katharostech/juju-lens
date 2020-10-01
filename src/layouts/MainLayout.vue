@@ -158,7 +158,7 @@
                 if (window.visible) {
                   focusFloatingUnitWindow(window.id);
                 } else {
-                  toggleFloatingWindowVisible(window.id);
+                  toggleFloatingUnitWindowVisible(window.id);
                   focusFloatingUnitWindow(window.id);
                 }
               "

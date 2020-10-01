@@ -27,7 +27,6 @@ import 'xterm/css/xterm.css';
 import 'xterm/lib/xterm.js';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { FitAddon } from 'xterm-addon-fit';
-import { getSshKeypair } from 'utils/ssh';
 
 @Component
 export default class XTerm extends Vue {
@@ -39,17 +38,13 @@ export default class XTerm extends Vue {
   // Enable auto-resizing
   @Prop({ type: Boolean, default: false }) readonly autoResize!: boolean;
 
-  // SSH connection parameters
-  @Prop({ type: String, default: null }) username!: string | null;
-  @Prop({ type: String, default: null }) host!: string | null;
-  @Prop({ type: String, default: null }) hostKey!: string | null;
+  // Indicate that the terminal is loading
+  @Prop({ type: Boolean, default: false }) readonly loading!: boolean;
 
   id = '';
 
   fitAddon: FitAddon | null = null;
   t: Terminal | null = null;
-  session: any | null = null;
-  loading = true;
 
   mounted() {
     this.loadTerm();
@@ -63,65 +58,12 @@ export default class XTerm extends Vue {
     if (this.fitAddon && this.autoResize) {
       this.fitAddon.fit();
       const { cols, rows } = this.fitAddon.proposeDimensions();
-      this.session.resize(cols, rows);
+      this.$emit('resize', { rows, cols });
     }
   }
 
-  public async start(user: string, host: string, hostKeys: string[]) {
-    // Wait for the terminal to be prepared
-    await new Promise(resolve =>
-      setTimeout(
-        function wait(this: XTerm) {
-          if (this.t) {
-            resolve();
-          } else {
-            setTimeout(wait.bind(this), 200);
-          }
-        }.bind(this),
-        200
-      )
-    );
-
-    const keypair = await getSshKeypair();
-    this.session = new window.TauriSshSession({
-      user,
-      host: host.includes(':') ? host : host + ':22',
-      publicKey: keypair.public,
-      privateKey: keypair.private,
-      hostKeys: hostKeys
-    });
-
-    this.session.onclose = () => {
-      this.$emit('close');
-    };
-
-    this.session.onerror = (e: string) => {
-      this.$emit('error', e);
-    };
-
-    this.t!.onData(data => {
-      this.session.send(data);
-    });
-
-    // TODO: Handle t.onBinary? ( Only used for certain mouse
-    // commands that aren't valid UTF-8, so probably not that
-    // important.
-
-    this.session.onmessage = (m: any) => {
-      this.t?.write(m);
-    };
-
-    this.session
-      .connect()
-      .then(() => {
-        this.loading = false;
-        this.$emit('ready');
-        // Update terminal size
-        this.onResize()
-      })
-      .catch((e: any) => {
-        this.$emit('connect-failure', e);
-      });
+  public getDimensions(): { rows: number, cols: number } {
+    return this.fitAddon!.proposeDimensions();
   }
 
   loadTerm() {
@@ -139,6 +81,10 @@ export default class XTerm extends Vue {
         this.t.open(document.getElementById(`term-${this.id}`)!);
         this.t.focus();
         this.fitAddon.fit();
+
+        this.t.onData(data => this.$emit('data', data));
+
+        this.$emit('ready');
       }, this.startupDelay);
     }
   }
@@ -151,10 +97,6 @@ export default class XTerm extends Vue {
     // We actually want this to error if the terminal is not ready yet.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.t!.write(data);
-  }
-
-  public close() {
-    this.session?.close();
   }
 }
 </script>

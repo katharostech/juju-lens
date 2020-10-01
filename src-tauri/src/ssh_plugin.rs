@@ -315,6 +315,8 @@ impl Plugin for SshPlugin {
                             trc::error!(id = id.as_str(), "Error closing SSH connection: {}", e);
                           }
 
+                          run_js_callback(webview_mut, close_callback, "".into());
+
                           break;
                         }
                         // If the signal has not been sent but the channel is still open,
@@ -401,7 +403,11 @@ impl Plugin for SshPlugin {
                 "Sending data to SSH connection"
               );
               if let Err(e) = conn.stream.write_all(&decoded) {
-                trc::error!(id = id.as_str(), "Failure to send data over SSH session: {}", e);
+                trc::error!(
+                  id = id.as_str(),
+                  "Failure to send data over SSH session: {}",
+                  e
+                );
               }
             }
             Ok(true)

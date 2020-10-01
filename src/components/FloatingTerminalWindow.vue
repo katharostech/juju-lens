@@ -9,11 +9,8 @@
       :maximized="floatingWindow.maximized"
       v-on:maximize="toggleMaximized"
       v-on:restore="toggleMaximized"
-      v-on:minimize="toggleFloatingWindowVisible(floatingWindowId)"
-      v-on:close="
-        removeFloatingUnitWindow(floatingWindowId);
-        closeSshConn();
-      "
+      v-on:minimize="toggleFloatingUnitWindowVisible(floatingWindowId)"
+      v-on:close="close()"
       icon="fas fa-terminal"
       :style="{ 'z-index': floatingWindow.zIndex }"
       @click.native="focusFloatingUnitWindow(floatingWindowId)"
@@ -24,28 +21,10 @@
           class="full-height"
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
-          @connect-failure="
-            e => {
-              $q.notify({
-                color: 'negative',
-                message: e,
-                position: 'bottom-right',
-                timeout: 2000
-              });
-              removeFloatingUnitWindow(floatingWindowId);
-            }
-          "
-          @error="
-            e => {
-              $q.notify({
-                color: 'negative',
-                message: e,
-                position: 'bottom-right',
-                timeout: 2000
-              });
-            }
-          "
-          @close="removeFloatingUnitWindow(floatingWindowId)"
+          :loading="loading"
+          @ready="connect"
+          @data="onData"
+          @resize="onResize"
         />
       </div>
     </floating-window-component>
@@ -56,6 +35,7 @@
 import FloatingWindowComponent from 'components/FloatingWindow.vue';
 import XTerm from 'components/XTerm.vue';
 
+import { getSshKeypair } from 'utils/ssh';
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator';
 import { namespace } from 'vuex-class';
 
@@ -94,6 +74,9 @@ export default class FloatingTerminalWindow extends Vue {
     )[0];
   }
 
+  session: any | null = null;
+  loading = true;
+
   get model(): FilledModel {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const modelUuid = this.floatingWindow.app['model-uuid'];
@@ -111,7 +94,7 @@ export default class FloatingTerminalWindow extends Vue {
     (this.$refs.term as any).focus();
   }
 
-  created(): void {
+  connect(): void {
     this.model.conn.conn.facades.sshClient
       .publicKeys({
         entities: [
@@ -123,6 +106,7 @@ export default class FloatingTerminalWindow extends Vue {
       })
       .then((res: any) => {
         if (res.results[0].error) {
+          console.error(res.results[0].error.message);
           this.$q.notify({
             color: 'negative',
             message: res.results[0].error.message,
@@ -132,18 +116,86 @@ export default class FloatingTerminalWindow extends Vue {
           this.removeFloatingUnitWindow(this.floatingWindowId);
         } else {
           const hostKeys = res.results[0].publicKeys;
-          (this.$refs.term as any).start(
+          this.openSession(
             'ubuntu',
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.floatingWindow.unit['public-address'],
             hostKeys
-          );
+          ).catch(e => {
+            console.error(e);
+            this.$q.notify({
+              color: 'negative',
+              message: e,
+              position: 'bottom-right',
+              timeout: 2000
+            });
+            this.removeFloatingUnitWindow(this.floatingWindowId);
+          });
         }
       });
   }
 
-  closeSshConn() {
-    (this.$refs.term as any).close();
+  public async openSession(user: string, host: string, hostKeys: string[]) {
+    const keypair = await getSshKeypair();
+    this.session = new window.TauriSshSession({
+      user,
+      host: host.includes(':') ? host : host + ':22',
+      publicKey: keypair.public,
+      privateKey: keypair.private,
+      hostKeys: hostKeys
+    });
+
+    this.session.onclose = () => {
+      this.removeFloatingUnitWindow(this.floatingWindowId);
+    };
+
+    this.session.onerror = (e: string) => {
+      console.error(e);
+      this.$q.notify({
+        color: 'negative',
+        message: e,
+        position: 'bottom-right',
+        timeout: 2000
+      });
+    };
+
+    // TODO: Handle t.onBinary? ( Only used for certain mouse
+    // commands that aren't valid UTF-8, so probably not that
+    // important.
+
+    this.session.onmessage = (m: any) => {
+      (this.$refs.term as any).write(m);
+    };
+
+    this.session
+      .connect()
+      .then(() => {
+        this.loading = false;
+        // Update terminal size
+        this.onResize((this.$refs.term as any).getDimensions());
+      })
+      .catch((e: any) => {
+        console.error(e);
+        this.$q.notify({
+          color: 'negative',
+          message: e,
+          position: 'bottom-right',
+          timeout: 2000
+        });
+        this.removeFloatingUnitWindow(this.floatingWindowId);
+      });
+  }
+
+  close() {
+    this.session?.close();
+  }
+
+  onData(data: any): void {
+    this.session?.send(data);
+  }
+
+  onResize({ rows, cols }: { rows: number; cols: number }): void {
+    this.session?.resize(cols, rows);
   }
 
   @Watch('floatingWindow.visible')
