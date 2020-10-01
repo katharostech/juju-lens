@@ -189,7 +189,7 @@
               here because we lowered the width of the avatar a little bit. It would be nice
               to get rid of it or make it a smooth transition, but for now gaining the extra
               space for the label is worth it. -->
-              <q-item-section avatar style="min-width: 2em;">
+              <q-item-section avatar>
                 <q-icon
                   :name="
                     window.kind == 'log' ? 'fas fa-file-alt' : 'fas fa-terminal'
@@ -235,7 +235,7 @@
                 </q-item>
               </q-list>
             </q-menu>
-            <q-item-section avatar style="min-width: 2em;">
+            <q-item-section avatar>
               <q-icon name="fas fa-file-alt" />
             </q-item-section>
             <q-item-section>
