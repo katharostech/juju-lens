@@ -195,7 +195,7 @@ export default class AppConfigDialog extends Vue {
 
     // Wait for model connection
     while (true) {
-      if (!this.model.conn) {
+      if (!this.$connections.list[this.model.connId]) {
         await sleep(500);
       } else {
         break;
@@ -204,7 +204,9 @@ export default class AppConfigDialog extends Vue {
 
     // Set the config
     this.config = (
-      await this.model.conn.conn.facades.application.getConfig({
+      await this.$connections.list[
+        this.model.connId
+      ].facades.application.getConfig({
         entities: [{ tag: `application-${this.app.name}` }]
       })
     ).results[0].config;
@@ -241,7 +243,7 @@ export default class AppConfigDialog extends Vue {
     this.saveLoading = true;
 
     // Set the application config
-    this.model.conn.conn.facades.application
+    this.$connections.list[this.model.connId].facades.application
       .setApplicationsConfig({
         args: [
           {

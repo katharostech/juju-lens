@@ -98,7 +98,7 @@ export default class FloatingTerminalWindow extends Vue {
   }
 
   connect(): void {
-    this.model.conn.conn.facades.sshClient
+    this.$connections.list[this.model.connId].facades.sshClient
       .publicKeys({
         entities: [
           {

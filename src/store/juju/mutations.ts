@@ -82,10 +82,14 @@ const mutation: MutationTree<JujuStateInterface> = {
     if (dataType == 'model') {
       // Model resource delta
       const model: Model = data;
+      const oldModel = state.controllers[name].models[model['model-uuid']];
       const id = getItemId(name, model['model-uuid']);
 
       if (mutationType == 'change') {
         Vue.set(state.controllers[name].models, id, {
+          // Merge the old model to preserve the `connId` that we add in the
+          // model creation process
+          ...oldModel,
           ...model,
           lensId: id
         });

@@ -33,7 +33,7 @@ export interface Model {
   config: { [key: string]: string };
   status: Status;
   /** The Juju API connection to the model */
-  conn: any;
+  connId: string;
   // TODO: sla, constraints
 }
 

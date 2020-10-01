@@ -11,6 +11,7 @@ import keyManagerFacade from '@canonical/jujulib/api/facades/key-manager-v1';
 import sshClientFacade from '@canonical/jujulib/api/facades/ssh-client-v2';
 import { getItemId } from './state/utils';
 import { getSshKeypair } from 'utils/ssh';
+import Vue from 'vue';
 
 export const actionTypes = {
   // Controllers
@@ -222,7 +223,8 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
       // If the model doesn't exist yet
       if (
         !controller.models[modelId] ||
-        (controller.models[modelId] && !controller.models[modelId].conn)
+        (controller.models[modelId] &&
+          !Vue.prototype.$connections.list[controller.models[modelId].connId])
       ) {
         // Create a Juju API connection
         const facades = [applicationFacade, keyManagerFacade, sshClientFacade];
@@ -230,7 +232,9 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
           debug: false,
           facades: facades,
           wsclass: window.__TAURI__
-            ? window.TauriWebSocketInsecure
+            ? controller.insecure
+              ? window.TauriWebSocketInsecure
+              : window.TauriWebSocket
             : window.WebSocket
         };
         Jujulib.connectAndLogin(
@@ -255,35 +259,44 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
               return;
             }
 
-            // Add the connection to the model data
-            model.conn = result;
+            // Add the connection to the global connection registry and add its id to the model
+            model.connId = Vue.prototype.$connections.newId();
+            Vue.prototype.$connections.list[model.connId] = result.conn;
 
             // Make sure the Juju Lens SSH key has been added to the models
             // authorized keys.
             if (window.__TAURI__) {
               getSshKeypair().then(keypair => {
-                model.conn.conn.facades.keyManager.addKeys({
-                  user: `user-${controller.username}`,
-                  sshKeys: [keypair.public]
-                });
+                Vue.prototype.$connections.list[model.connId].facades.keyManager
+                  .addKeys({
+                    user: `user-${controller.username}`,
+                    sshKeys: [keypair.public]
+                  })
+                  .then(() => {
+                    // Apply the mutation to the state
+                    ctx.commit(mutationTypes.commitControllerDelta, {
+                      name,
+                      data: [dataType, mutationType, data]
+                    });
+                  });
+              });
+            } else {
+              // Apply the mutation to the state
+              ctx.commit(mutationTypes.commitControllerDelta, {
+                name,
+                data: [dataType, mutationType, data]
               });
             }
-
-            // Apply the mutation to the state
-            ctx.commit(mutationTypes.commitControllerDelta, {
-              name,
-              data: [dataType, mutationType, data]
-            });
           }
         );
       }
+    } else {
+      // Apply the mutation to the state
+      ctx.commit(mutationTypes.commitControllerDelta, {
+        name,
+        data: [dataType, mutationType, data]
+      });
     }
-
-    // Apply the mutation to the state
-    ctx.commit(mutationTypes.commitControllerDelta, {
-      name,
-      data: [dataType, mutationType, data]
-    });
   },
 
   /**
@@ -302,6 +315,14 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         });
       }
 
+      // Delete model connections
+      for (const modelName in controller.models) {
+        const model = controller.models[modelName];
+
+        Vue.delete(Vue.prototype.$connections.list, model.connId);
+      }
+
+
       // Remove controller and persist state
       ctx.commit(mutationTypes.deleteController, name);
       persistControllerState(ctx.state);
@@ -315,9 +336,11 @@ const actions: ActionTree<JujuStateInterface, StoreInterface> = {
         for (const modelName in controller.models) {
           const model = controller.models[modelName];
 
-          if (model.conn) {
+          if (Vue.prototype.$connections.list[model.connId]) {
             promises.push(
-              model.conn.conn.facades.keyManager.deleteKeys({
+              Vue.prototype.$connections.list[
+                model.connId
+              ].facades.keyManager.deleteKeys({
                 user: `user-${controller.username}`,
                 sshKeys: [keypair.fingerprint]
               })
