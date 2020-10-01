@@ -18,6 +18,8 @@
 
         <!-- Edit form-->
         <div class="q-pa-md col-grow col-shrink scroll">
+          <div class="text-h6 q-mb-sm">Juju Lens Settings</div>
+
           <q-list bordered padding>
             <q-item-label v-if="isTauri" header>Logging</q-item-label>
 
@@ -30,14 +32,14 @@
                   updateLensLogWindow({
                     minimized: false,
                     activated: true
-                  })
-                  hide()
+                  });
+                  hide();
                 "
               >
                 <q-item-section>
                   <q-item-label>Show Logs</q-item-label>
                   <q-item-label caption>
-                    Show the application log window.
+                    Show the Juju Lens app logs. Useful for reporting bugs.
                   </q-item-label>
                 </q-item-section>
               </q-item>
