@@ -11,12 +11,14 @@
       "
       v-on:minimize="updateLensLogWindow({ minimized: true })"
       v-on:close="updateLensLogWindow({ activated: false })"
+      @click.native="updateLensLogWindow({ focus: true })"
+      :style="{ 'z-index': lensLogWindow.zIndex }"
       icon="fas fa-file-alt"
     >
       <div class="fit q-pa-xs bg-black">
         <x-term
           ref="term"
-          class="full-height"
+          class="full-height q-mr-xs"
           :startupDelay="300"
           :auto-resize="!lensLogWindow.minimized"
           @ready="streamLogs"
@@ -50,6 +52,7 @@ export default class LensLogWindow extends Vue {
     minimized?: boolean;
     maximized?: boolean;
     activated?: boolean;
+    focus?: boolean;
   }) => void;
 
   async streamLogs(): Promise<void> {

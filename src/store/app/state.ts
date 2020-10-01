@@ -6,6 +6,7 @@ export interface LensLogWindowState {
   /** Activated indicates whether the window is visible, either minimized or
    * not. If it is not activated it will not exist at all. */
   activated: boolean;
+  zIndex: number;
 }
 
 export interface FloatingUnitWindow {
@@ -36,6 +37,7 @@ const state: AppStateInterface = {
     minimized: false,
     maximized: false,
     activated: false,
+    zIndex: 0
   },
   floatingUnitWindows: []
 };

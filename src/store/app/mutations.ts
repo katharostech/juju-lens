@@ -26,6 +26,8 @@ function focusFloatingUnitWindow(state: AppStateInterface, id: string): void {
       window.zIndex = 0;
     }
   });
+
+  state.lensLogWindow.zIndex = 0;
 }
 
 const mutation: MutationTree<AppStateInterface> = {
@@ -33,7 +35,12 @@ const mutation: MutationTree<AppStateInterface> = {
   // Leaving this around just in case.
   [mutationTypes.updateLensLogWindow](
     state: AppStateInterface,
-    options: { minimized?: boolean; maximized?: boolean; activated?: boolean }
+    options: {
+      minimized?: boolean;
+      maximized?: boolean;
+      activated?: boolean;
+      focus?: boolean;
+    }
   ) {
     if (options.minimized != undefined) {
       state.lensLogWindow.minimized = options.minimized;
@@ -43,6 +50,12 @@ const mutation: MutationTree<AppStateInterface> = {
     }
     if (options.activated != undefined) {
       state.lensLogWindow.activated = options.activated;
+    }
+    if (options.focus == true) {
+      state.floatingUnitWindows.map(window => {
+        window.zIndex = 0;
+      });
+      state.lensLogWindow.zIndex = 1;
     }
   },
 

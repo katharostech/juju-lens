@@ -21,7 +21,7 @@
       <div class="fit q-pa-xs bg-black">
         <x-term
           ref="term"
-          class="full-height"
+          class="full-height q-pr-xs"
           :startupDelay="300"
           :auto-resize="floatingWindow.visible"
           :loading="loading"

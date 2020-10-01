@@ -127,7 +127,7 @@ module.exports = configure(function(/* ctx */) {
     devServer: {
       https: false,
       port: 8080,
-      open: true // opens browser window automatically
+      open: false // don't open the browser window automatically
     },
 
     // animations: 'all', // --- includes all animations
