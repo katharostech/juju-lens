@@ -5,12 +5,21 @@
       <!-- Controllers Toolbar -->
       <q-toolbar class="col-auto row q-mt-sm">
         <q-toolbar-title style="font-size: 1.5rem">Controllers</q-toolbar-title>
-        <q-space />
         <q-btn
           color="positive"
           icon="fas fa-plus"
           @click="startCreateController()"
-        />
+        >
+          <q-tooltip>Add a new controller</q-tooltip>
+        </q-btn>
+        <q-btn
+          color="primary"
+          icon="fas fa-upload"
+          @click="loadFromCli()"
+          class="on-right"
+        >
+          <q-tooltip>Load controllers from Juju CLI</q-tooltip>
+        </q-btn>
       </q-toolbar>
 
       <div class="row content-start q-ma-sm q-col-gutter-sm">
@@ -72,6 +81,9 @@ import { actionTypes } from 'store/juju/actions';
 import { namespace } from 'vuex-class';
 const juju = namespace('juju');
 
+import { Dir, readTextFile } from 'tauri/api/fs';
+import Yaml from 'js-yaml';
+
 @Component({
   components: {
     JujuLoading,
@@ -87,6 +99,14 @@ export default class Controllers extends Vue {
   @juju.Action(actionTypes.deleteController) runDeleteController!: (
     name: string
   ) => void;
+
+  @juju.Action(actionTypes.updateController) updateController!: ({
+    name,
+    controller
+  }: {
+    name: string;
+    controller: Controller;
+  }) => Promise<undefined>;
 
   get tab(): string {
     return 'controllers';
@@ -132,6 +152,77 @@ export default class Controllers extends Vue {
           timeout: 2000
         });
       });
+  }
+
+  async loadFromCli(): Promise<void> {
+    try {
+      console.debug('Loading `juju/accounts.yaml');
+      const accounts: any = Yaml.safeLoad(
+        await readTextFile('juju/accounts.yaml', { dir: Dir.LocalData })
+      );
+      console.debug('Loading `juju/controllers.yaml');
+      const controllers: any = Yaml.safeLoad(
+        await readTextFile('juju/controllers.yaml', { dir: Dir.LocalData })
+      );
+
+      for (const name in controllers.controllers) {
+        const controller = controllers.controllers[name];
+        // TODO: We only support one endpoint right now
+        const endpoint = controller['api-endpoints'][0];
+        const [host, port] = endpoint.split(':');
+
+        const username = accounts.controllers[name].user;
+        const password = accounts.controllers[name].password;
+
+        // If the controller doesn't already exist
+        if (
+          !Object.values(this.controllers).find(
+            x => x.host == host && x.port == port
+          )
+        ) {
+          console.debug(
+            'Adding controller:',
+            name,
+            host,
+            port,
+            username,
+            password
+          );
+
+          const controller: Controller = {
+            host,
+            port: parseInt(port),
+            username,
+            password,
+            // Set insecure to the selected value, or false if not in a Tauri app
+            insecure: port != '443',
+            models: {},
+            machines: {},
+            applications: {},
+            units: {},
+            charms: {}
+          };
+
+          this.updateController({ name, controller });
+        }
+      }
+
+      this.$q.notify({
+        type: 'positive',
+        message: 'Successfully imported Juju controllers from the CLI',
+        position: 'bottom-right',
+        timeout: 2000
+      });
+    } catch (e) {
+      console.log(e);
+
+      this.$q.notify({
+        type: 'negative',
+        message: 'Could not load local Juju controller information',
+        position: 'bottom-right',
+        timeout: 2000
+      });
+    }
   }
 }
 </script>

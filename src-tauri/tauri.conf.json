@@ -42,7 +42,7 @@
       "listFiles": false,
       "open": false,
       "readBinaryFile": false,
-      "readTextFile": false,
+      "readTextFile": true,
       "setTitle": false,
       "writeFile": false,
       "notification": true
