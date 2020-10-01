@@ -56,7 +56,6 @@ export default class LensLogWindow extends Vue {
   }) => void;
 
   async streamLogs(): Promise<void> {
-    console.log('ready');
     (this.$refs.term as any).write(
       (await window.tauriLoggingGetLogs())
         .map(this.formatLog.bind(this))

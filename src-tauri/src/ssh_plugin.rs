@@ -167,9 +167,11 @@ impl Plugin for SshPlugin {
             tauri::execute_promise(
               webview,
               move || {
-                let tcp_conn = std::net::TcpStream::connect(host)?;
+                let timeout = std::time::Duration::from_secs(10);
+                let tcp_conn = std::net::TcpStream::connect_timeout(&host.parse()?, timeout)?;
                 let mut session = ssh2::Session::new()?;
                 session.set_tcp_stream(tcp_conn);
+                session.set_timeout(timeout.as_millis() as u32);
                 session.handshake()?;
 
                 // Verify the host key

@@ -124,16 +124,7 @@ export default class FloatingTerminalWindow extends Vue {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.floatingWindow.unit['public-address'],
             hostKeys
-          ).catch(e => {
-            console.error(e);
-            this.$q.notify({
-              color: 'negative',
-              message: e,
-              position: 'bottom-right',
-              timeout: 2000
-            });
-            this.removeFloatingUnitWindow(this.floatingWindowId);
-          });
+          );
         }
       });
   }
@@ -179,6 +170,45 @@ export default class FloatingTerminalWindow extends Vue {
       })
       .catch((e: any) => {
         console.error(e);
+
+        // Show connection timeout info window
+        if (e.includes('timed out')) {
+          const LOCAL_STORAGE_DONT_SHOW =
+            'floatingTerminalWindow.dontShowTimeoutDialog';
+          const dontShow = window.appLocalStorage.getItem(
+            LOCAL_STORAGE_DONT_SHOW
+          );
+
+          if (dontShow != true) {
+            this.$q
+              .dialog({
+                title: 'SSH Timed Out',
+                message:
+                  'If you have just added a new controller and are trying to SSH into \
+                      one of its units, it may be that the controller has not yet \
+                      authorized Juju Lens to connect to your hosts. Try again in a couple \
+                      minutes.',
+                options: {
+                  type: 'checkbox',
+                  model: [],
+                  items: [
+                    {
+                      // eslint-disable-next-line quotes
+                      label: "Don't show again",
+                      value: 'dontShow',
+                      color: 'secondary'
+                    }
+                  ]
+                },
+                persistent: false
+              })
+              .onOk((dontShow: any) => {
+                if (dontShow.length > 0) {
+                  window.appLocalStorage.setItem(LOCAL_STORAGE_DONT_SHOW, true);
+                }
+              });
+          }
+        }
         this.$q.notify({
           color: 'negative',
           message: e,
