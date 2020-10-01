@@ -111,7 +111,7 @@ export default class FloatingTerminalWindow extends Vue {
         if (res.results[0].error) {
           console.error(res.results[0].error.message);
           this.$q.notify({
-            color: 'negative',
+            type: 'negative',
             message: res.results[0].error.message,
             position: 'bottom-right',
             timeout: 2000
@@ -146,7 +146,7 @@ export default class FloatingTerminalWindow extends Vue {
     this.session.onerror = (e: string) => {
       console.error(e);
       this.$q.notify({
-        color: 'negative',
+        type: 'negative',
         message: e,
         position: 'bottom-right',
         timeout: 2000
@@ -210,7 +210,7 @@ export default class FloatingTerminalWindow extends Vue {
           }
         }
         this.$q.notify({
-          color: 'negative',
+          type: 'negative',
           message: e,
           position: 'bottom-right',
           timeout: 2000
