@@ -30,7 +30,9 @@ export default class App extends Vue {
     }
 
     // Load the log filter
-    loadLogFilter();
+    if (window.__TAURI__) {
+      loadLogFilter();
+    }
 
     // Load the controllers from the local store
     await this.loadControllers();
