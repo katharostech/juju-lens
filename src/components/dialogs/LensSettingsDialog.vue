@@ -31,7 +31,8 @@
                 @click="
                   updateLensLogWindow({
                     minimized: false,
-                    activated: true
+                    activated: true,
+                    focus: true,
                   });
                   hide();
                 "
@@ -86,6 +87,7 @@ export default class LensSettingsDialog extends Vue {
     minimized?: boolean;
     maximized?: boolean;
     activated?: boolean;
+    focus?: boolean;
   }) => void;
 
   jujuLensVersion = jujuLensPackageInfo.version;
