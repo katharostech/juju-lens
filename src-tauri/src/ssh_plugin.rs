@@ -158,8 +158,8 @@ impl Plugin for SshPlugin {
           } => {
             trc::debug!(
               id = id.as_str(),
-              sensitive_user = user.as_str(),
-              sensitive_host = host.as_str(),
+              user = user.as_str(),
+              host = host.as_str(),
               "Creating SSH session"
             );
             let ssh_connections = self.ssh_connections.clone();
