@@ -7,6 +7,10 @@ Juju Lens is a new web GUI for the [Juju] orchestration tool with a beautiful in
 [juju]: https://jaas.ai/
 [jf]: https://discourse.juju.is/c/devel/ux-and-design
 
+## Try The Desktop App!
+
+Juju Lens has a new desktop application featuring instant, one-click SSH support. Read the announcement on the [Juju Forum](https://discourse.juju.is/t/juju-lens-v0-1-0-new-desktop-application-with-ssh-support/3613?u=zicklag) or check out our [releases](https://github.com/katharostech/juju-lens/releases) to download and try it out!
+
 ## Getting Started
 
 To get started, you don’t need to install anything! ( assuming you already have a Juju controller to connect to. ) Just go to the [Juju Lens App][juju_lens], add one or more controllers, and you’re all set. All data is stored locally in your browser, so if you access the Lens from a different browser you will have to re-add your controllers.
