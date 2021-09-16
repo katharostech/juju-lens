@@ -57,6 +57,10 @@ Juju Lens will show you all your models and units!
 
 ## Gallery
 
+**Demo Video:**
+
+https://user-images.githubusercontent.com/25393315/133692280-027e918f-0a82-4fee-95c4-2d187e49b53f.mp4
+
 **App unit view:**
 
 ![app unit view](./doc/screenshots/gallery/app-unit-view.png)
