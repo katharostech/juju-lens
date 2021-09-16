@@ -1,19 +1,16 @@
 # Juju Lens [![Build Status](https://cloud.drone.io/api/badges/katharostech/juju-lens/status.svg)](https://cloud.drone.io/katharostech/juju-lens)
 
-Juju Lens is a new web GUI for the [Juju] orchestration tool with a beautiful interface and support for multiple controllers. Juju Lens is under heavy development, but is usable right now ( see the Getting Started section below ). If you have any ideas or feedback let us know on the [Juju Forum][jf] by creating a topic in the [UX & Design category][jf]. You can also open a GitHub issue.
+Juju Lens is a new web GUI for the [Juju] orchestration tool with a beautiful interface and support for multiple controllers.
 
-![screenshot 1](./doc/screenshots/screenshot-1.png)
-
-[juju]: https://jaas.ai/
-[jf]: https://discourse.juju.is/c/devel/ux-and-design
+https://user-images.githubusercontent.com/25393315/133692280-027e918f-0a82-4fee-95c4-2d187e49b53f.mp4
 
 ## Try The Desktop App!
 
-Juju Lens has a new desktop application featuring instant, one-click SSH support. Read the announcement on the [Juju Forum](https://discourse.juju.is/t/juju-lens-v0-1-0-new-desktop-application-with-ssh-support/3613?u=zicklag) or check out our [releases](https://github.com/katharostech/juju-lens/releases) to download and try it out!
+Juju Lens has a desktop application featuring instant, one-click SSH support. Read the announcement on the [Juju Forum](https://discourse.juju.is/t/juju-lens-v0-1-0-new-desktop-application-with-ssh-support/3613?u=zicklag) or check out our [releases](https://github.com/katharostech/juju-lens/releases) to download and try it out!
 
 ## Getting Started
 
-To get started, you don’t need to install anything! ( assuming you already have a Juju controller to connect to. ) Just go to the [Juju Lens App][juju_lens], add one or more controllers, and you’re all set. All data is stored locally in your browser, so if you access the Lens from a different browser you will have to re-add your controllers.
+To get started, you don’t need to install anything! ( assuming you already have a Juju controller to connect to. ) Just go to the [Juju Lens Web App][juju_lens], add one or more controllers, and you’re all set. All data is stored locally in your browser, so if you access the Lens from a different browser you will have to re-add your controllers.
 
 [juju_lens]: https://juju-lens.katharostech.com
 
@@ -56,10 +53,6 @@ Juju Lens will show you all your models and units!
 [desktop_app]: https://github.com/katharostech/juju-lens/releases/tag/working-desktop-app
 
 ## Gallery
-
-**Demo Video:**
-
-https://user-images.githubusercontent.com/25393315/133692280-027e918f-0a82-4fee-95c4-2d187e49b53f.mp4
 
 **App unit view:**
 
